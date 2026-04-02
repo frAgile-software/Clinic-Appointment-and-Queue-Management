@@ -1,2 +1,15 @@
 # Terminology
-for good communication
+- Clinic (real world): a healthcare place registered in the national health facility register
+- Clinic (entity): a specific real world clinic that has staff, admins, and patients. Can take appointments and have a virtual queue(s)
+- Users: humans interacting with the platform
+	- Patient: someone who is looking for a clinic, booking/changing/attending an appointment, or waiting in a virtual queue.
+	- (Clinic) Staff: someone working at/for a clinic. Manages the active patient queue, patient statuses, and/or patient appointments
+		- Could be a doctor, nurse, receptionist, intern, etc.
+	- (Clinic) Admin: someone who has power to manage the clinic details and staff. Belongs to a specific facility
+	- (Platform) Admin: *not something we should worry about, until **everything** else is done at least*. Would have the ability to control all the clinics
+- (Virtual) Queue: a rolling list of patients who are being served at a specific clinic
+- Appointment: an agreement between a clinic and a patient to meet at a specific date and time
+- Patient status: waiting, in consultation, complete, etc.
+- Clinic directory (national): list of clinics sourced from the national health facility register
+- Clinic directory/list (page): a (currently hypothetical) page where users can see clinics using the platform
+- Platform/site/app: the website hosting the interactions between all of the above. Everything that is being coded here
