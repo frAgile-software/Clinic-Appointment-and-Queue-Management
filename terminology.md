@@ -1,6 +1,6 @@
 # Terminology
 - Clinic (real world): a healthcare place registered in the national health facility register
-- Clinic (entity): a specific real world clinic that has staff, admins, and patients. Can take appointments and have a virtual queue(s)
+- Clinic (entity): a specific real world clinic that has staff, admins, and patients. Can take appointments and have a virtual queue(s) through this platform
 - Users: humans interacting with the platform
 	- Patient: someone who is looking for a clinic, booking/changing/attending an appointment, or waiting in a virtual queue.
 	- (Clinic) Staff: someone working at/for a clinic. Manages the active patient queue, patient statuses, and/or patient appointments
