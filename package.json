@@ -1,0 +1,24 @@
+{
+  "name": "program",
+  "version": "1.0.0",
+  "description": "- This is frAgile Software's web app, created for our 3rd year Software Design project at WITS university :D.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm start --prefix client\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frAgile-software/Clinic-Appointment-and-Queue-Management.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/frAgile-software/Clinic-Appointment-and-Queue-Management/issues"
+  },
+  "homepage": "https://github.com/frAgile-software/Clinic-Appointment-and-Queue-Management#readme",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
