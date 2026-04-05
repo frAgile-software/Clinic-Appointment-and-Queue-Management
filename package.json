@@ -4,7 +4,7 @@
   "description": "- This is frAgile Software's web app, created for our 3rd year Software Design project at WITS university :D.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "concurrently \"npm test --prefix server\" \"CI=true npm test --prefix client\"",
     "dev": "concurrently \"npm run dev --prefix server\" \"npm start --prefix client\"",
     "setup": "npm ci && npm run setup:client && npm run setup:server",
     "setup:client": "cd client && npm ci",
