@@ -3,6 +3,7 @@
 
 ### Tips for running client and server
 
+- Install all dependencies: run `npm run setup` in root
 - To run both server and client locally at once, use `npm run dev` in the root directory. This will run 
     - `nodemon index.js` in /server, and 
     - `react-scripts start` in /client.
