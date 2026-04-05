@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"npm run dev --prefix server\" \"npm start --prefix client\""
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm start --prefix client\"",
+    "setup": "npm ci && npm run setup:client && npm run setup:server",
+    "setup:client": "cd client && npm ci",
+    "setup:server": "cd server && npm ci"
   },
   "repository": {
     "type": "git",
