@@ -10,6 +10,9 @@ on:
 
 jobs:
   build:
+    defaults:
+      run:
+        working-directory: ./client
 
     runs-on: ubuntu-latest
 
@@ -27,4 +30,4 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run build --if-present
-    - run: npm test
+    - run: CI=true npm test

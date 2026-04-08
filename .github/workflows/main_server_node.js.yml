@@ -4,12 +4,15 @@
 name: Server CI
 
 on:
-  pull_request:
+  push:
     branches-ignore: [ "main" ]
     paths: [ "server/**" ]
 
 jobs:
   build:
+    defaults:
+      run:
+        working-directory: ./server
 
     runs-on: ubuntu-latest
 
