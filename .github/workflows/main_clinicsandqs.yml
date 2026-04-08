@@ -11,7 +11,7 @@ on:
     branches:
       - main
     paths:
-      - $TARGET_SUBFOLDER/**
+      - ${{ TARGET_SUBFOLDER }}/**
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./$TARGET_SUBFOLDER
+        working-directory: ./${{ TARGET_SUBFOLDER }}
 
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ./$TARGET_SUBFOLDER
+          path: ./${{ TARGET_SUBFOLDER }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -70,5 +70,5 @@ jobs:
         with:
           app-name: 'ClinicsAndQs'
           slot-name: 'Production'
-          package: ./$TARGET_SUBFOLDER
+          package: ./${{ TARGET_SUBFOLDER }}
           
