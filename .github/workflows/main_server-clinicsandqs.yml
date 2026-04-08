@@ -3,15 +3,12 @@
 
 name: Build and deploy Node.js app to Azure Web App - server-ClinicsAndQs
 
-env:
-  TARGET_SUBFOLDER: server
-
 on:
   push:
     branches:
       - main
     paths:
-      - ${{ TARGET_SUBFOLDER }}/**
+      - server/**
   workflow_dispatch:
 
 jobs:
@@ -22,7 +19,7 @@ jobs:
       
     defaults:
       run:
-        working-directory: ./${{ TARGET_SUBFOLDER }}
+        working-directory: ./server
 
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ./${{ TARGET_SUBFOLDER }}
+          path: ./server
 
   deploy:
     runs-on: ubuntu-latest
@@ -70,5 +67,5 @@ jobs:
         with:
           app-name: 'server-ClinicsAndQs'
           slot-name: 'Production'
-          package: ./${{ TARGET_SUBFOLDER }}
+          package: ./server
           
