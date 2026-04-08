@@ -17,6 +17,8 @@ server.get("/api/hello", (req, res) => {
 });
 
 const port = process.env.PORT || 5000;
-server.listen(port, () => {
+const listener = server.listen(port, () => {
     console.log(`Running on port ${port}`);
 });
+
+module.exports = listener;
