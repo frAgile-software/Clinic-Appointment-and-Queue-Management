@@ -7,17 +7,19 @@ on:
   push:
     branches:
       - main
+    paths:
+      - client/**
   workflow_dispatch:
 
 jobs:
+  defaults:
+    run:
+      working-directory: ./client
+      
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
-    
-    defaults:
-      run:
-        working-directory: ./client
 
     steps:
       - uses: actions/checkout@v4
