@@ -1,24 +1,34 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import Landing from "./pages/Landing/Landing"
+import Login from "./pages/Login/Login"
+import Registration from "./pages/Registration/Registration"
+import AdminDashboard from "./pages/AdminDashboard/AdminDashboard"
+import StaffDashboard from "./pages/StaffDashboard/StaffDashboard"
+import PatientDashboard from "./pages/PatientDashboard/PatientDashboard"
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      {/* Navigation */}
+      <nav>
+        <Link to="/">Landing</Link>
+        <Link to="/login">Login</Link>
+        <Link to="/register">Registration</Link>
+        <Link to="/dashboard/admin">AdminDashboard</Link>
+        <Link to="/dashboard/staff">StaffDashboard</Link>
+        <Link to="/dashboard/patient">PatientDashboard</Link>
+      </nav>
+
+      {/* Routes */}
+      <Routes>
+        <Route path="/" element= { <Landing /> } />
+        <Route path="/login" element= { <Login /> } />
+        <Route path="/register" element= { <Registration /> } />
+        <Route path="/dashboard/admin" element= { <AdminDashboard /> } />
+        <Route path="/dashboard/staff" element= { <StaffDashboard /> } />
+        <Route path="/dashboard/patient" element= { <PatientDashboard /> } />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
