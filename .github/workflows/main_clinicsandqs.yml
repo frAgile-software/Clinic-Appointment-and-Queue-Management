@@ -6,9 +6,9 @@ name: Build and deploy Node.js app to Azure Web App - ClinicsAndQs
 on:
   push:
     branches:
-      - main
+      - [main]
     paths:
-      - client/**
+      - 'client/**'
   workflow_dispatch:
 
 jobs:
@@ -17,32 +17,35 @@ jobs:
     permissions:
       contents: read #This is required for actions/checkout
 
-    defaults:
-      run:
-        working-directory: ./client
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '24.x'
+          node-version: '24'
 
       - name: npm install, build, and test
         run: |
-          npm install
-          npm run build --if-present
+          npm ci
+          npm run build
           npm run test --if-present
+        working-directory: ./client
 
-      - name: copy node_modules into build
-        run: cp -r ./node_modules ./build/node_modules
+      - name: Package for deploy
+        run: |
+          mkdir -p deploy-frontend
+          cp -r client/build deploy-frontend/build
+          cp client/server.js deploy-frontend/server.js
+          cp client/package.json deploy-frontend/package.json
+          cp client/package-lock.json deploy-frontend/package-lock.json
+          cd deploy-frontend && npm ci
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ./client/build
+          path: ./deploy-frontend
 
   deploy:
     runs-on: ubuntu-latest
@@ -70,5 +73,5 @@ jobs:
         with:
           app-name: 'ClinicsAndQs'
           slot-name: 'Production'
-          package: .
+          package: ./deploy-frontend
           
