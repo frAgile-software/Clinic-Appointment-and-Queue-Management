@@ -35,14 +35,11 @@ jobs:
           npm run build --if-present
           npm run test --if-present
 
-      - name: copy node_modules into build
-        run: cp -r ./node_modules ./build/node_modules
-
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ./client/build
+          path: ./client
 
   deploy:
     runs-on: ubuntu-latest
