@@ -6,7 +6,7 @@ name: Build and deploy Node.js app to Azure Web App - ClinicsAndQs
 on:
   push:
     branches:
-      - [main]
+      - main
     paths:
       - 'client/**'
   workflow_dispatch:
