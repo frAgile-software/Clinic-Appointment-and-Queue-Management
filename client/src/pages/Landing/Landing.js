@@ -1,15 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
+
 import './Landing.css';
-
-
 
 function Landing() {
   const [search, setSearch] = useState('');
 
-
-
   const handleSearch = (e) => {
     e.preventDefault();
+  };
+
+  /*
+      Auth0 uses
+  */
+  const {
+    isLoading,
+    isAuthenticated,
+    error,
+    loginWithRedirect: login,
+    user,
+  } = useAuth0();
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      // TODO: ```route``` will be decided by user's role AND if they have completed registration.
+      const route = "/" //changes
+
+      navigate(`/${route}`)
+    }
+  }, [isLoading, isAuthenticated] );
+
+  const signup = () => {
+    login({ authorizationParams: { screen_hint: "signup" } });
   };
 
   return (
@@ -18,11 +43,11 @@ function Landing() {
       <nav className="landing-nav">
         <div className="landing-logo">CliniQ</div>
         <div className="landing-nav-btns">
-          <a href="/login">
-            <button className="btn">Login</button>
+          <a>
+            <button className="btn" onClick={login}>Login</button>
           </a>
-          <a href="/register">
-            <button className="btn btn-primary">Register</button>
+          <a>
+            <button className="btn btn-primary" onClick={signup}>Sign Up</button>
           </a>
         </div>
       </nav>
