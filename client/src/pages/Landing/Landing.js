@@ -43,12 +43,8 @@ function Landing() {
       <nav className="landing-nav">
         <div className="landing-logo">CliniQ</div>
         <div className="landing-nav-btns">
-          <a>
             <button className="btn" onClick={login}>Login</button>
-          </a>
-          <a>
             <button className="btn btn-primary" onClick={signup}>Sign Up</button>
-          </a>
         </div>
       </nav>
 
