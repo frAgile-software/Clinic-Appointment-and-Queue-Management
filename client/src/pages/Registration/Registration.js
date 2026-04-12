@@ -23,7 +23,7 @@ function Registration() {
     };
 
     return (
-        <body>
+        <main>
             <h1>Register</h1>
 
             <form data-testid="register-form" onSubmit={handleSubmit}>
@@ -74,7 +74,7 @@ function Registration() {
                     Continue
                 </button>
             </form>
-        </body>
+        </main>
     );
 }
 
