@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import App from './App';
 import StaffDashboard from './staffDashboard';
+
 test('renders clinic name and patient queue', () => {
  //tests here, refer to app.tests.js for example
     render(<StaffDashboard/>);
