@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./PatientDashboard.css";
+import { useAuth0 } from '@auth0/auth0-react';
 
 function PatientDashboard() {
   // 1. MOCK DATA: Simple data to populate the UI for Sprint 1
@@ -8,6 +9,15 @@ function PatientDashboard() {
     { id: 1, text: "Your appointment is confirmed for 10:30 AM", time: "09:00" },
     { id: 2, text: "Please update your profile details", time: "Yesterday" }
   ]);
+
+  const {
+    //user,
+    logout: auth0Logout,
+  } = useAuth0();
+
+  const logout = () => {
+    auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+  };
 
   return (
     <div className="dashboard-container">
@@ -24,7 +34,7 @@ function PatientDashboard() {
         </nav>
         <div className="header-actions">
           <button className="profile-btn">👤 Profile</button>
-          <button className="logout-btn">Logout</button>
+          <button className="logout-btn" onClick={logout}>Logout</button>
         </div>
       </header>
 
