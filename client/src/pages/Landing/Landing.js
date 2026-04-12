@@ -17,9 +17,9 @@ function Landing() {
   const {
     isLoading,
     isAuthenticated,
-    error,
+    //error,
     loginWithRedirect: login,
-    user,
+    //user,
   } = useAuth0();
 
   const navigate = useNavigate();
