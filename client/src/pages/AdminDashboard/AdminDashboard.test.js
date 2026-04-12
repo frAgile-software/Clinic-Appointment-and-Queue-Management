@@ -6,7 +6,7 @@ describe('AdminDashboard Component', () => {
 
   test('renders navbar elements', () => {
     render(
-      
+      <AdminDashboard />
     );
 
     // Check nav buttons
@@ -19,6 +19,7 @@ describe('AdminDashboard Component', () => {
   
   test('renders top section content', () => {
     render(
+        <AdminDashboard />
       
     );
 
