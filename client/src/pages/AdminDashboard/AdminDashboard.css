@@ -1,0 +1,121 @@
+.dashboard {
+  font-family: Arial, sans-serif;
+  background-color: lightblue;
+}
+#navCliniQ{
+    display:flex;
+    justify-content: flex-start;
+    flex-direction: row;
+}
+#top_section {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background-color: lightblue;
+  padding: 20px;
+}
+.nav{
+    display:flex;
+    align-items: center;
+    gap: 15px;
+}
+.nav_button{
+    display: inline-block;
+    text-decoration: none;
+    color: black;
+    padding: 10px 20px;
+    background-color: transparent;
+
+}
+.nav_button:hover {
+    background-color: lightgray;
+    cursor: pointer;
+}
+
+
+.navbar {
+  display:flex;
+  justify-content: space-between;
+  flex-direction: row;
+  align-items: center;
+  padding: 10px 20px;
+  background-color:white;
+  color: black;
+  border: 2px solid black;
+}
+
+.section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid black;
+}
+
+.clinic_list {
+  list-style-type: none;
+  padding: 0;
+}
+button{
+    cursor: pointer;
+}
+#dropdown_content_clinic {
+  position: absolute;
+  display: none;
+  background-color: gainsboro;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+.dropdown_item{/* Style for items in dropdown */
+    background-color: transparent;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+}
+#dropdown_clinic:hover #dropdown_content_clinic{/* Style for button that shows dropdown */
+    display:block;
+
+}
+#dropdown_content_staff {
+  position: absolute;
+  display: none;
+  background-color: gainsboro;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+#dropdown_staff:hover #dropdown_content_staff{/* Style for button that shows dropdown */
+    display:block;
+
+}
+#dropdown_content_stats {
+  position: absolute;
+  display: none;
+  background-color: gainsboro;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+#dropdown_stats:hover #dropdown_content_stats{/* Style for button that shows dropdown */
+    display:block;
+
+}
+footer{
+    background-color: lightblue;
+    margin: 100px 0;
+}
+
+#dropdown_content_clinicList {
+  position: absolute;
+  display: none;
+  background-color: gainsboro;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  
+}
+
+#dropdown_clinicList:hover #dropdown_content_clinicList{/* Style for button that shows dropdown */
+    display:flex;
+    align-items: center;
+
+}
+footer{
+    background-color: lightblue;
+    margin: 100px 0;
+}
