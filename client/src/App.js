@@ -1,18 +1,25 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import Landing from "./pages/Landing/Landing"
-import Login from "./pages/Login/Login"
-import Registration from "./pages/Registration/Registration"
-import AdminDashboard from "./pages/AdminDashboard/AdminDashboard"
-import StaffDashboard from "./pages/StaffDashboard/StaffDashboard"
-import PatientDashboard from "./pages/PatientDashboard/PatientDashboard"
+import { BrowserRouter, Routes, Route, Link, Navigate} from 'react-router';
+import { useAuth0 } from '@auth0/auth0-react';
+
+import Landing from           "./pages/Landing/Landing"
+import Registration from      "./pages/Registration/Registration"
+import AdminDashboard from    "./pages/AdminDashboard/AdminDashboard"
+import StaffDashboard from    "./pages/StaffDashboard/StaffDashboard"
+import PatientDashboard from  "./pages/PatientDashboard/PatientDashboard"
 
 function App() {
+  const ProtectedRoute = ({ children }) => {
+    const { isAuthenticated } = useAuth0();
+
+    if (!isAuthenticated) return <Navigate to="/" replace />;
+    return children;
+  };
+
   return (
     <BrowserRouter>
       {/* Navigation */}
       <nav>
         <Link to="/">Landing</Link>
-        <Link to="/login">Login</Link>
         <Link to="/register">Registration</Link>
         <Link to="/dashboard/admin">AdminDashboard</Link>
         <Link to="/dashboard/staff">StaffDashboard</Link>
@@ -22,11 +29,20 @@ function App() {
       {/* Routes */}
       <Routes>
         <Route path="/" element= { <Landing /> } />
-        <Route path="/login" element= { <Login /> } />
         <Route path="/register" element= { <Registration /> } />
-        <Route path="/dashboard/admin" element= { <AdminDashboard /> } />
-        <Route path="/dashboard/staff" element= { <StaffDashboard /> } />
-        <Route path="/dashboard/patient" element= { <PatientDashboard /> } />
+        <Route path="/dashboard/admin" element= { 
+          <ProtectedRoute>
+            <AdminDashboard /> 
+          </ProtectedRoute>
+          } />
+        <Route path="/dashboard/staff" element= { 
+          <ProtectedRoute>
+            <StaffDashboard /> 
+          </ProtectedRoute>} />
+        <Route path="/dashboard/patient" element= { 
+          <ProtectedRoute>
+            <PatientDashboard /> 
+          </ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
