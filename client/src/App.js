@@ -1,9 +1,9 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import Landing from "./pages/Landing/Landing"
-import Registration from "./pages/Registration/Registration"
-import AdminDashboard from "./pages/AdminDashboard/AdminDashboard"
-import StaffDashboard from "./pages/StaffDashboard/StaffDashboard"
-import PatientDashboard from "./pages/PatientDashboard/PatientDashboard"
+import { BrowserRouter, Routes, Route, Link } from 'react-router';
+import Landing from           "./pages/Landing/Landing"
+import Registration from      "./pages/Registration/Registration"
+import AdminDashboard from    "./pages/AdminDashboard/AdminDashboard"
+import StaffDashboard from    "./pages/StaffDashboard/StaffDashboard"
+import PatientDashboard from  "./pages/PatientDashboard/PatientDashboard"
 
 function App() {
   return (

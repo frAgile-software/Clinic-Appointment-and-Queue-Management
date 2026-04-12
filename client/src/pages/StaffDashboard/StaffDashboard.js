@@ -1,5 +1,5 @@
 import React from 'react';
-import './staffDashboard.css'; // Ensure this filename matches exactly (case-sensitive on WSL/Linux)
+import './StaffDashboard.css'; // Ensure this filename matches exactly (case-sensitive on WSL/Linux)
 import { LuBell } from "react-icons/lu";
 
 const patientQueue = [
