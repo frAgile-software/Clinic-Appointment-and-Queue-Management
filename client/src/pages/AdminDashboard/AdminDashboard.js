@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import './AdminDashboard.css';
 import bell from './bell.png';
 import logo from './clinicLogo.png';
