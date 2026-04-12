@@ -2,14 +2,25 @@ import { Link } from 'react-router';
 import './AdminDashboard.css';
 import bell from './bell.png';
 import logo from './clinicLogo.png';
+import { useAuth0 } from '@auth0/auth0-react';
+
 function AdminDashboard() {
+    const {
+        logout: auth0Logout,
+        //user,
+    } = useAuth0();
+
+    const logout = () => {
+        auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+    };
+
   return (
     <main className="dashboard">
     <header className="navbar">
         <h2 id="navCliniQ">CliniQ</h2>
       <nav className="nav">
           <Link to="/" className="nav_button">Profile</Link>{/*profile page not implemented*/}
-          <Link to="/" className="nav_button">Log Out</Link>
+          <button className="nav_button" onClick={logout}>Log Out</button>
           <img src={bell} width={50} height={50} alt="notification bell" className="nav_button"></img>
         </nav>
       
