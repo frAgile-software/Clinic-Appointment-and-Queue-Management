@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Landing from "./pages/Landing/Landing"
-import Login from "./pages/Login/Login"
 import Registration from "./pages/Registration/Registration"
 import AdminDashboard from "./pages/AdminDashboard/AdminDashboard"
 import StaffDashboard from "./pages/StaffDashboard/StaffDashboard"
@@ -12,7 +11,6 @@ function App() {
       {/* Navigation */}
       <nav>
         <Link to="/">Landing</Link>
-        <Link to="/login">Login</Link>
         <Link to="/register">Registration</Link>
         <Link to="/dashboard/admin">AdminDashboard</Link>
         <Link to="/dashboard/staff">StaffDashboard</Link>
@@ -22,7 +20,6 @@ function App() {
       {/* Routes */}
       <Routes>
         <Route path="/" element= { <Landing /> } />
-        <Route path="/login" element= { <Login /> } />
         <Route path="/register" element= { <Registration /> } />
         <Route path="/dashboard/admin" element= { <AdminDashboard /> } />
         <Route path="/dashboard/staff" element= { <StaffDashboard /> } />
