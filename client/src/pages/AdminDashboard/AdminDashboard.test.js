@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import AdminDashboard from './AdminDashboard';
-import { BrowserRouter } from 'react-router-dom'
+
 
 describe('AdminDashboard Component', () => {
 
