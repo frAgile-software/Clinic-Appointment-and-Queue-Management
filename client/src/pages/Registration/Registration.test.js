@@ -1,10 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import Registration from './Registration';
 import '@testing-library/jest-dom';
+import { MemoryRouter } from 'react-router';
 
 describe('<Registration />', () => {
     beforeEach(() => {
-        render(<Registration />);
+        render(
+            <MemoryRouter>
+                <Registration />
+            </MemoryRouter>
+        );
     });
 
     it('should render the registration form', () => {

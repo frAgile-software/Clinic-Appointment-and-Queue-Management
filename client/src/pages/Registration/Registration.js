@@ -1,13 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 
 function Registration() {
     const [userType, setUserType] = React.useState('patient');
+    const navigate = useNavigate();
 
     const handleSubmit = (event) => {
         event.preventDefault();
 
         const registrationData = {
-            // OAuth token thing?
             userType,
         };
 
@@ -19,7 +20,7 @@ function Registration() {
             admin: '/dashboard/admin',
         };
 
-        window.location.href = redirectMap[userType] || '/';
+        navigate(redirectMap[userType] || '/');
     };
 
     return (
