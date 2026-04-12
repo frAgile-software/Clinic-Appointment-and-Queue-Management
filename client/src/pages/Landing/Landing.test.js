@@ -1,8 +1,13 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Landing from './Landing';
+import { MemoryRouter } from 'react-router';
 
-const renderLanding = () => render(<Landing />);
+const renderLanding = () => render(
+  <MemoryRouter>
+    <Landing />
+  </MemoryRouter>
+);
 
 describe('Layout', () => {
   test('renders the site name', () => {
@@ -15,19 +20,9 @@ describe('Layout', () => {
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
   });
 
-  test('renders a Register button', () => {
+  test('renders a Signup button', () => {
     renderLanding();
-    expect(screen.getByRole('button', { name: /register/i })).toBeInTheDocument();
-  });
-
-  test('Login button links to /login', () => {
-    renderLanding();
-    expect(screen.getByRole('link', { name: /login/i })).toHaveAttribute('href', '/login');
-  });
-
-  test('Register button links to /register', () => {
-    renderLanding();
-    expect(screen.getByRole('link', { name: /register/i })).toHaveAttribute('href', '/register');
+    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
   });
 
   test('renders the hero heading', () => {
