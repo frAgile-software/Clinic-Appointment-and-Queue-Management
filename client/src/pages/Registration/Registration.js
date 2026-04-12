@@ -30,7 +30,7 @@ function Registration() {
                 <fieldset>
                     <legend>I am a</legend>
 
-                    <label for="patient">
+                    <label htmlFor="patient">
                         <input
                             type="radio"
                             id="patient"
@@ -43,7 +43,7 @@ function Registration() {
                         Patient
                     </label>
 
-                    <label for="staff">
+                    <label htmlFor="staff">
                         <input
                             type="radio"
                             id="staff"
@@ -56,7 +56,7 @@ function Registration() {
                         Staff
                     </label>
 
-                    <label for="admin">
+                    <label htmlFor="admin">
                         <input
                             type="radio"
                             id="admin"
