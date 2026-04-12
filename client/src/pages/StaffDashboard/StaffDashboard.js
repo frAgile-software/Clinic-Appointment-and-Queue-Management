@@ -1,6 +1,7 @@
 import React from 'react';
 import './StaffDashboard.css'; // Ensure this filename matches exactly (case-sensitive on WSL/Linux)
 import { LuBell } from "react-icons/lu";
+import { useAuth0 } from '@auth0/auth0-react';
 
 const patientQueue = [
   { id: "p1", name: "Jane Smith", time: "08:15 AM", reason: "Flu Shot", status: "In Progress" },
@@ -9,13 +10,22 @@ const patientQueue = [
 ];
 
 function StaffDashboard() {
+  const {
+    //user,
+    logout: auth0Logout,
+  } = useAuth0();
+
+  const logout = () => {
+        auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+  };
+
   return (
     <>
       <header className="staff-header">
         <div className="logo">ClinIQ</div>
         <nav className="nav-links">
           <button className="nav-btn">Profile</button>
-          <button className="nav-btn">Logout</button>
+          <button className="nav-btn" onClick={logout}>Logout</button>
           <button className="icon-btn" aria-label="Notifications"><LuBell /></button>
         </nav>
       </header>
