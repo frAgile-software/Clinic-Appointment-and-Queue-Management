@@ -31,7 +31,7 @@ function Landing() {
 
       navigate(`/${route}`)
     }
-  }, [isLoading, isAuthenticated] );
+  }, [isLoading, isAuthenticated, navigate] );
 
   const signup = () => {
     login({ authorizationParams: { screen_hint: "signup" } });
