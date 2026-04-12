@@ -6,9 +6,7 @@ describe('AdminDashboard Component', () => {
 
   test('renders navbar elements', () => {
     render(
-      <BrowserRouter>
-        <AdminDashboard />
-      </BrowserRouter>
+      
     );
 
     // Check nav buttons
@@ -21,9 +19,7 @@ describe('AdminDashboard Component', () => {
   
   test('renders top section content', () => {
     render(
-      <BrowserRouter>
-        <AdminDashboard />
-      </BrowserRouter>
+      
     );
 
     expect(

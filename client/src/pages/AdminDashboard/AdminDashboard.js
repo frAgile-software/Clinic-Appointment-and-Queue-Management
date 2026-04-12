@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+
 import './AdminDashboard.css';
 import bell from './bell.png';
 import logo from './clinicLogo.png';
@@ -8,8 +8,8 @@ function AdminDashboard() {
     <header className="navbar">
         <h2 id="navCliniQ">CliniQ</h2>
       <nav className="nav">
-          <Link to="/" className="nav_button">Profile</Link>{/*profile page not implemented*/}
-          <Link to="/" className="nav_button">Log Out</Link>
+          <a href="/" className="nav_button">Profile</a>{/*profile page not implemented*/}
+          <a href="/" className="nav_button">Log Out</a>
           <img src={bell} width={50} height={50} alt="notification bell" className="nav_button"></img>
         </nav>
       
@@ -81,7 +81,7 @@ function AdminDashboard() {
                 <section id="dropdown_content_stats">
                     <ul className="clinic_list">
                         <li className="dropdown_item"><button>View CVS</button></li>
-                        <li className="dropdown_item"><button>Download CVS</button></li>
+                        <li className="dropdown_item"><button>Download CSV</button></li>
                         <li className="dropdown_item"><button>Download PDF</button></li>
                     </ul>
             </section>
