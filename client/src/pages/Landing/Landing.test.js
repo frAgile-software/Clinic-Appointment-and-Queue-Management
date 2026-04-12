@@ -1,15 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
 import Landing from './Landing';
 
-const renderLanding = () =>
-  render(
-    <BrowserRouter>
-      <Landing />
-    </BrowserRouter>
-  );
-
+const renderLanding = () => render(<Landing />);
 
 describe('Layout', () => {
   test('renders the site name', () => {
