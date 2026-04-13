@@ -1,13 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 
 function Registration() {
     const [userType, setUserType] = React.useState('patient');
+    const navigate = useNavigate();
 
     const handleSubmit = (event) => {
         event.preventDefault();
 
         const registrationData = {
-            // OAuth token thing?
             userType,
         };
 
@@ -19,18 +20,18 @@ function Registration() {
             admin: '/dashboard/admin',
         };
 
-        window.location.href = redirectMap[userType] || '/';
+        navigate(redirectMap[userType] || '/');
     };
 
     return (
-        <body>
+        <main>
             <h1>Register</h1>
 
             <form data-testid="register-form" onSubmit={handleSubmit}>
                 <fieldset>
                     <legend>I am a</legend>
 
-                    <label for="patient">
+                    <label htmlFor="patient">
                         <input
                             type="radio"
                             id="patient"
@@ -43,7 +44,7 @@ function Registration() {
                         Patient
                     </label>
 
-                    <label for="staff">
+                    <label htmlFor="staff">
                         <input
                             type="radio"
                             id="staff"
@@ -56,7 +57,7 @@ function Registration() {
                         Staff
                     </label>
 
-                    <label for="admin">
+                    <label htmlFor="admin">
                         <input
                             type="radio"
                             id="admin"
@@ -74,7 +75,7 @@ function Registration() {
                     Continue
                 </button>
             </form>
-        </body>
+        </main>
     );
 }
 
