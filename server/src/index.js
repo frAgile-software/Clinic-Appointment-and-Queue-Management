@@ -1,5 +1,8 @@
 const express = require("express");
 const cors = require("cors");
+const dbConnect = require("./database/dbConnect")
+
+dbConnect();
 
 const server = express();
 
