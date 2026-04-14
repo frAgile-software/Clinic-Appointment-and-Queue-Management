@@ -1,14 +1,14 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - server-ClinicsAndQs
+name: Build and deploy client/
 
 on:
   push:
     branches:
       - main
     paths:
-      - server/**
+      - 'client/**'
   workflow_dispatch:
 
 jobs:
@@ -16,10 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
-      
-    defaults:
-      run:
-        working-directory: ./server
 
     steps:
       - uses: actions/checkout@v4
@@ -32,14 +28,24 @@ jobs:
       - name: npm install, build, and test
         run: |
           npm ci
-          npm run build --if-present
+          npm run build
           npm run test --if-present
+        working-directory: ./client
+
+      - name: Package for deploy
+        run: |
+          mkdir -p deploy-frontend
+          cp -r client/build deploy-frontend/build
+          cp client/server.js deploy-frontend/server.js
+          cp client/package.json deploy-frontend/package.json
+          cp client/package-lock.json deploy-frontend/package-lock.json
+          cd deploy-frontend && npm ci
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ./server
+          path: ./deploy-frontend
 
   deploy:
     runs-on: ubuntu-latest
@@ -57,15 +63,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_6B068FEDDF894FEA9A75DFC862C672ED }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_40733B3B22B540D5A57A7C28355CDBFD }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_622591426CCB42DDBBBAC0648CC770C6 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9CAD2ACCCD1848E492ABDA21AC2363C1 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_3459F97F3405471492C900A611812730 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9E06FFC97DC246E7AB86476BAB58D5B1 }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'server-ClinicsAndQs'
+          app-name: 'ClinicsAndQs'
           slot-name: 'Production'
           package: .
           
