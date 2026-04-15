@@ -8,6 +8,6 @@ const appointmentSchema = new Schema({
     BookingDateTime: {type: Date, required: true},
     Speciality: {type: Schema.Types.ObjectId, ref: "Speciality", required: true}    // FK - reason changed to speciality 
     // can add a comment field for patients to add more details?
-});
+}, { timestamps: true });   // has createdAt and updatedAt fields, useful info for patient and staff to have
 
 export default mongoose.model('Appointment', appointmentSchema);
