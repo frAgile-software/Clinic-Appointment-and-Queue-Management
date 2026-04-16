@@ -29,3 +29,4 @@ const listener = server.listen(port, () => {
 });
 
 module.exports = listener;
+module.exports = server;

@@ -1,18 +1,37 @@
-let server;
+/**
+ * TEST SUITE: Server Integrity
+ * Description: Verifies core API availability and server initialization.
+ * Mocking: Database connection is mocked to bypass MONGODB_URI requirements during CI.
+ */
 
-beforeAll(() => {
-    server = require("./index");
-});
+// 1. Mock database connection BEFORE requiring the server
+jest.mock('./database/dbConnect', () => jest.fn(() => Promise.resolve()));
 
-afterAll((done) => {
-    server.close(done);
-});
+const request = require('supertest');
+const app = require('./index'); // This imports the Express app instance
 
-test('Test test', () => {
-    const yep = true;
-    expect(yep).toBe(true);
-});
+describe('Index Integrity Tests', () => {
+    
+    /**
+     * Clean up: Ensure the server closes after tests finish.
+     * This prevents Jest from hanging due to open handles.
+     */
+    afterAll((done) => {
+        if (app && app.close) {
+            app.close(done);
+        } else {
+            done();
+        }
+    });
 
-test('Index exists', () => {
-    expect(server).toBeDefined();
+    test('GET /api/hello should return 200 and greeting', async () => {
+        const res = await request(app).get('/api/hello');
+        
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toHaveProperty('message', 'Hello world!');
+    });
+
+    test('Server instance should be defined and exported', () => {
+        expect(app).toBeDefined();
+    });
 });
