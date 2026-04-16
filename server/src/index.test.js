@@ -1,21 +1,26 @@
-// 1. Mock the database connection to avoid URI errors
 jest.mock('./database/dbConnect', () => jest.fn(() => Promise.resolve()));
 
 const request = require('supertest');
-const app = require('./index'); // This is your Express app instance
+const app = require('./index');
 
 describe('Server Basic Integrity', () => {
 
-    test('GET /api/hello returns 200 and JSON message', async () => {
-        // Supertest starts and stops the app on a temporary port automatically
+    // THIS IS THE CRITICAL ADDITION
+    afterAll((done) => {
+        if (app.listener) {
+            app.listener.close(done); // Close the port handle
+        } else {
+            done();
+        }
+    });
+
+    test('Health Check: GET /api/hello returns 200', async () => {
         const res = await request(app).get('/api/hello');
-        
         expect(res.statusCode).toEqual(200);
         expect(res.body).toHaveProperty('message', 'Hello world!');
     });
 
-    test('The app instance is correctly exported', () => {
+    test('App instance is properly initialized', () => {
         expect(app).toBeDefined();
     });
-
 });

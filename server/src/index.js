@@ -23,11 +23,15 @@ server.get("/api/hello", (req, res) => {
     res.json({message : "Hello world!"});
 });
 
+// ... (your existing imports and middleware)
 
 const port = process.env.PORT || 5000;
 
+// Capture the listener in a variable
 const listener = server.listen(port, () => {
     console.log(`Running on port ${port}`);
 });
 
+// Export both the app AND the listener
 module.exports = server;
+module.exports.listener = listener;
