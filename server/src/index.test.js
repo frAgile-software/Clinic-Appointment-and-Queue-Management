@@ -1,37 +1,21 @@
-/**
- * TEST SUITE: Server Integrity
- * Description: Verifies core API availability and server initialization.
- * Mocking: Database connection is mocked to bypass MONGODB_URI requirements during CI.
- */
-
-// 1. Mock database connection BEFORE requiring the server
+// 1. Mock the database connection to avoid URI errors
 jest.mock('./database/dbConnect', () => jest.fn(() => Promise.resolve()));
 
 const request = require('supertest');
-const app = require('./index'); // This imports the Express app instance
+const app = require('./index'); // This is your Express app instance
 
-describe('Index Integrity Tests', () => {
-    
-    /**
-     * Clean up: Ensure the server closes after tests finish.
-     * This prevents Jest from hanging due to open handles.
-     */
-    afterAll((done) => {
-        if (app && app.close) {
-            app.close(done);
-        } else {
-            done();
-        }
-    });
+describe('Server Basic Integrity', () => {
 
-    test('GET /api/hello should return 200 and greeting', async () => {
+    test('GET /api/hello returns 200 and JSON message', async () => {
+        // Supertest starts and stops the app on a temporary port automatically
         const res = await request(app).get('/api/hello');
         
         expect(res.statusCode).toEqual(200);
         expect(res.body).toHaveProperty('message', 'Hello world!');
     });
 
-    test('Server instance should be defined and exported', () => {
+    test('The app instance is correctly exported', () => {
         expect(app).toBeDefined();
     });
+
 });
