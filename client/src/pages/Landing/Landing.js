@@ -56,7 +56,7 @@ function Landing() {
     };
 
     verifyUserRole();
-  }, [isLoading, isAuthenticated, user, navigate]);
+  }, [isLoading, isAuthenticated, user, navigate, apiFetch]);
 
   const signup = () => {
     login({ authorizationParams: { screen_hint: "signup" } });
