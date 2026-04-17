@@ -28,7 +28,6 @@ describe('<Registration />', () => {
     });
 
     it('should show the registration heading', () => {
-        // Updated to match the new heading text
         expect(screen.getByRole('heading', { name: /complete your profile/i })).toBeInTheDocument();
     });
 

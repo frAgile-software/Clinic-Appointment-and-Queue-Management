@@ -5,10 +5,9 @@ const app = require('./index');
 
 describe('Server Basic Integrity', () => {
 
-    // THIS IS THE CRITICAL ADDITION
     afterAll((done) => {
         if (app.listener) {
-            app.listener.close(done); // Close the port handle
+            app.listener.close(done);
         } else {
             done();
         }
