@@ -19,7 +19,7 @@ export const useApiAuth = () => {
             },
         });
 
-        return response.json();
+        return response;
     }, [getAccessTokenSilently]);
 
     return {apiFetch};
