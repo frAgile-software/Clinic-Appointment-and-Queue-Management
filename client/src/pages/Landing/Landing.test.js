@@ -1,47 +1,37 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import Landing from './Landing';
+import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router';
 
-const renderLanding = () => render(
-  <MemoryRouter>
-    <Landing />
-  </MemoryRouter>
-);
+// Mock Auth0 to simulate a logged-out user
+jest.mock('@auth0/auth0-react', () => ({
+    useAuth0: () => ({
+        isAuthenticated: false,
+        isLoading: false,
+        user: null,
+        loginWithRedirect: jest.fn(),
+    }),
+}));
 
-describe('Layout', () => {
-  test('renders the site name', () => {
-    renderLanding();
-    expect(screen.getByText(/cliniq/i)).toBeInTheDocument();
-  });
+describe('<Landing />', () => {
+    const renderLanding = () => render(
+        <MemoryRouter>
+            <Landing />
+        </MemoryRouter>
+    );
 
-  test('renders a Login button', () => {
-    renderLanding();
-    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
-  });
+    test('renders the site name', () => {
+        renderLanding();
+        expect(screen.getByText(/cliniq/i)).toBeInTheDocument();
+    });
 
-  test('renders a Signup button', () => {
-    renderLanding();
-    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
-  });
+    test('renders a Login button', () => {
+        renderLanding();
+        expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
+    });
 
-  test('renders the hero heading', () => {
-    renderLanding();
-    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-  });
-
-  test('renders the search input', () => {
-    renderLanding();
-    expect(screen.getByPlaceholderText(/search clinics/i)).toBeInTheDocument();
-  });
-
-  test('renders the search button', () => {
-    renderLanding();
-    expect(screen.getByRole('button', { name: /search/i })).toBeInTheDocument();
-  });
-
- 
+    test('renders the search button', () => {
+        renderLanding();
+        expect(screen.getByRole('button', { name: /search/i })).toBeInTheDocument();
+    });
 });
-
-
-

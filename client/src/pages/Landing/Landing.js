@@ -6,36 +6,68 @@ import './Landing.css';
 
 function Landing() {
   const [search, setSearch] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false); // Tracks our backend check
 
   const handleSearch = (e) => {
     e.preventDefault();
   };
 
-  /*
-      Auth0 uses
-  */
   const {
     isLoading,
     isAuthenticated,
-    //error,
     loginWithRedirect: login,
-    //user,
+    user, // We must extract the user object to get their Auth0 ID
   } = useAuth0();
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      // TODO: ```route``` will be decided by user's role AND if they have completed registration.
-      const route = "/" //changes
+    const verifyUserRole = async () => {
+      // Only fire if Auth0 has finished loading and confirmed they are logged in
+      if (!isLoading && isAuthenticated && user) {
+        setIsVerifying(true);
+        try {
+          // 1. Query our database for this specific Auth0 ID
+          const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/user/${user.sub}`);
 
-      navigate(`/${route}`)
-    }
-  }, [isLoading, isAuthenticated, navigate] );
+          if (response.ok) {
+            // 2. User exists. Grab their role and route them.
+            const data = await response.json();
+            const redirectMap = {
+                Patient: '/dashboard/patient',
+                Staff: '/dashboard/staff',
+                Admin: '/dashboard/admin',
+            };
+            navigate(redirectMap[data.role] || '/');
+          } else if (response.status === 404) {
+            // 3. User authenticated via Auth0, but is not in our MongoDB yet.
+            navigate('/register');
+          } else {
+            console.error("Failed to verify user profile.");
+            setIsVerifying(false);
+          }
+        } catch (error) {
+          console.error("Network error during verification:", error);
+          setIsVerifying(false);
+        }
+      }
+    };
+
+    verifyUserRole();
+  }, [isLoading, isAuthenticated, user, navigate]);
 
   const signup = () => {
     login({ authorizationParams: { screen_hint: "signup" } });
   };
+
+  // Prevent the page from flashing the main layout while verifying credentials
+  if (isLoading || isVerifying) {
+    return (
+      <div className="landing" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <h2>Verifying credentials...</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="landing">
@@ -48,7 +80,6 @@ function Landing() {
         </div>
       </nav>
 
-    
       <div className="landing-hero">
         <h1>Skip the queue. Book online.</h1>
         <p>Find a clinic near you and reserve your slot in minutes.</p>
@@ -62,8 +93,6 @@ function Landing() {
           <button type="submit">Search</button>
         </form>
       </div>
-
-      
 
     </div>
   );
