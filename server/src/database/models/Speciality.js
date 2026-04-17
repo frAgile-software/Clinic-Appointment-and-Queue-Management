@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
-const Speciality = new Schema({
-  
+const specialitySchema = new Schema({
+    SpecialityName: { type: Schema.Types.String, ref: 'SpecialityName', required: true}
 });
 
-export default Speciality;
+export default mongoose.model('Speciality', specialitySchema);
