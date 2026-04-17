@@ -6,4 +6,4 @@ const StaffSpeciality = new Schema({
   Speciality:{ type: Schema.Types.ObjectId, ref: 'Speciality' } //Fk
 });
 
-export default StaffSpeciality;
+export default mongoose.model('StaffSpeciality', StaffSpeciality);
