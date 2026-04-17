@@ -22,7 +22,7 @@ server.use("/api/register", registerRoute);
 server.use("/api/user", userRoute);
 
 //example api implementation
-server.get("/api/hello", (req, res) => {
+server.get("/hello", (req, res) => {
     res.json({message : "Hello world!"});
 });
 
