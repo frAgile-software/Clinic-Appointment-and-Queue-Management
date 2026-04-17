@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 
 import './Landing.css';
+import { useApiAuth } from '../../hooks/apiAuth';
 
 function Landing() {
   const [search, setSearch] = useState('');
   const [isVerifying, setIsVerifying] = useState(false); // Tracks our backend check
+  const {apiFetch} = useApiAuth();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -28,7 +30,7 @@ function Landing() {
         setIsVerifying(true);
         try {
           // 1. Query our database for this specific Auth0 ID
-          const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/user/${user.sub}`);
+          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/user/${user.sub}`);
 
           if (response.ok) {
             // 2. User exists. Grab their role and route them.
