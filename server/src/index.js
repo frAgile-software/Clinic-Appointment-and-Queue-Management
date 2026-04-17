@@ -3,7 +3,7 @@ const cors = require("cors");
 const dbConnect = require("./database/dbConnect")
 const registerRoute = require("../routes/register");
 const userRoute = require("../routes/user");
-const { requireAuth } = require('./middleware/auth');
+import { requireAuth } from "./middleware/auth";
 
 dbConnect();
 
