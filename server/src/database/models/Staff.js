@@ -1,4 +1,4 @@
-import mongoose, { Mongoose } from 'mongoose';
+import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 // Used to link admin and staff to a clinic
