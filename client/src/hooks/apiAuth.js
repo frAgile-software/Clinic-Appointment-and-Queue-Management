@@ -1,12 +1,13 @@
 import { useAuth0 } from '@auth0/auth0-react';
+import { useCallback } from 'react';
 
 export const useApiAuth = () => {
     const { getAccessTokenSilently } = useAuth0();
 
     const apiFetch = useCallback(async (url, options = {}) => {
-        const token = getAccessTokenSilently({
+        const token = await getAccessTokenSilently({
             authorizationParams: {
-                audience: `${process.env.REACT_CLIENT_SERVER_URL}`,
+                audience: `${process.env.REACT_APP_SERVER_URL}`,
             },
         });
 
