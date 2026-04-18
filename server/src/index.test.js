@@ -14,13 +14,8 @@ jest.mock('express-oauth2-jwt-bearer', () => ({
     })
 }));
 
-jest.mock('./database/models/User', () => ({
-    findOne: jest.fn()
-}));
-
 const request = require('supertest');
 const app = require('./index');
-const User = require('./database/models/User');
 
 describe('Server Basic Integrity', () => {
 
@@ -42,4 +37,3 @@ describe('Server Basic Integrity', () => {
         expect(app).toBeDefined();
     });
 });
-
