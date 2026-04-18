@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dbConnect = require("./database/dbConnect")
 const { requireAuth } = require('./middleware/auth');
-const userRoute = require('./routes/user');
+const usersRoute = require('./routes/users');
 const clinicRoute = require('./routes/clinic');
 
 dbConnect();
@@ -18,7 +18,7 @@ server.use(express.json());
 // protect all '/api' routes
 server.get("/api", requireAuth);
 
-server.use(userRoute);
+server.use(usersRoute);
 server.use(clinicRoute);
 
 // hello mr api! :D
