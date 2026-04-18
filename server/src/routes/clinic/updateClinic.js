@@ -16,22 +16,23 @@ router.put("/:id", async (req, res) => {
         //validation
         if (!id) {
             console.log("Fail: Missing clinic ID");
-            return res.status(400).json({ error: "Missing clinic ID" });
+            return res.status(400).json({ message: "Missing clinic ID" });
         }
         console.log("2. Validation Passed");
         // Check if clinic exists and update
         const updatedClinic = await Clinic.findByIdAndUpdate(
             id, 
             updateData, 
-               
+
         );
         if (!updatedClinic) {
             console.log("Fail: Clinic not found");
-            return res.status(404).json({ error: "Clinic not found" });
+            return res.status(404).json({ message: "Clinic not found" });
         }
+        console.log("3. Clinic Updated Successfully");
     } catch (error) {
         console.error("Error updating clinic:", error);
-        res.status(500).json({ error: "Internal server error" });
+        res.status(500).json({ message: "Server error" });
     }
 });
 module.exports = router;
