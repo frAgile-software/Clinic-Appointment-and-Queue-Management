@@ -1,7 +1,26 @@
 jest.mock('./database/dbConnect', () => jest.fn(() => Promise.resolve()));
 
+jest.mock('express-oauth2-jwt-bearer', () => ({
+    auth: jest.fn(() => (req, res, next) => {
+        req.auth = {
+            payload: {
+                sub: 'auth0|mockUserId123',
+                aud: process.env.SERVER_URL,
+                iss: 'https://clinicsandqs-users.eu.auth0.com/',
+                scope: 'openid profile email',
+            }
+        };
+        next();
+    })
+}));
+
+jest.mock('./database/models/User', () => ({
+    findOne: jest.fn()
+}));
+
 const request = require('supertest');
 const app = require('./index');
+const User = require('./database/models/User');
 
 describe('Server Basic Integrity', () => {
 
@@ -22,4 +41,9 @@ describe('Server Basic Integrity', () => {
     test('App instance is properly initialized', () => {
         expect(app).toBeDefined();
     });
+
+    describe('User API', () => {
+        
+    });
 });
+
