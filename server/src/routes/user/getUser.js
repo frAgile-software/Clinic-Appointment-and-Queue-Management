@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../src/database/models/User");
+const User = require("../../database/models/User");
 
 // Lookup user by Auth0 ID
 router.get("/:auth0Id", async (req, res) => {
