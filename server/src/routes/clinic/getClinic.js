@@ -1,7 +1,4 @@
 // Already under '/clinics'
-// Use filtering parameters that are in the link, i.e. like '.../clinics?example=info' 
-
-
 const express = require("express");
 const Clinic = require("../../database/models/Clinic");
 const router = express.Router();
