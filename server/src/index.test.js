@@ -13,8 +13,8 @@ describe('Server Basic Integrity', () => {
         }
     });
 
-    test('Health Check: GET /api/hello returns 200', async () => {
-        const res = await request(app).get('/api/hello');
+    test('Health Check: GET /hello returns 200', async () => {
+        const res = await request(app).get('/hello');
         expect(res.statusCode).toEqual(200);
         expect(res.body).toHaveProperty('message', 'Hello world!');
     });

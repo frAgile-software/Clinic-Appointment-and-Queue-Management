@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useApiAuth } from '../../hooks/apiAuth';
 
 function Registration() {
     const navigate = useNavigate();
     const { user, isAuthenticated, loginWithRedirect } = useAuth0();
+    const {apiFetch} = useApiAuth();
     
     const [formData, setFormData] = useState({
         name: '',
@@ -35,7 +37,7 @@ function Registration() {
         };
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/register`, {
+            const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
