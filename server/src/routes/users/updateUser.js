@@ -1,11 +1,10 @@
 const express = require("express");
 const User = require("../../database/models/User");
 const router = express.Router();
-module.exports = router;
 
 router.patch("/:auth0Id", async (req,res) => {
     try {
-        const { auth0Id } = res.params;
+        const { auth0Id } = req.params;
         const user = await User.findOne({auth0Id});
 
         if (!user) {
@@ -18,9 +17,13 @@ router.patch("/:auth0Id", async (req,res) => {
             { new: true, runValidators: true }
         );
 
+        console.log("Updated user:", updatedUser);
         res.status(200).json({ message: "User updated.", user: updatedUser});
 
     } catch (error) {
+        console.log('Error:', error);
         res.status(500).json({ message: "Server error." });
     }
 });
+
+module.exports = router;

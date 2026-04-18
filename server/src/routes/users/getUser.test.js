@@ -22,7 +22,7 @@ const request = require('supertest');
 const app = require('../../index');
 const User = require('../../database/models/User');
 
-describe('GET /api/users/:id', () => {
+describe('GET /api/users/:auth0Id', () => {
 
     afterAll((done) => {
         if (app.listener) {
