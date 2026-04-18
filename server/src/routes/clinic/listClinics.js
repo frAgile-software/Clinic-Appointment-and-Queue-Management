@@ -31,11 +31,14 @@ router.get("/", async (req, res) => {
             return res.status(404).json({ error: "No clinic assigned to this staff member" });
         }
 
-        
-
         console.log("2. Validation Passed");
         const clinics = await Clinic.find({ staff: req.body.auth0Id });
-
+        res.status(201).json( clinics );
+    }
+    catch (error) {
+        console.error("Error fetching clinics: ", error);
+        res.status(500).json({ message: "Server error" });
+    }
     
 });
 module.exports = router;
