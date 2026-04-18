@@ -1,0 +1,1 @@
+// Already under '/api/clinic'
