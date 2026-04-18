@@ -4,7 +4,7 @@ const dbConnect = require("./database/dbConnect")
 const { requireAuth } = require('./middleware/auth');
 const userRoute = require('./routes/user');
 const clinicRoute = require('./routes/clinic');
-const clinicListRoute = require('../routes/clinic/listClinics');
+const clinicListRoute = require('./routes/clinics/listClinics');
 
 dbConnect();
 

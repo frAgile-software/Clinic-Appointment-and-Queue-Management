@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const clinicInfo = require("./clinic/clinicInfo");
-const listClinics = require("./clinic/listClinics");
-const getClinic = require("./clinic/getClinic");
-const createClinic = require("./clinic/createClinic");
-const updateClinic = require("./clinic/updateClinic");
-const listStaff = require("./clinic/listStaff");
-const linkStaff = require("./clinic/linkStaff");
+const clinicInfo = require("./clinics/clinicInfo");
+const listClinics = require("./clinics/listClinics");
+const getClinic = require("./clinics/getClinic");
+const createClinic = require("./clinics/createClinic");
+const updateClinic = require("./clinics/updateClinic");
+const listStaff = require("./clinics/listStaff");
+const linkStaff = require("./clinics/linkStaff");
 
 router.use("/clinics", getClinic);
 router.use("/clinics", listClinics);
