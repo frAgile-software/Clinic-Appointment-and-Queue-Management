@@ -28,10 +28,10 @@ router.post("/", async (req, res) => {
         });
 
         console.log("Attempting to save to MongoDB...");
-        await newUser.save();
+        const savedUser = await newUser.save();
         
         console.log("Success registering user!");
-        res.status(201).json({ message: "Registration successful.", role: newUser.role });
+        res.status(201).json({ message: "Registration successful.", role: savedUser.role });
 
     } catch (error) {
         console.error("ERROR:", error);

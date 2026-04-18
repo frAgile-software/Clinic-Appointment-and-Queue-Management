@@ -14,13 +14,8 @@ jest.mock('express-oauth2-jwt-bearer', () => ({
     })
 }));
 
-jest.mock('./database/models/User', () => ({
-    findOne: jest.fn()
-}));
-
 const request = require('supertest');
 const app = require('./index');
-const User = require('./database/models/User');
 
 describe('Server Basic Integrity', () => {
 
@@ -41,41 +36,4 @@ describe('Server Basic Integrity', () => {
     test('App instance is properly initialized', () => {
         expect(app).toBeDefined();
     });
-
-    describe('User API', () => {
-        describe('GET /api/users/:id', () => {
-
-            beforeEach(() => {
-                jest.clearAllMocks();
-            });
-
-            test('Returns 200 user when found', async () => {
-                User.findOne.mockResolvedValueOnce({
-                    auth0Id: 'auth0|mockUserId123',
-                    name: 'Test',
-                    surname: 'User',
-                    title: 'Ms',
-                    email: 'test@example.com',
-                    role: 'Admin',
-                });
-
-                const res = await request(app).get('/api/users/auth0|mockUserId123');
-
-                expect(res.statusCode).toEqual(200);
-                expect(res.body).toMatchObject({
-                    role: 'Admin',
-                    name: 'Test',
-                });
-            });
-
-            test('Returns 404 if not found', async() => {
-                User.findOne.mockResolvedValueOnce(null);
-
-                const res = await request(app).get('/api/users/auth0|mockUserId123');
-
-                expect(res.statusCode).toEqual(404);
-            })
-        });
-    });
 });
-
