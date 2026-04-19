@@ -18,18 +18,19 @@ router.get("/", async (req, res) => {
             town,
             suburb,
             type,
+            service,
 
         } = req.query;
 
         const page = parseInt(_page);
-        const pagelen = parseInt(_page_len);
+        const pageLen = parseInt(_page_len);
         const skip = (page-1)*pagelen;
 
         const sortField = SORT_FIELDS.includes(_orderby) ? _orderby : "practiceName";
         const sortOrder = _order === "asc" ? 1 : -1;
 
         const filter = {};
-
+  
         if (name) filter.practiceName =             { $regex: name,     $options: "i"};
         if (province) filter.practiceProvince =     { $regex: province, $options: "i"};
         if (town) filter.practiceTown =             { $regex: town,     $options: "i"};
@@ -40,7 +41,7 @@ router.get("/", async (req, res) => {
             Clinic.find(filter)
                 .sort({[sortField]: sortOrder})
                 .skip(skip)
-                .limit(pagelen),
+                .limit(pageLen),
             Clinic.countDocuments(filter),
         ])
 
