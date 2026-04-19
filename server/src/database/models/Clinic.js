@@ -40,4 +40,6 @@ const clinicSchema = new Schema({
     }
 });
 
-module.exports = mongoose.model('Clinic', clinicSchema);
+const Clinic = mongoose.model("Clinic", clinicSchema);
+
+module.exports = Clinic;

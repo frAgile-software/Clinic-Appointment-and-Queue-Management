@@ -30,7 +30,7 @@ function Landing() {
         setIsVerifying(true);
         try {
           // 1. Query our database for this specific Auth0 ID
-          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/user/${user.sub}`);
+          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
 
           if (response.ok) {
             // 2. User exists. Grab their role and route them.
