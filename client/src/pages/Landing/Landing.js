@@ -85,13 +85,6 @@ function Landing() {
   // Uses the filterClinic route's ?name= query param.
   // Response shape: { data: [...clinics], pagination: {...} }
   useEffect(() => {
-    // Clear cards and reset if search is empty
-    if (!search.trim()) {
-      setClinics([]);
-      setHasSearched(false);
-      return;
-    }
-
     // Wait for user to stop typing before calling the API
     clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(async () => {
