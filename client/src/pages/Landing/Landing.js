@@ -15,6 +15,27 @@ function Landing() {
   const { apiFetch } = useApiAuth();
   const navigate     = useNavigate();
 
+  //stores what filter options are available
+  const [filterOptions, setFilterOptions] = useState({
+    provinces: [],
+    towns: [],
+    suburbs: [],
+    types: []
+  });
+
+  //stores currently filter choices
+  const [filters, setFilters] = useState({
+    province: '',
+    town: '',
+    suburb: '',
+    type: '',
+    service: '',
+    _orderby: 'practiceName',
+    _order: 'asc',
+  });
+
+  const updateFilter = (key, value) => setFilters(f => ({ ...f, [key]: value }));
+
   // Debounce timer ref — waits for user to stop typing before calling API
   const debounceTimer = useRef(null);
 
@@ -64,21 +85,24 @@ function Landing() {
   // Uses the filterClinic route's ?name= query param.
   // Response shape: { data: [...clinics], pagination: {...} }
   useEffect(() => {
-    // Clear cards and reset if search is empty
-    if (!search.trim()) {
-      setClinics([]);
-      setHasSearched(false);
-      return;
-    }
-
     // Wait for user to stop typing before calling the API
     clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(async () => {
       setLoadingList(true);
       setHasSearched(true);
       try {
+        const params = new URLSearchParams();
+        if (search.trim()) params.set('name', search.trim());
+        if (filters.province) params.set('province', filters.province);
+        if (filters.town) params.set('town', filters.town);
+        if (filters.suburb) params.set('suburb', filters.suburb);
+        if (filters.type) params.set('type', filters.type);
+        if (filters.service) params.set('service', filters.service);
+        params.set('_orderby', filters._orderby);
+        params.set('_order', filters._order);
+
         const res  = await fetch(
-          `${process.env.REACT_APP_SERVER_URL}/clinics?name=${encodeURIComponent(search.trim())}`
+          `${process.env.REACT_APP_SERVER_URL}/clinics?${params}`
         );
         const json = await res.json();
         // filterClinic returns { data: [...], pagination: {...} }
@@ -93,13 +117,35 @@ function Landing() {
 
     // Cleanup timer on unmount or next keystroke
     return () => clearTimeout(debounceTimer.current);
-  }, [search]);
+  }, [search, filters]);
 
   // Prevent form from refreshing the page 
   const handleSearch = (e) => e.preventDefault();
 
   // ── Navigate to full clinic detail page on card click ─────
   const handleClinicClick = (clinicId) => navigate(`/clinics/${clinicId}`);
+  
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      const params = new URLSearchParams();
+      if (filters.province) params.set('province', filters.province);
+      if (filters.town) params.set('town', filters.town);
+      if (filters.suburb) params.set('suburb', filters.suburb);
+      if (filters.type) params.set('type', filters.type);
+
+      try {
+        console.log("FILTERS:", filters);
+        const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
+        const json = await res.json();
+
+        setFilterOptions(json);
+      } catch (error) {
+        console.error("Couldn't fetch filter options:", error);
+      }
+    };
+
+    fetchFilterOptions();
+  }, [filters.province, filters.town, filters.suburb, filters.type, filters]);
 
   // Show loading screen while Auth0 / role check runs 
   if (isLoading || isVerifying) {
@@ -137,6 +183,35 @@ function Landing() {
             aria-label="Search clinics"
           />
           <button type="submit">Search</button>
+        </form>
+        <form>
+          <select value={filters.province} onChange={e => updateFilter('province', e.target.value)}>
+            <option value="">All provinces</option>
+            {filterOptions.provinces.map(p => (
+                <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+
+          <select value={filters.town} onChange={e => updateFilter('town', e.target.value)}>
+            <option value="">All towns</option>
+            {filterOptions.towns.map(t => (
+                <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+
+          <select value={filters.suburb} onChange={e => updateFilter('suburb', e.target.value)}>
+            <option value="">All suburbs</option>
+            {filterOptions.suburbs.map(s => (
+                <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+
+          <select value={filters.type} onChange={e => updateFilter('type', e.target.value)}>
+            <option value="">All types</option>
+            {filterOptions.types.map(t => (
+                <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
         </form>
       </header>
 
