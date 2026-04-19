@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+//import React, { useState, useEffect } from 'react';
 //import './StaffProfile.css';
 import { useAuth0 } from '@auth0/auth0-react';
 
 function StaffProfile({ staffData }) {
   const { user } = useAuth0();
-  const [clinics, setClinics] = useState([ //test stub 
+  const [clinics] = useState([ //test stub 
     {
       _id: "stub-123",
       name: "Hayden Medical Clinic",
@@ -18,7 +18,7 @@ function StaffProfile({ staffData }) {
       speciality: "Dentistry"
     }
   ]);
-  const staffId = user?.sub;
+  //const staffId = user?.sub;
 
 //fetch has been commented out for testing purposes
 /*    
