@@ -4,9 +4,11 @@ import { MemoryRouter } from 'react-router';
 
 test('renders clinic name and patient queue', () => {
  //tests here, refer to app.tests.js for example
-    <MemoryRouter>
-    render(<StaffDashboard/>);
-    </MemoryRouter>
+    
+    render(<MemoryRouter>
+        <StaffDashboard/>
+        </MemoryRouter>);
+    
     const logoElement = screen.getByText(/ClinIQ/i);
     expect(logoElement).toBeInTheDocument();    
     const queueHeading = screen.getByText(/Patient Queue/i);
@@ -14,9 +16,10 @@ test('renders clinic name and patient queue', () => {
 });
 
 test('renders patient names in the queue', () => {
-    <MemoryRouter>
-    render(<StaffDashboard />);
-    </MemoryRouter>
+    
+    render(<MemoryRouter>
+        <StaffDashboard />
+    </MemoryRouter>);
     const patient1 = screen.getByText(/Jane Smith/i); 
     const patient2 = screen.getByText(/John Doe/i);
     expect(patient1).toBeInTheDocument();
