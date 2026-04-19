@@ -1,12 +1,12 @@
-import React from 'react';
 import './StaffDashboard.css'; // Ensure this filename matches exactly (case-sensitive on WSL/Linux)
 import { LuBell } from "react-icons/lu";
 import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router';
 
 const patientQueue = [
   { id: "p1", name: "Jane Smith", time: "08:15 AM", reason: "Flu Shot", status: "In Progress" },
   { id: "p2", name: "John Doe", time: "09:00 AM", reason: "Check-up", status: "Waiting" }
-  
+
 ];
 
 function StaffDashboard() {
@@ -14,6 +14,7 @@ function StaffDashboard() {
     //user,
     logout: auth0Logout,
   } = useAuth0();
+  const navigate = useNavigate();
 
   const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -24,7 +25,7 @@ function StaffDashboard() {
       <header className="staff-header">
         <div className="logo">ClinIQ</div>
         <nav className="nav-links">
-          <button className="nav-btn">Profile</button>
+          <button className="nav-btn" onClick={() => navigate('/dashboard/staff/profile')}>Profile</button>
           <button className="nav-btn" onClick={logout}>Logout</button>
           <button className="icon-btn" aria-label="Notifications"><LuBell /></button>
         </nav>
@@ -43,7 +44,6 @@ function StaffDashboard() {
               <p className="patient-name">{patient.name}</p>
               <p>{patient.time}</p>
               <p>{patient.reason}</p>
-              {/* Using a dynamic class for status color logic later */}
               <p className={`status-text ${patient.status.toLowerCase().replace(' ', '-')}`}>
                 {patient.status}
               </p>
@@ -51,7 +51,7 @@ function StaffDashboard() {
           ))}
         </div>
       </section>
-      
+
       <section className="action-section">
         <div className="action-card"> 
           <h3>Update Patient Status</h3>

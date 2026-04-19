@@ -48,7 +48,7 @@ function Landing() {
 
   const signup = () => login({ authorizationParams: { screen_hint: 'signup' } });
 
-  // ── Redirect already-logged-in users to their dashboard ───
+  // Redirect already-logged-in users to their dashboard 
   useEffect(() => {
     const verifyUserRole = async () => {
       if (!isLoading && isAuthenticated && user) {
@@ -80,7 +80,7 @@ function Landing() {
     verifyUserRole();
   }, [isLoading, isAuthenticated, user, navigate, apiFetch]);
 
-  // ── Search the API whenever the user types ────────────────
+  // Search the API whenever the user types
   // Debounced by 400ms so we don't fire on every keystroke.
   // Uses the filterClinic route's ?name= query param.
   // Response shape: { data: [...clinics], pagination: {...} }
@@ -119,12 +119,12 @@ function Landing() {
     return () => clearTimeout(debounceTimer.current);
   }, [search, filters]);
 
-  // ── Prevent form from refreshing the page ─────────────────
+  // Prevent form from refreshing the page 
   const handleSearch = (e) => e.preventDefault();
 
   // ── Navigate to full clinic detail page on card click ─────
   const handleClinicClick = (clinicId) => navigate(`/clinics/${clinicId}`);
-
+  
   useEffect(() => {
     const fetchFilterOptions = async () => {
       const params = new URLSearchParams();
@@ -147,7 +147,7 @@ function Landing() {
     fetchFilterOptions();
   }, [filters.province, filters.town, filters.suburb, filters.type]);
 
-  // ── Show loading screen while Auth0 / role check runs ─────
+  // Show loading screen while Auth0 / role check runs 
   if (isLoading || isVerifying) {
     return (
       <main className="landing landing--loading">
@@ -159,7 +159,7 @@ function Landing() {
   return (
     <main className="landing">
 
-      {/* ── Navigation bar ──────────────────────────────── */}
+      {/* Navigation bar  */}
       <nav className="landing-nav" aria-label="Main navigation">
         <span className="landing-logo">CliniQ</span>
         <section className="landing-nav-btns">
@@ -168,7 +168,7 @@ function Landing() {
         </section>
       </nav>
 
-      {/* ── Hero + search bar ────────────────────────────── */}
+      {/*  Hero + search bar*/}
       <header className="landing-hero">
         <h1>Skip the queue. Book online.</h1>
         <p>Find a clinic near you and reserve your slot in minutes.</p>
@@ -215,7 +215,7 @@ function Landing() {
         </form>
       </header>
 
-      {/* ── Clinic cards ─────────────────────────────────── */}
+      {/* Clinic cards  */}
       <section className="clinics-section" aria-label="Clinic results">
 
         {/* Skeleton while API call is in-flight */}

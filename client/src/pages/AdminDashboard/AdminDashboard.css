@@ -1,6 +1,6 @@
 .dashboard {
   font-family: Arial, sans-serif;
-  background-color: lightblue;
+  background-color: purple;
 }
 #navCliniQ{
     display:flex;
@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   flex-direction: column;
-  background-color: lightblue;
+  background-color: purple;
   padding: 20px;
 }
 .nav{
@@ -97,8 +97,8 @@ button{
     display:block;
 
 }
-footer{
-    background-color: lightblue;
+  footer{
+      background-color: purple;
     margin: 100px 0;
 }
 
@@ -114,8 +114,4 @@ footer{
     display:flex;
     align-items: center;
 
-}
-footer{
-    background-color: lightblue;
-    margin: 100px 0;
 }
