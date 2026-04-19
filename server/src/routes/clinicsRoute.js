@@ -7,13 +7,15 @@ const createClinic = require("./clinics/createClinic");
 const updateClinic = require("./clinics/updateClinic");
 const listStaff = require("./clinics/listStaff");
 const linkStaff = require("./clinics/linkStaff");
+const filterClinics = require("./clinics/filterClinics");
 
 router.use("/clinics", getClinic);
-router.use("/api/clinics/assigned", listAssignedClinics);
+router.use("/clinics", filterClinics);
 
 router.use("/api/clinics", getClinic); 
 router.use("/api/clinics", createClinic);
 router.use("/api/clinics", updateClinic);
+router.use("/api/clinics/assigned", listAssignedClinics);
 
 router.use("/api/clinics", listStaff);
 router.use("/api/clinics", linkStaff);
