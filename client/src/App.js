@@ -6,6 +6,7 @@ import Registration from      "./pages/Registration/Registration"
 import AdminDashboard from    "./pages/AdminDashboard/AdminDashboard"
 import StaffDashboard from    "./pages/StaffDashboard/StaffDashboard"
 import PatientDashboard from  "./pages/PatientDashboard/PatientDashboard"
+import StaffProfile from      "./pages/StaffProfile/StaffProfile"
 
 function App() {
   const ProtectedRoute = ({ children }) => {
@@ -38,6 +39,10 @@ function App() {
         <Route path="/dashboard/staff" element= { 
           <ProtectedRoute>
             <StaffDashboard /> 
+          </ProtectedRoute>} />
+          <Route path="/dashboard/staff/profile" element= {
+          <ProtectedRoute>
+            <StaffProfile />
           </ProtectedRoute>} />
         <Route path="/dashboard/patient" element= { 
           <ProtectedRoute>

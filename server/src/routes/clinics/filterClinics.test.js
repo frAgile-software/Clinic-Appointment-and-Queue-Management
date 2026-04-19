@@ -115,10 +115,10 @@ describe('GET /clinics', () => {
                 .mockResolvedValueOnce([mockClinics[0]])
                 .mockResolvedValueOnce([{ total: 1 }]);
 
-            const res = await request(app).get('/clinics?type=49');
+            const res = await request(app).get('/clinics?type=facilities');
 
             expect(res.status).toBe(200);
-            expect(res.body.data[0].practiceType).toBe("49");
+            expect(res.body.data[0].practiceTypeDescription).toBe("SUB ACUTE FACILITIES");
         });
 
         test("handles multiple filters combined", async () => {
