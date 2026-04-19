@@ -37,7 +37,7 @@ function Registration() {
         };
 
         try {
-            const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/register`, {
+            const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
