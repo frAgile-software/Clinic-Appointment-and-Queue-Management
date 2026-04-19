@@ -1,15 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './StaffProfile.css';
-import { LuBell } from "react-icons/lu";
 import { useAuth0 } from '@auth0/auth0-react';
 
+function StaffProfile({ staffData }) {
+  const { user } = useAuth0();
+  const [clinics, setClinics] = useState([]);
+  const staffId = user?.sub;
 
+  useEffect(() => {
+    if (!staffId) return;
 
-function StaffProfile({ staffData, clinics }) {
- 
-    const [clinics, setClinics] = useState([]);
-    
-    useEffect(function() {
     async function fetchClinics() {
       try {
         const response = await fetch(`/api/clinics?staffId=${staffId}`);
@@ -21,7 +21,7 @@ function StaffProfile({ staffData, clinics }) {
     }
 
     fetchClinics();
-  }, [staffId]); 
+  }, [staffId]);
 
   return (
     <div style={{ padding: '40px', maxWidth: '900px', margin: '0 auto' }}>

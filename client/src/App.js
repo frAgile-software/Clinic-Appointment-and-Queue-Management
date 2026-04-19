@@ -5,6 +5,7 @@ import Landing from           "./pages/Landing/Landing"
 import Registration from      "./pages/Registration/Registration"
 import AdminDashboard from    "./pages/AdminDashboard/AdminDashboard"
 import StaffDashboard from    "./pages/StaffDashboard/StaffDashboard"
+import StaffProfile from      "./pages/StaffProfile/StaffProfile"
 import PatientDashboard from  "./pages/PatientDashboard/PatientDashboard"
 
 function App() {
@@ -38,6 +39,10 @@ function App() {
         <Route path="/dashboard/staff" element= { 
           <ProtectedRoute>
             <StaffDashboard /> 
+          </ProtectedRoute>} />
+        <Route path="/dashboard/staff/profile" element= {
+          <ProtectedRoute>
+            <StaffProfile />
           </ProtectedRoute>} />
         <Route path="/dashboard/patient" element= { 
           <ProtectedRoute>
