@@ -3,7 +3,7 @@
 import { useAuth0 } from '@auth0/auth0-react';
 
 function StaffProfile({ staffData }) {
-  const { user } = useAuth0();
+  //const { user } = useAuth0();
   const clinics =[ //test stub 
     {
       _id: "stub-123",
