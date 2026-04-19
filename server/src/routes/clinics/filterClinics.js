@@ -1,5 +1,5 @@
-// Already under '/api/clinic'
-// Use '/:clinicID/staff/:staffID' or similar
+// Already under '/clinics'
+// Use '?' parameters for filtering and/or sorting
 
 
 // Used to pass build checks, replace below

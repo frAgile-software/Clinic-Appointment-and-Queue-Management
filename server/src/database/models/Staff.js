@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 // Used to link admin and staff to a clinic
@@ -7,4 +7,5 @@ const staffSchema = new Schema({
     Clinic: { type: Schema.Types.ObjectId, required: true }
 });
 
-export default mongoose.model('Staff', staffSchema);
+const Staff = mongoose.model('Staff', staffSchema);
+module.exports = Staff;
