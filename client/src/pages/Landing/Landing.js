@@ -6,50 +6,41 @@ import './Landing.css';
 import { useApiAuth } from '../../hooks/apiAuth';
 
 function Landing() {
-  const [search, setSearch] = useState('');
-  const [clinics, setClinics] = useState([]);
-  const [loadingList, setLoadingList] = useState(true);
-  const [isVerifying, setIsVerifying] = useState(false);// Tracks our backend check
+  const [search,      setSearch]      = useState('');    // current search input
+  const [clinics,     setClinics]     = useState([]);    // all clinics from API
+  const [loadingList, setLoadingList] = useState(true);  // skeleton while fetching
+  const [isVerifying, setIsVerifying] = useState(false); // tracks backend role check
 
   const { apiFetch } = useApiAuth();
-  const navigate = useNavigate();
+  const navigate     = useNavigate();
 
   const {
     isLoading,
     isAuthenticated,
     loginWithRedirect: login,
-    user,// We must extract the user object to get their Auth0 ID
+    user,
   } = useAuth0();
 
-  const signup = () =>
-    login({ authorizationParams: { screen_hint: 'signup' } });
+  const signup = () => login({ authorizationParams: { screen_hint: 'signup' } });
 
-  // Verify user role after login
+  // Redirect already-logged-in users to their dashboard
   useEffect(() => {
     const verifyUserRole = async () => {
-       // Only fire if Auth0 has finished loading and confirmed they are logged in
       if (!isLoading && isAuthenticated && user) {
         setIsVerifying(true);
-
         try {
-          // 1. Query our database for this specific Auth0 ID
           const response = await apiFetch(
             `${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`
           );
-
           if (response.ok) {
-                 // 2. User exists. Grab their role and route them.
             const data = await response.json();
-
             const redirectMap = {
               Patient: '/dashboard/patient',
-              Staff: '/dashboard/staff',
-              Admin: '/dashboard/admin',
+              Staff:   '/dashboard/staff',
+              Admin:   '/dashboard/admin',
             };
-
             navigate(redirectMap[data.role] || '/');
           } else if (response.status === 404) {
-            // 3. User authenticated via Auth0, but is not in our MongoDB yet.
             navigate('/register');
           } else {
             console.error('Failed to verify user profile.');
@@ -61,17 +52,14 @@ function Landing() {
         }
       }
     };
-
     verifyUserRole();
   }, [isLoading, isAuthenticated, user, navigate, apiFetch]);
 
-  // Fetch nearby clinics
+  // Fetch all clinics once on mount 
   useEffect(() => {
     const fetchClinics = async () => {
       try {
-        const res = await fetch(
-          `${process.env.REACT_APP_SERVER_URL}/api/clinics`
-        );
+        const res  = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics`);
         const data = await res.json();
         setClinics(data);
       } catch (err) {
@@ -80,23 +68,27 @@ function Landing() {
         setLoadingList(false);
       }
     };
-
     fetchClinics();
   }, []);
 
-  // Search handler
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (!search.trim()) return;
-    navigate(`/clinics/search?q=${encodeURIComponent(search.trim())}`);
-  };
+  //  Filter by practice name only 
+  // Only filter when user has typed something.
+  // When search is empty, show NO cards (clean state).
+  const hasSearched = search.trim().length > 0;
 
-  // Clinic click handler
-  const handleClinicClick = (clinicId) => {
-    navigate(`/clinics/${clinicId}`);
-  };
+  const filteredClinics = hasSearched
+    ? clinics.filter((clinic) =>
+        clinic.practiceName?.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
 
-  // Loading gate
+  //Prevent form from refreshing the page 
+  const handleSearch = (e) => e.preventDefault();
+
+  // Navigate to full clinic detail page on card click 
+  const handleClinicClick = (clinicId) => navigate(`/clinics/${clinicId}`);
+
+  //Show loading screen while Auth0 / role check runs
   if (isLoading || isVerifying) {
     return (
       <main className="landing landing--loading">
@@ -107,29 +99,26 @@ function Landing() {
 
   return (
     <main className="landing">
-      {/* Navigation */}
+
+      {/*  Navigation bar*/}
       <nav className="landing-nav" aria-label="Main navigation">
         <span className="landing-logo">CliniQ</span>
-
         <section className="landing-nav-btns">
-          <button className="btn" onClick={login}>
-            Login
-          </button>
-          <button className="btn btn-primary" onClick={signup}>
-            Sign Up
-          </button>
+          <button className="btn"             onClick={login}>Login</button>
+          <button className="btn btn-primary" onClick={signup}>Sign Up</button>
         </section>
       </nav>
 
-      {/* Hero */}
+      {/* Hero and search bar  */}
       <header className="landing-hero">
         <h1>Skip the queue. Book online.</h1>
         <p>Find a clinic near you and reserve your slot in minutes.</p>
 
+        {/* Typing filters the cards below  */}
         <form className="search-bar" onSubmit={handleSearch} role="search">
           <input
             type="search"
-            placeholder="Search clinics by name or area…"
+            placeholder="Search by clinic name…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Search clinics"
@@ -138,53 +127,37 @@ function Landing() {
         </form>
       </header>
 
-      {/* Clinics Section */}
-      <section className="clinics-section" aria-label="Featured clinics">
+      {/* Clinic cards */}
+      <section className="clinics-section" aria-label="Clinic results">
+
+        {/* Skeleton while the API call is in-flight */}
         {loadingList && (
           <ul className="clinics-grid" aria-busy="true">
             {[...Array(4)].map((_, i) => (
-              <li
-                key={i}
-                className="clinic-card clinic-card--skeleton"
-                aria-hidden="true"
-              />
+              <li key={i} className="clinic-card clinic-card--skeleton" aria-hidden="true" />
             ))}
           </ul>
         )}
 
-        {!loadingList && clinics.length > 0 && (
+        {/* Matched clinic cards — only shown once user has typed */}
+        {!loadingList && filteredClinics.length > 0 && (
           <ul className="clinics-grid">
-            {clinics.map((clinic) => (
+            {filteredClinics.map((clinic) => (
               <li
                 key={clinic._id}
                 className="clinic-card"
                 onClick={() => handleClinicClick(clinic._id)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) =>
-                  e.key === 'Enter' && handleClinicClick(clinic._id)
-                }
+                onKeyDown={(e) => e.key === 'Enter' && handleClinicClick(clinic._id)}
                 aria-label={`View details for ${clinic.practiceName}`}
               >
-                <strong className="clinic-name">
-                  {clinic.practiceName}
-                </strong>
-
-                <span className="clinic-type">
-                  {clinic.practiceTypeDescription}
-                </span>
-
-                <span className="clinic-addr">
+                <strong className="clinic-name">{clinic.practiceName}</strong>
+                <span   className="clinic-type">{clinic.practiceTypeDescription}</span>
+                <span   className="clinic-addr">
                   {clinic.physicalAddress}, {clinic.physicalTown}
                 </span>
-
-                <span
-                  className={`clinic-badge ${
-                    clinic.isOpen
-                      ? 'clinic-badge--open'
-                      : 'clinic-badge--closed'
-                  }`}
-                >
+                <span className={`clinic-badge ${clinic.isOpen ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
                   {clinic.isOpen ? 'Open now' : 'Closed'}
                 </span>
               </li>
@@ -192,12 +165,13 @@ function Landing() {
           </ul>
         )}
 
-        {!loadingList && clinics.length === 0 && (
-          <p className="clinics-empty">
-            No clinics found. Try a different search.
-          </p>
+        {/* No results, only shows after user has typed and nothing matched */}
+        {!loadingList && hasSearched && filteredClinics.length === 0 && (
+          <p className="clinics-empty">No clinics found for "{search}".</p>
         )}
+
       </section>
+
     </main>
   );
 }
