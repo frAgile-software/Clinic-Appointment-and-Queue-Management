@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const appointmentSchema = new Schema({
@@ -10,4 +10,5 @@ const appointmentSchema = new Schema({
     // can add a comment field for patients to add more details?
 }, { timestamps: true });   // has createdAt and updatedAt fields, useful info for patient and staff to have
 
-export default mongoose.model('Appointment', appointmentSchema);
+const Appointment = mongoose.model('Appointment', appointmentSchema);
+module.exports = Appointment;

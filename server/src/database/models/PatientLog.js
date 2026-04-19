@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const patientLogSchema = new Schema({
@@ -11,4 +11,5 @@ const patientLogSchema = new Schema({
     TimeQStart: {type: Date, required: true, default: Date.now}
 });
 
-export default mongoose.model('PatientLog', patientLogSchema);
+const PatientLog = mongoose.model('PatientLog', patientLogSchema);
+module.exports = PatientLog;

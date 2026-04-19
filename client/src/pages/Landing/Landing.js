@@ -33,9 +33,9 @@ function Landing() {
       if (!isLoading && isAuthenticated && user) {
         setIsVerifying(true);
         try {
-          const response = await apiFetch(
-            `${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`
-          );
+          // 1. Query our database for this specific Auth0 ID
+          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
+
           if (response.ok) {
             const data = await response.json();
             const redirectMap = {
