@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, Navigate} from 'react-router';
+import { BrowserRouter, Routes, Route, Navigate} from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 
 import Landing from           "./pages/Landing/Landing"
