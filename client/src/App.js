@@ -18,14 +18,6 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* Navigation */}
-      <nav>
-        <Link to="/">Landing</Link>
-        <Link to="/register">Registration</Link>
-        <Link to="/dashboard/admin">AdminDashboard</Link>
-        <Link to="/dashboard/staff">StaffDashboard</Link>
-        <Link to="/dashboard/patient">PatientDashboard</Link>
-      </nav>
 
       {/* Routes */}
       <Routes>
