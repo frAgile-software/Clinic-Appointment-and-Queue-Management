@@ -4,11 +4,26 @@ import { useAuth0 } from '@auth0/auth0-react';
 
 function StaffProfile({ staffData }) {
   const { user } = useAuth0();
-  const [clinics, setClinics] = useState([]);
+  const [clinics, setClinics] = useState([ //test stub 
+    {
+      _id: "stub-123",
+      name: "Hayden Medical Clinic",
+      address: "992 Hay Road, Sandton",
+      speciality: "General Practice"
+    },
+    {
+      _id: "stub-456",
+      name: "Forgotten Dreams Dental Clinic",
+      address: "123 Fake Street, Randburg",
+      speciality: "Dentistry"
+    }
+  ]);
   const staffId = user?.sub;
 
+//fetch has been commented out for testing purposes
+/*    
   useEffect(() => {
-    if (!staffId) return;
+    if (!staffId) return; 
 
     async function fetchClinics() {
       try {
@@ -22,7 +37,7 @@ function StaffProfile({ staffData }) {
 
     fetchClinics();
   }, [staffId]);
-
+*/
   return (
     <div style={{ padding: '40px', maxWidth: '900px', margin: '0 auto' }}>
       <header>
