@@ -9,7 +9,7 @@ const listStaff = require("./clinic/listStaff");
 const linkStaff = require("./clinic/linkStaff");
 
 router.use("/clinics", getClinic);
-router.use("/clinics", listClinics);
+router.use("/api/clinics", listClinics);
 
 router.use("/api/clinic", getClinic); 
 router.use("/api/clinic", createClinic);
