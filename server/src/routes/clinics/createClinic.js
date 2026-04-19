@@ -9,7 +9,7 @@ router.post("/", async (req, res) => {
         const { clinicID, practiceNumber, auth0Id } = req.body;
         
         // Get referenced clinic
-        const clinic = await Clinic.exists({ $or:  [ { id: clinicID }, {practiceNumber} ] });
+        const clinic = await Clinic.findOne({ $or:  [ { id: clinicID }, {practiceNumber} ] });
         if (!clinic) 
             return res.status(404).json({ message: "Clinic not found." });
 
@@ -22,7 +22,7 @@ router.post("/", async (req, res) => {
         // Link the staff
         const staff = new Staff({
             Clinic: clinic._id,
-            User: user._id
+            User: sender._id
         });
 
         const savedStaff = await staff.save();
