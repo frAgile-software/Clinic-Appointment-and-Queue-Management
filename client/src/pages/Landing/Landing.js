@@ -161,7 +161,7 @@ function Landing() {
 
       {/* Navigation bar  */}
       <nav className="landing-nav" aria-label="Main navigation">
-        <span className="landing-logo">CliniQ</span>
+        <span className="landing-logo">Clinics and Qs</span>
         <section className="landing-nav-btns">
           <button className="btn"             onClick={login}>Login</button>
           <button className="btn btn-primary" onClick={signup}>Sign Up</button>
