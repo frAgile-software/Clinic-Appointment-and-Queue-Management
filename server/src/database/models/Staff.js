@@ -7,4 +7,5 @@ const staffSchema = new Schema({
     Clinic: { type: Schema.Types.ObjectId, required: true }
 });
 
-module.exports = mongoose.model('Staff', staffSchema);
+const Staff = mongoose.model('Staff', staffSchema);
+module.exports = Staff;

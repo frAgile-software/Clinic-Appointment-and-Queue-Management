@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const scheduleSchema = new Schema({
@@ -16,4 +16,5 @@ const scheduleSchema = new Schema({
     }
 });
 
-export default mongoose.model('Schedule', scheduleSchema);
+const Schedule = mongoose.model('Schedule', scheduleSchema);
+module.exports = Schedule;
