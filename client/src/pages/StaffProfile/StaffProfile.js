@@ -1,6 +1,6 @@
 //import React, { useState, useEffect } from 'react';
 //import './StaffProfile.css';
-import { useAuth0 } from '@auth0/auth0-react';
+//import { useAuth0 } from '@auth0/auth0-react';
 
 function StaffProfile({ staffData }) {
   //const { user } = useAuth0();
