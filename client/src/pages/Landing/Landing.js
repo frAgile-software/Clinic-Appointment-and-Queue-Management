@@ -145,7 +145,7 @@ function Landing() {
     };
 
     fetchFilterOptions();
-  }, [filters.province, filters.town, filters.suburb, filters.type]);
+  }, [filters.province, filters.town, filters.suburb, filters.type, filters]);
 
   // Show loading screen while Auth0 / role check runs 
   if (isLoading || isVerifying) {
