@@ -1,6 +1,6 @@
 const adminDashboardStub = {
   admin: {
-    userId: "U001",
+    _id: "661f8d9c12ab34cd56ef7892",
     name: "Bruno",
     surname: "Faria",
     email: "bruno@example.com",
@@ -8,7 +8,7 @@ const adminDashboardStub = {
   },
   clinics: [
     {
-      clinicId: "C001",
+      _id: "661f8c9a12ab34cd56ef7890",
       practiceName: "Johannesburg Family Clinic",
       province: "Gauteng",
       physicalTown: "Johannesburg",
@@ -21,27 +21,20 @@ const adminDashboardStub = {
       operatingHours: "08:00 - 17:00",
       services: ["General Consultation", "Vaccination", "Family Planning"],
       staff: [
-        { staffId: "S001", userId: "U010", name: "John", surname: "Doe", role: "staff" },
-        { staffId: "S002", userId: "U011", name: "Jane", surname: "Smith", role: "staff" },
-        { staffId: "S003", userId: "U001", name: "Bruno", surname: "Faria", role: "admin" }
-      ]
-    },
-    {
-      clinicId: "C002",
-      practiceName: "Soweto Community Clinic",
-      province: "Gauteng",
-      physicalTown: "Johannesburg",
-      physicalSuburb: "Soweto",
-      physicalAddress: "45 Vilakazi Street",
-      practiceType: "Clinic",
-      practiceTypeDescription: "Community Health Clinic",
-      practiceNumber: "P002",
-      contactNumber: "011-987-6543",
-      operatingHours: "07:30 - 16:00",
-      services: ["HIV Testing", "TB Screening"],
-      staff: [
-        { staffId: "S004", userId: "U012", name: "Alice", surname: "Nkosi", role: "staff" },
-        { staffId: "S005", userId: "U013", name: "David", surname: "Khumalo", role: "staff" }
+        {
+          _id: "661f8d1b12ab34cd56ef7891",
+          userId: "661f8e0d12ab34cd56ef7893",
+          name: "John",
+          surname: "Doe",
+          role: "staff"
+        },
+        {
+          _id: "661f8d2c12ab34cd56ef7894",
+          userId: "661f8e1e12ab34cd56ef7895",
+          name: "Jane",
+          surname: "Smith",
+          role: "staff"
+        }
       ]
     }
   ]
