@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Clinic = require('../../database/models/Clinic');
 
-const SORT_FIELDS = ["practiceName", "practiceProvince", "practiceSuburb", "practiceTown", "practiceType"] 
+const SORT_FIELDS = ["practiceName", "province", "physicalSuburb", "physicalTown", "practiceType"] 
 
 router.get("/", async (req, res) => {
     try {
@@ -33,7 +33,7 @@ router.get("/", async (req, res) => {
             {
                 $match: {
                     ...(name && { practiceName: {$regex: name, $options: "i"}}),
-                    ...(province && { physicalProvince: { $regex: province, $options: "i"}}),
+                    ...(province && { province: { $regex: province, $options: "i"}}),
                     ...(town && { physicalTown: {$regex: town, $options: "i"}}),
                     ...(suburb && { physicalSuburb: { $regex: suburb, $options: "i"}}),
                     ...(type && { practiceType: {$regex: type, $options: "i"}}),
