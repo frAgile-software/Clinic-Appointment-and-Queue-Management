@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 
@@ -7,12 +7,16 @@ import { useApiAuth } from '../../hooks/apiAuth';
 
 function Landing() {
   const [search,      setSearch]      = useState('');    // current search input
-  const [clinics,     setClinics]     = useState([]);    // all clinics from API
-  const [loadingList, setLoadingList] = useState(true);  // skeleton while fetching
+  const [clinics,     setClinics]     = useState([]);    // results from API
+  const [loadingList, setLoadingList] = useState(false); // loading spinner for search
   const [isVerifying, setIsVerifying] = useState(false); // tracks backend role check
+  const [hasSearched, setHasSearched] = useState(false); // true once user has searched
 
   const { apiFetch } = useApiAuth();
   const navigate     = useNavigate();
+
+  // Debounce timer ref — waits for user to stop typing before calling API
+  const debounceTimer = useRef(null);
 
   const {
     isLoading,
@@ -23,7 +27,7 @@ function Landing() {
 
   const signup = () => login({ authorizationParams: { screen_hint: 'signup' } });
 
-  // Redirect already-logged-in users to their dashboard
+  // ── Redirect already-logged-in users to their dashboard ───
   useEffect(() => {
     const verifyUserRole = async () => {
       if (!isLoading && isAuthenticated && user) {
@@ -55,40 +59,49 @@ function Landing() {
     verifyUserRole();
   }, [isLoading, isAuthenticated, user, navigate, apiFetch]);
 
-  // Fetch all clinics once on mount 
+  // ── Search the API whenever the user types ────────────────
+  // Debounced by 400ms so we don't fire on every keystroke.
+  // Uses the filterClinic route's ?name= query param.
+  // Response shape: { data: [...clinics], pagination: {...} }
   useEffect(() => {
-    const fetchClinics = async () => {
+    // Clear cards and reset if search is empty
+    if (!search.trim()) {
+      setClinics([]);
+      setHasSearched(false);
+      return;
+    }
+
+    // Wait for user to stop typing before calling the API
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(async () => {
+      setLoadingList(true);
+      setHasSearched(true);
       try {
-        const res  = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics`);
-        const data = await res.json();
-        setClinics(data);
+        const res  = await fetch(
+          `${process.env.REACT_APP_SERVER_URL}/clinics?name=${encodeURIComponent(search.trim())}`
+        );
+        const json = await res.json();
+        // filterClinic returns { data: [...], pagination: {...} }
+        setClinics(json.data || []);
       } catch (err) {
-        console.error('Could not load clinic list:', err);
+        console.error('Could not search clinics:', err);
+        setClinics([]);
       } finally {
         setLoadingList(false);
       }
-    };
-    fetchClinics();
-  }, []);
+    }, 400);
 
-  //  Filter by practice name only 
-  // Only filter when user has typed something.
-  // When search is empty, show NO cards (clean state).
-  const hasSearched = search.trim().length > 0;
+    // Cleanup timer on unmount or next keystroke
+    return () => clearTimeout(debounceTimer.current);
+  }, [search]);
 
-  const filteredClinics = hasSearched
-    ? clinics.filter((clinic) =>
-        clinic.practiceName?.toLowerCase().includes(search.toLowerCase())
-      )
-    : [];
-
-  //Prevent form from refreshing the page 
+  // ── Prevent form from refreshing the page ─────────────────
   const handleSearch = (e) => e.preventDefault();
 
-  // Navigate to full clinic detail page on card click 
+  // ── Navigate to full clinic detail page on card click ─────
   const handleClinicClick = (clinicId) => navigate(`/clinics/${clinicId}`);
 
-  //Show loading screen while Auth0 / role check runs
+  // ── Show loading screen while Auth0 / role check runs ─────
   if (isLoading || isVerifying) {
     return (
       <main className="landing landing--loading">
@@ -100,7 +113,7 @@ function Landing() {
   return (
     <main className="landing">
 
-      {/*  Navigation bar*/}
+      {/* ── Navigation bar ──────────────────────────────── */}
       <nav className="landing-nav" aria-label="Main navigation">
         <span className="landing-logo">CliniQ</span>
         <section className="landing-nav-btns">
@@ -109,12 +122,12 @@ function Landing() {
         </section>
       </nav>
 
-      {/* Hero and search bar  */}
+      {/* ── Hero + search bar ────────────────────────────── */}
       <header className="landing-hero">
         <h1>Skip the queue. Book online.</h1>
         <p>Find a clinic near you and reserve your slot in minutes.</p>
 
-        {/* Typing filters the cards below  */}
+        {/* Typing calls the filterClinic API with ?name= — no page nav */}
         <form className="search-bar" onSubmit={handleSearch} role="search">
           <input
             type="search"
@@ -127,10 +140,10 @@ function Landing() {
         </form>
       </header>
 
-      {/* Clinic cards */}
+      {/* ── Clinic cards ─────────────────────────────────── */}
       <section className="clinics-section" aria-label="Clinic results">
 
-        {/* Skeleton while the API call is in-flight */}
+        {/* Skeleton while API call is in-flight */}
         {loadingList && (
           <ul className="clinics-grid" aria-busy="true">
             {[...Array(4)].map((_, i) => (
@@ -139,10 +152,10 @@ function Landing() {
           </ul>
         )}
 
-        {/* Matched clinic cards — only shown once user has typed */}
-        {!loadingList && filteredClinics.length > 0 && (
+        {/* Matched clinic cards */}
+        {!loadingList && clinics.length > 0 && (
           <ul className="clinics-grid">
-            {filteredClinics.map((clinic) => (
+            {clinics.map((clinic) => (
               <li
                 key={clinic._id}
                 className="clinic-card"
@@ -165,8 +178,8 @@ function Landing() {
           </ul>
         )}
 
-        {/* No results, only shows after user has typed and nothing matched */}
-        {!loadingList && hasSearched && filteredClinics.length === 0 && (
+        {/* No results — only after user has typed and nothing matched */}
+        {!loadingList && hasSearched && clinics.length === 0 && (
           <p className="clinics-empty">No clinics found for "{search}".</p>
         )}
 
