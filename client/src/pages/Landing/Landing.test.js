@@ -70,7 +70,7 @@ describe('<Landing />', () => {
     // The  logo must always be visible in the top nav bar
     test('renders the site name', async () => {
         await renderLanding();
-        expect(screen.getByText(/cliniq/i)).toBeInTheDocument();
+        expect(screen.getByText(/clinics and qs/i)).toBeInTheDocument();
     });
 
     // Login button opens the Auth0 login flow when clicked

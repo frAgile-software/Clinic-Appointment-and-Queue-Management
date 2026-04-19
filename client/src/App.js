@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, Navigate} from 'react-router';
+import { BrowserRouter, Routes, Route, Navigate} from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 
 import Landing from           "./pages/Landing/Landing"
@@ -18,15 +18,6 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* Navigation */}
-      <nav>
-        <Link to="/">Landing</Link>
-        <Link to="/register">Registration</Link>
-        <Link to="/dashboard/admin">AdminDashboard</Link>
-        <Link to="/dashboard/staff">StaffDashboard</Link>
-        <Link to="/dashboard/patient">PatientDashboard</Link>
-      </nav>
-
       {/* Routes */}
       <Routes>
         <Route path="/" element= { <Landing /> } />
