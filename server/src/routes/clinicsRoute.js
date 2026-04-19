@@ -8,7 +8,9 @@ const updateClinic = require("./clinics/updateClinic");
 const listStaff = require("./clinics/listStaff");
 const linkStaff = require("./clinics/linkStaff");
 const filterClinics = require("./clinics/filterClinics");
+const getFilters = require("./clinics/getFilters");
 
+router.use("/clinics/filters", getFilters);
 router.use("/clinics", getClinic);
 router.use("/clinics", filterClinics);
 
