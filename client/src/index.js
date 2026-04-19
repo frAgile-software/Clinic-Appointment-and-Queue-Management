@@ -16,7 +16,9 @@ root.render(
         audience: `${process.env.REACT_APP_SERVER_URL}`
       }}
     >
+       <BrowserRouter>
       <App />
+      </BrowserRouter>
     </Auth0Provider>
   </React.StrictMode>
 );
