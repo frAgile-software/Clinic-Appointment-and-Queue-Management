@@ -3,8 +3,8 @@ const { Schema } = mongoose;
 
 // Used to link admin and staff to a clinic
 const staffSchema = new Schema({
-    User: { type: Schema.Types.ObjectId, required: true},
-    Clinic: { type: Schema.Types.ObjectId, required: true }
+    User: { type: Schema.Types.ObjectId, required: true, ref: "User"},
+    Clinic: { type: Schema.Types.ObjectId, required: true, ref: "Clinic" }
 });
 
 const Staff = mongoose.model('Staff', staffSchema);
