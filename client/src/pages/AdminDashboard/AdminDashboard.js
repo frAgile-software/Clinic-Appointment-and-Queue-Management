@@ -3,15 +3,21 @@ import './AdminDashboard.css';
 import bell from './bell.png';
 import logo from './clinicLogo.png';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useState } from 'react';
+import adminDashboardStub from './AdminDashboardStub';
 
 function AdminDashboard() {
     const {
         logout: auth0Logout,
         //user,
     } = useAuth0();
-
+    const [dashboardData] = useState(adminDashboardStub);
+    const [selectedClinic, setSelectedClinic] = useState(adminDashboardStub.clinics[0]);
     const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+    };
+    const handleClinicChange = (clinic) => {
+        setSelectedClinic(clinic);
     };
 
   return (
@@ -26,26 +32,32 @@ function AdminDashboard() {
       
     </header>
     <section id="top_section">
-        <h2>Welcome to the Admin Dashboard for "Clinic Name"</h2>
+        <h2>Welcome to the Admin Dashboard for {selectedClinic.practiceName}</h2>
         <img src={logo} alt="Clinic Logo"></img>
         <section id="dropdown_clinicList">
                 <button id="dropdown_button_clinicList">Change Clinic</button>
                 <section id="dropdown_content_clinicList">
                     <ul className="clinic_list">
-                        <li className="dropdown_item"><button>Clinic 1</button></li>
-                        <li className="dropdown_item"><button>Clinic 2</button></li>
-                        <li className="dropdown_item"><button>Clinic 3</button></li>
+                        {dashboardData.clinics.map((clinic) => (
+                                <li key={clinic._id} className="dropdown_item">
+                                    <button onClick={() => handleClinicChange(clinic)}>
+                                        {clinic.practiceName}
+                                    </button>
+                                </li>
+                            ))}
                     </ul>
             </section>
         </section>
     </section>
     <section className="section">
-        <h2>Manage "clinic name"</h2>
+        <h2>Manage {selectedClinic.practiceName}</h2>
             <h3>Clinic details:</h3>
-            <p>Address: "clinic address"</p>
-            <p>Contact: "clinic contact"</p>
-            <p>Operating Hours: "operating Hours"</p>
-            <p>Services: "services"</p>
+            <p>Address: {selectedClinic.physicalAddress}</p>
+            <p>Town: {selectedClinic.physicalTown}</p>
+            <p>Suburb: {selectedClinic.physicalSuburb}</p>
+            <p>Contact: {selectedClinic.contactNumber}</p>
+            <p>Operating Hours: {selectedClinic.operatingHours}</p>
+            <p>Services: {selectedClinic.services.join(', ')}</p>
 
             <section id="dropdown_clinic">
                 <button id="dropdown_button_clinic">Edit Clinic Details</button>
@@ -65,8 +77,11 @@ function AdminDashboard() {
         <h2>Manage Staff</h2>
         <h3>Staff List:</h3>
         <ul className="clinic_list">
-            <li><p>ID: 001, Name: John Doe</p></li>
-            <li><p>ID: 002, Name: Jane Smith</p></li>
+            {selectedClinic.staff.map((member) => (
+                <li key={member._id}>
+                    <p>ID: {member._id}, Name: {member.name} {member.surname}, Role: {member.role}</p>
+                </li>
+            ))}
         </ul>
         <section id="dropdown_staff">
                 <button id="dropdown_button_staff">Manage Staff</button>
