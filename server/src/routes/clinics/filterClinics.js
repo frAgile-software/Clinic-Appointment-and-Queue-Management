@@ -33,9 +33,9 @@ router.get("/", async (req, res) => {
             {
                 $match: {
                     ...(name && { practiceName: {$regex: name, $options: "i"}}),
-                    ...(province && { practiceProvince: { $regex: province, $options: "i"}}),
-                    ...(town && { practiceTown: {$regex: town, $options: "i"}}),
-                    ...(suburb && { practiceSuburb: { $regex: suburb, $options: "i"}}),
+                    ...(province && { physicalProvince: { $regex: province, $options: "i"}}),
+                    ...(town && { physicalTown: {$regex: town, $options: "i"}}),
+                    ...(suburb && { physicalSuburb: { $regex: suburb, $options: "i"}}),
                     ...(type && { practiceType: {$regex: type, $options: "i"}}),
                 },
             },
