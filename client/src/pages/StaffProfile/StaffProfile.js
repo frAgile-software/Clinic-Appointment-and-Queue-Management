@@ -4,7 +4,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 
 function StaffProfile({ staffData }) {
   const { user } = useAuth0();
-  const [clinics] = useState([ //test stub 
+  const clinics =[ //test stub 
     {
       _id: "stub-123",
       name: "Hayden Medical Clinic",
@@ -17,7 +17,7 @@ function StaffProfile({ staffData }) {
       address: "123 Fake Street, Randburg",
       speciality: "Dentistry"
     }
-  ]);
+  ];
   //const staffId = user?.sub;
 
 //fetch has been commented out for testing purposes
