@@ -1,103 +1,300 @@
-.landing {
-  font-family: sans-serif;
-  min-height: 100vh;
-  background: #f9f9f9;
-  color: #111;
+
+
+/* 1. Design tokens  */
+:root {
+  
+  --color-brand:        #6b2fa0;   
+  --color-brand-dark:   #4e1f7a;   
+  --color-brand-light:  #f3eafd;   
+
+
+  --color-bg:           #f4f5f7;
+  --color-surface:      #ffffff;
+  --color-border:       #e2e4e9;
+  --color-text:         #111827;
+  --color-text-muted:   #6b7280;
+
+  
+  --color-open:         #15803d;
+  --color-open-bg:      #dcfce7;
+  --color-closed:       #b91c1c;
+  --color-closed-bg:    #fee2e2;
+
+  
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --shadow-card: 0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
 }
 
+
+/* 2. Base*/
+
+.landing {
+  font-family:  sans-serif;
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+
+/* 3. Navigation bar */
 
 .landing-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 24px;
-  background: #fff;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 14px 28px;
+  background: var(--color-brand);   
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
 }
+
 
 .landing-logo {
   font-size: 20px;
-  font-weight: 600;
-  color: #111;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
 }
+
 
 .landing-nav-btns {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
-.landing-nav-btns a {
-  text-decoration: none;
-}
 
-.btn {
-  padding: 8px 18px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: transparent;
-  color: #111;
-  cursor: pointer;
-}
-
-.btn:hover { background: #f0f0f0; }
-
-.btn-primary {
-  background: #111;
-  color: #fff;
-  border-color: #111;
-}
-
-.btn-primary:hover { background: #333; }
-
+/* 4. Hero / search section*/
 
 .landing-hero {
   text-align: center;
-  padding: 56px 24px 36px;
-  background: #fff;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 56px 24px 48px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .landing-hero h1 {
-  font-size: 30px;
-  font-weight: 600;
-  margin-bottom: 10px;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--color-text);
 }
 
 .landing-hero p {
-  font-size: 16px;
-  color: #555;
-  margin-bottom: 24px;
+  font-size: 15px;
+  color: var(--color-text-muted);
+  margin: 0 0 28px;
 }
 
+/* Search input and submit button  */
 .search-bar {
   display: flex;
   align-items: center;
-  max-width: 460px;
+  max-width: 480px;
   margin: 0 auto;
-  border: 1px solid #ccc;
-  border-radius: 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: #fff;
+  background: var(--color-surface);
+  transition: box-shadow 0.2s;
+}
+
+.search-bar:focus-within {
+  box-shadow: 0 0 0 3px rgba(107,47,160,.25);
+  border-color: var(--color-brand);
 }
 
 .search-bar input {
   flex: 1;
-  padding: 11px 16px;
+  padding: 12px 18px;
   font-size: 14px;
   border: none;
   outline: none;
   background: transparent;
-  color: #111;
+  color: var(--color-text);
+}
+
+.search-bar input::placeholder {
+  color: var(--color-text-muted);
 }
 
 .search-bar button {
-  padding: 11px 20px;
+  padding: 12px 22px;
   font-size: 14px;
-  background: #111;
+  font-weight: 600;
+  background: var(--color-brand);
   color: #fff;
   border: none;
   cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
 }
 
-.search-bar button:hover { background: #333; }
+.search-bar button:hover {
+  background: var(--color-brand-dark);
+}
+
+
+/* 5. Clinic cards grid  */
+
+.clinics-section {
+  padding: 36px 28px 60px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+
+.clinics-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.clinic-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 20px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.clinic-card:hover,
+.clinic-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(107,47,160,.15);
+  border-color: var(--color-brand);
+  outline: none;
+}
+
+
+.clinic-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.clinic-type {
+  font-size: 12px;
+  color: var(--color-brand);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+
+.clinic-addr {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+
+/* 6. Open / Closed badges  */
+
+.clinic-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  width: fit-content;
+}
+
+
+.clinic-badge--open {
+  background: var(--color-open-bg);
+  color: var(--color-open);
+}
+
+.clinic-badge--closed {
+  background: var(--color-closed-bg);
+  color: var(--color-closed);
+}
+
+
+/* 7. Skeleton loading state */
+
+.clinic-card--skeleton {
+  min-height: 140px;
+  background: linear-gradient(
+    90deg,
+    var(--color-border) 25%,
+    #ececec 50%,
+    var(--color-border) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.4s infinite;
+  cursor: default;
+  pointer-events: none;
+}
+
+@keyframes skeleton-sweep {
+  0%   { background-position:  200% center; }
+  100% { background-position: -200% center; }
+}
+
+
+/*  8. Empty state*/
+
+.clinics-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 15px;
+  padding: 48px 0;
+}
+
+
+/* 9. Loading gate */
+
+.landing--loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 16px;
+  color: var(--color-text-muted);
+}
+
+
+/*10. Buttons*/
+
+.btn {
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1.5px solid rgba(255,255,255,.5);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover {
+  background: rgba(255,255,255,.12);
+  border-color: #fff;
+}
+
+
+.btn-primary {
+  background: #fff;
+  color: var(--color-brand);
+  border-color: #fff;
+  font-weight: 700;
+}
+
+.btn-primary:hover {
+  background: var(--color-brand-light);
+  border-color: var(--color-brand-light);
+}
