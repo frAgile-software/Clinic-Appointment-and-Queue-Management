@@ -10,7 +10,7 @@ router.get("/:clinicID/staff", async (req, res) => {
         const { auth0Id } = req.query;
         
         // Get referenced clinic
-        const clinic = await Clinic.exists({ id: clinicID });
+        const clinic = await Clinic.exists({ _id: clinicID });
         if (!clinic) 
             return res.status(404).json({ message: "Clinic not found." });
 
