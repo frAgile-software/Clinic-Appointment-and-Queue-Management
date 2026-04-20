@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, Navigate} from 'react-router';
+import { BrowserRouter, Routes, Route, Navigate} from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 
 import Landing from           "./pages/Landing/Landing"
@@ -6,6 +6,7 @@ import Registration from      "./pages/Registration/Registration"
 import AdminDashboard from    "./pages/AdminDashboard/AdminDashboard"
 import StaffDashboard from    "./pages/StaffDashboard/StaffDashboard"
 import PatientDashboard from  "./pages/PatientDashboard/PatientDashboard"
+import StaffProfile from      "./pages/StaffProfile/StaffProfile"
 
 function App() {
   const ProtectedRoute = ({ children }) => {
@@ -17,15 +18,6 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* Navigation */}
-      <nav>
-        <Link to="/">Landing</Link>
-        <Link to="/register">Registration</Link>
-        <Link to="/dashboard/admin">AdminDashboard</Link>
-        <Link to="/dashboard/staff">StaffDashboard</Link>
-        <Link to="/dashboard/patient">PatientDashboard</Link>
-      </nav>
-
       {/* Routes */}
       <Routes>
         <Route path="/" element= { <Landing /> } />
@@ -38,6 +30,10 @@ function App() {
         <Route path="/dashboard/staff" element= { 
           <ProtectedRoute>
             <StaffDashboard /> 
+          </ProtectedRoute>} />
+          <Route path="/dashboard/staff/profile" element= {
+          <ProtectedRoute>
+            <StaffProfile />
           </ProtectedRoute>} />
         <Route path="/dashboard/patient" element= { 
           <ProtectedRoute>

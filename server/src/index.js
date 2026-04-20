@@ -1,9 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const dbConnect = require("./database/dbConnect")
-const registerRoute = require("../routes/register");
-const userRoute = require("../routes/user");
-
+const { requireAuth } = require('./middleware/auth');
+const usersRoute = require('./routes/usersRoute');
+const clinicsRoute = require('./routes/clinicsRoute');
 
 dbConnect();
 
@@ -15,17 +15,18 @@ server.use(cors({
 
 server.use(express.json());
 
-server.use("/api/register", registerRoute);
-server.use("/api/user", userRoute);
+// protect all '/api' routes
+server.get("/api", requireAuth);
 
-//example api implementation
-server.get("/api/hello", (req, res) => {
+server.use(usersRoute);
+server.use(clinicsRoute);
+
+// hello mr api! :D
+server.get("/hello", (req, res) => {
     res.json({message : "Hello world!"});
 });
 
 const port = process.env.PORT || 5000;
-
-// Capture the listener in a variable
 const listener = server.listen(port, () => {
     console.log(`Running on port ${port}`);
 });
