@@ -5,6 +5,10 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { Auth0Provider } from "@auth0/auth0-react";
 
+console.log("DEVELOPMENT LOGGING");
+console.log("Environment Variables:");
+console.log("REACT_APP_SERVER_URL:",process.env.REACT_APP_SERVER_URL);
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

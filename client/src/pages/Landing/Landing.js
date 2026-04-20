@@ -62,10 +62,12 @@ function Landing() {
       if (!isLoading && isAuthenticated && user) {
         setIsVerifying(true);
         try {
-          // 1. Query our database for this specific Auth0 ID
+          
+          console.log(`Attempting to get user from url ${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
           const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
 
           if (response.ok) {
+            console.log("User found. Redirecting...");
             const data = await response.json();
             const redirectMap = {
               Patient: '/dashboard/patient',
@@ -112,7 +114,6 @@ function Landing() {
         params.set("_page_len", PAGE_LIMIT);
 
         console.log("Trying to fetch:",`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
-
         const res  = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
         const json = await res.json();
 
@@ -156,6 +157,7 @@ function Landing() {
 
       try {
         console.log("FILTERS:", filters);
+        console.log(`Attempting to get filters from ${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
         const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
         const json = await res.json();
 
