@@ -23,7 +23,7 @@ function AdminDashboard() {
                 if (!user?.sub) return;
 
                 const response = await fetch(
-                    `/api/clinics/assigned?auth0Id=${encodeURIComponent(user.sub)}`
+                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${encodeURIComponent(user.sub)}`
                 );
                 const data = await response.json();
 
@@ -46,7 +46,7 @@ function AdminDashboard() {
                 if (!selectedClinic || !user?.sub) return;
 
                 const response = await fetch(
-                    `/api/clinics/${selectedClinic._id}/staff?auth0Id=${encodeURIComponent(user.sub)}`
+                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/${selectedClinic._id}/staff?auth0Id=${encodeURIComponent(user.sub)}`
                 );
                 const data = await response.json();
 
