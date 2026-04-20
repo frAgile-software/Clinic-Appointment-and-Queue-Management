@@ -4,7 +4,7 @@ import bell from './bell.png';
 import logo from './clinicLogo.png';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect } from 'react';
-import adminDashboardStub from './AdminDashboardStub';
+
 
 function AdminDashboard() {
      const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
