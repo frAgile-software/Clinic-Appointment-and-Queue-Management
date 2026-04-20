@@ -9,8 +9,9 @@ const updateClinic = require("./clinics/updateClinic");
 const listStaff = require("./clinics/listStaff");
 const linkStaff = require("./clinics/linkStaff");
 const filterClinics = require("./clinics/filterClinics");
+const getFilters = require("./clinics/getFilters");
 
-// Non-API routes
+router.use("/clinics/filters", getFilters);
 router.use("/clinics", filterClinics);
 router.use("/clinics", getClinic);
 

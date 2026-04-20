@@ -21,6 +21,11 @@ npm run dev
 
 - You can also use `npm run dev` in /server, and `npm run start` in /client to run each independently.
 
+You can also check code coverage with
+```
+npm run coverage
+```
+
 Remember to copy the example files:
 ```bash 
 cp server/.env.example server/.env
