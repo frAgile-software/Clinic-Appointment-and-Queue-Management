@@ -111,6 +111,8 @@ function Landing() {
         params.set("_page", page);
         params.set("_page_len", PAGE_LIMIT);
 
+        console.log("Trying to fetch:",`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
+
         const res  = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
         const json = await res.json();
 
