@@ -3,19 +3,75 @@ import './AdminDashboard.css';
 import bell from './bell.png';
 import logo from './clinicLogo.png';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import adminDashboardStub from './AdminDashboardStub';
 
 function AdminDashboard() {
-    const {
-        logout: auth0Logout,
-        //user,
-    } = useAuth0();
-    const [dashboardData] = useState(adminDashboardStub);
-    const [selectedClinic, setSelectedClinic] = useState(adminDashboardStub.clinics[0]);
+     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
+
+    //const [dashboardData] = useState(adminDashboardStub);
+   // const [selectedClinic, setSelectedClinic] = useState(adminDashboardStub.clinics[0]);
     const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
     };
+    const [clinics, setClinics] = useState([]);
+    const [selectedClinic, setSelectedClinic] = useState(null);
+    const [staffList, setStaffList] = useState([]);
+    useEffect(() => {
+        const fetchAssignedClinics = async () => {
+            try {
+                if (!user?.sub) return;
+
+                const response = await fetch(
+                    `/api/clinics/assigned?auth0Id=${encodeURIComponent(user.sub)}`
+                );
+                const data = await response.json();
+
+                if (response.ok && data.length > 0) {
+                    setClinics(data);
+                    setSelectedClinic(data[0]);
+                }
+            } catch (error) {
+                console.error('Error fetching assigned clinics:', error);
+            }
+        };
+        if (!isLoading && isAuthenticated) {
+            fetchAssignedClinics();
+        }
+    }, [user, isAuthenticated, isLoading]);
+
+    useEffect(() => {
+        const fetchStaff = async () => {
+            try {
+                if (!selectedClinic || !user?.sub) return;
+
+                const response = await fetch(
+                    `/api/clinics/${selectedClinic._id}/staff?auth0Id=${encodeURIComponent(user.sub)}`
+                );
+                const data = await response.json();
+
+                if (response.ok) {
+                    setStaffList(data.users);
+                }
+            } catch (error) {
+                console.error('Error fetching staff:', error);
+            }
+        };
+
+        fetchStaff();
+    }, [selectedClinic, user]);
+
+    if (isLoading) {
+    return <p>Loading dashboard...</p>;
+    }
+
+    if (!selectedClinic) {
+    return <p>No assigned clinics found.</p>;
+    }
+        
+
+
+
     const handleClinicChange = (clinic) => {
         setSelectedClinic(clinic);
     };
@@ -38,7 +94,7 @@ function AdminDashboard() {
                 <button id="dropdown_button_clinicList">Change Clinic</button>
                 <section id="dropdown_content_clinicList">
                     <ul className="clinic_list">
-                        {dashboardData.clinics.map((clinic) => (
+                        {clinics.map((clinic) => (
                                 <li key={clinic._id} className="dropdown_item">
                                     <button onClick={() => handleClinicChange(clinic)}>
                                         {clinic.practiceName}
@@ -57,7 +113,7 @@ function AdminDashboard() {
             <p>Suburb: {selectedClinic.physicalSuburb}</p>
             <p>Contact: {selectedClinic.contactNumber}</p>
             <p>Operating Hours: {selectedClinic.operatingHours}</p>
-            <p>Services: {selectedClinic.services.join(', ')}</p>
+            <p>Services: {selectedClinic.services?.join(', ') || 'Not available'}</p>
 
             <section id="dropdown_clinic">
                 <button id="dropdown_button_clinic">Edit Clinic Details</button>
@@ -77,7 +133,7 @@ function AdminDashboard() {
         <h2>Manage Staff</h2>
         <h3>Staff List:</h3>
         <ul className="clinic_list">
-            {selectedClinic.staff.map((member) => (
+            {staffList.map((member) => (
                 <li key={member._id}>
                     <p>ID: {member._id}, Name: {member.name} {member.surname}, Role: {member.role}</p>
                 </li>
