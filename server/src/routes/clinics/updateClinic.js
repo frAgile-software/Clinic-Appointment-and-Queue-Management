@@ -13,12 +13,8 @@ router.put("/:id", async (req, res) => {
          console.log("1. Incoming Payload: ", req.params);
          console.log("2. Update Data: ", updateData);
 
-        //validation
-        if (!id) {
-            console.log("Fail: Missing clinic ID");
-            return res.status(400).json({ message: "Missing clinic ID" });
-        }
-        console.log("2. Validation Passed");
+        // if ID is missing then it should fail anyways
+
         // Check if clinic exists and update
         const updatedClinic = await Clinic.findByIdAndUpdate(
             id, 
@@ -29,7 +25,8 @@ router.put("/:id", async (req, res) => {
             console.log("Fail: Clinic not found");
             return res.status(404).json({ message: "Clinic not found" });
         }
-        console.log("3. Clinic Updated Successfully");
+        console.log("2. Clinic Updated Successfully");
+        res.status(200).json({ message: "Clinic updated successfully", clinic: updatedClinic });
     } catch (error) {
         console.error("Error updating clinic:", error);
         res.status(500).json({ message: "Server error" });
