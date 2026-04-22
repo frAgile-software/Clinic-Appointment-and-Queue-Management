@@ -21,6 +21,8 @@ jest.mock('../../hooks/apiAuth', () => ({
 // The Landing page calls fetch on mount to load clinics.
 // We return empty data here since card rendering is not
 beforeEach(() => {
+    jest.useFakeTimers();
+
     require('@auth0/auth0-react').useAuth0.mockReturnValue({
         isAuthenticated: false,
         isLoading: false,
@@ -49,6 +51,8 @@ beforeEach(() => {
 
 // Clear all mocks after each test so they don't bleed into each other
 afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
     jest.restoreAllMocks();
     jest.clearAllMocks();
 });
@@ -62,8 +66,10 @@ const renderLanding = async () => {
             <MemoryRouter>
                 <Landing />
             </MemoryRouter>
-        )}
-)};
+        );
+        jest.runAllTimers();
+    });
+};
 
 
 describe('<Landing />', () => {
@@ -455,7 +461,7 @@ describe('<Landing />', () => {
 
                 await act(async () => {
                     await userEvent.click(screen.getByLabelText('Next page'));
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    jest.runAllTimers();
                 });
 
                 expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('_page=2'));
@@ -468,7 +474,7 @@ describe('<Landing />', () => {
 
                 await act(async () => {
                     await userEvent.click(screen.getByLabelText('Page 2'));
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    jest.runAllTimers();
                 });
 
                 expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('_page=2'));
