@@ -7,12 +7,7 @@ import Landing from './Landing';
 // Mock: Auth0
 // Simulates a visitor who is NOT logged in so the role-redirect
 jest.mock('@auth0/auth0-react', () => ({
-    useAuth0: () => ({
-        isAuthenticated: false,
-        isLoading: false,
-        user: null,
-        loginWithRedirect: jest.fn(),
-    }),
+    useAuth0: jest.fn(),
 }));
 
 //  Mock: apiAuth hook 
@@ -26,6 +21,13 @@ jest.mock('../../hooks/apiAuth', () => ({
 // The Landing page calls fetch on mount to load clinics.
 // We return empty data here since card rendering is not
 beforeEach(() => {
+    require('@auth0/auth0-react').useAuth0.mockReturnValue({
+        isAuthenticated: false,
+        isLoading: false,
+        user: null,
+        loginWithRedirect: jest.fn(),
+    });
+
     global.fetch = jest.fn((url) => {
         if (url.includes('/clinics/filters')) {
             return Promise.resolve({
@@ -47,6 +49,7 @@ beforeEach(() => {
 
 // Clear all mocks after each test so they don't bleed into each other
 afterEach(() => {
+    jest.restoreAllMocks();
     jest.clearAllMocks();
 });
 
@@ -104,9 +107,132 @@ describe('<Landing />', () => {
         await renderLanding();
         expect(screen.getByRole('button', { name: /^search$/i })).toBeInTheDocument();
     });
+    
+    describe('Redirects', () => {
+        test('redirects Patient to /dashboard/patient', async () => {
+            const mockNavigate = jest.fn();
+            jest.spyOn(require('react-router'), 'useNavigate').mockReturnValue(mockNavigate);
+
+            const mockApiFetch = jest.fn((url) => {
+                if (url.includes('/api/users/')) {
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve({ role: 'Patient' }),
+                    });
+                }
+            });
+
+            jest.spyOn(require('../../hooks/apiAuth'), 'useApiAuth').mockReturnValue({
+                apiFetch: mockApiFetch,
+            });
+
+            require('@auth0/auth0-react').useAuth0.mockReturnValue({
+                isAuthenticated: true,
+                isLoading: false,
+                user: { sub: 'auth0|123' },
+                loginWithRedirect: jest.fn(),
+            });
+
+            await renderLanding();
+
+            await waitFor(() => {
+                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/patient');
+            });
+        });
+
+        test('redirects Staff to /dashboard/staff', async () => {
+            const mockNavigate = jest.fn();
+            jest.spyOn(require('react-router'), 'useNavigate').mockReturnValue(mockNavigate);
+
+            const mockApiFetch = jest.fn((url) => {
+                if (url.includes('/api/users/')) {
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve({ role: 'Staff' }),
+                    });
+                }
+            });
+
+            jest.spyOn(require('../../hooks/apiAuth'), 'useApiAuth').mockReturnValue({
+                apiFetch: mockApiFetch,
+            });
+
+            require('@auth0/auth0-react').useAuth0.mockReturnValue({
+                isAuthenticated: true,
+                isLoading: false,
+                user: { sub: 'auth0|123' },
+                loginWithRedirect: jest.fn(),
+            });
+
+            await renderLanding();
+
+            await waitFor(() => {
+                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/staff');
+            });
+        });
+
+        test('redirects Admin to /dashboard/admin', async () => {
+            const mockNavigate = jest.fn();
+            jest.spyOn(require('react-router'), 'useNavigate').mockReturnValue(mockNavigate);
+
+            const mockApiFetch = jest.fn((url) => {
+                if (url.includes('/api/users/')) {
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve({ role: 'Admin' }),
+                    });
+                }
+            });
+
+            jest.spyOn(require('../../hooks/apiAuth'), 'useApiAuth').mockReturnValue({
+                apiFetch: mockApiFetch,
+            });
+
+            require('@auth0/auth0-react').useAuth0.mockReturnValue({
+                isAuthenticated: true,
+                isLoading: false,
+                user: { sub: 'auth0|123' },
+                loginWithRedirect: jest.fn(),
+            });
+
+            await renderLanding();
+
+            await waitFor(() => {
+                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/admin');
+            });
+        });
+
+        test('redirects to /register when user not found (404)', async () => {
+            const mockNavigate = jest.fn();
+            jest.spyOn(require('react-router'), 'useNavigate').mockReturnValue(mockNavigate);
+            jest.spyOn(require('../../hooks/apiAuth'), 'useApiAuth').mockReturnValue({
+                apiFetch: jest.fn(() => Promise.resolve({ ok: false, status: 404 })),
+            });
+            require('@auth0/auth0-react').useAuth0.mockReturnValue({
+                isAuthenticated: true, isLoading: false,
+                user: { sub: 'auth0|123' }, loginWithRedirect: jest.fn(),
+            });
+
+            await renderLanding();
+            await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/register'));
+        });
+
+        test('handles failed profile verification', async () => {
+            jest.spyOn(require('../../hooks/apiAuth'), 'useApiAuth').mockReturnValue({
+                apiFetch: jest.fn(() => Promise.resolve({ ok: false, status: 500 })),
+            });
+            require('@auth0/auth0-react').useAuth0.mockReturnValue({
+                isAuthenticated: true, isLoading: false,
+                user: { sub: 'auth0|123' }, loginWithRedirect: jest.fn(),
+            });
+
+            await renderLanding();
+            expect(screen.getByText(/skip the queue/i)).toBeInTheDocument();
+        });
+    });
 
     // Filter dropdown tests
-    describe('Dropdown filter tests', () => {
+    describe('Clinic sesarching and filtering', () => {
         
         test('renders all four filter dropdowns', async () => {
             await renderLanding();
@@ -252,5 +378,102 @@ describe('<Landing />', () => {
                 expect(screen.getByText(/no clinics found/i)).toBeInTheDocument();
             });
         });
+
+        test('handles clinic fetch network error gracefully', async () => {
+            global.fetch = jest.fn((url) => {
+                if (url.includes('/clinics/filters')) return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({ provinces:[], towns:[], suburbs:[], types:[] }),
+                });
+                return Promise.reject(new Error('Network error'));
+            });
+
+            await renderLanding();
+            expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+        });
+
+        test('typing in search input updates value and resets page', async () => {
+            await renderLanding();
+            const input = screen.getByRole('searchbox');
+
+            await act(async () => {
+                await userEvent.type(input, 'Park');
+            });
+
+            expect(input.value).toBe('Park');
+        });
+
+        test('shows clinic count when results are returned', async () => {
+            global.fetch = jest.fn((url) => {
+                if (url.includes('/clinics/filters')) return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({ provinces:[], towns:[], suburbs:[], types:[] }),
+                });
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({
+                        data: [{ _id: '1', practiceName: 'Clinic A', practiceTypeDescription: 'GP', physicalAddress: '1 St', physicalTown: 'Town', isOpen: false }],
+                        pagination: { page: 1, totalPages: 1, total: 1 }
+                    }),
+                });
+            });
+
+            await renderLanding();
+            await waitFor(() => expect(screen.getByText(/showing/i)).toBeInTheDocument());
+        });
+
+        describe('Pagination tests', () => {
+            beforeEach(() => {
+                global.fetch = jest.fn((url) => {
+                    if (url.includes('/clinics/filters')) return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve({ provinces:[], towns:[], suburbs:[], types:[] }),
+                    });
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve({
+                            data: [{ _id: '1', practiceName: 'Clinic A', practiceTypeDescription: 'GP', physicalAddress: '1 St', physicalTown: 'Town', isOpen: true }],
+                            pagination: { page: 1, totalPages: 3, total: 30 }
+                        }),
+                    });
+                });
+            });
+
+            test('renders pagination buttons when multiple pages exist', async () => {
+                await renderLanding();
+
+                await waitFor(() => expect(screen.getByText('Clinic A')).toBeInTheDocument());
+
+                expect(screen.getByLabelText('Next page')).toBeInTheDocument();
+                expect(screen.getByLabelText('Previous page')).toBeDisabled();
+            });
+
+            test('clicking next page fetches page 2', async () => {
+                await renderLanding();
+
+                await waitFor(() => expect(screen.getByText('Clinic A')).toBeInTheDocument());
+
+                await act(async () => {
+                    await userEvent.click(screen.getByLabelText('Next page'));
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                });
+
+                expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('_page=2'));
+            });
+
+            test('clicking a page number fetches that page', async () => {
+                await renderLanding();
+
+                await waitFor(() => expect(screen.getByText('Clinic A')).toBeInTheDocument());
+
+                await act(async () => {
+                    await userEvent.click(screen.getByLabelText('Page 2'));
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                });
+
+                expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('_page=2'));
+            });
+        });
+
     });
 });
