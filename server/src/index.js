@@ -33,5 +33,4 @@ if (require.main === module) {
     });
 }
 
-server.listener = listener;
 module.exports = server;

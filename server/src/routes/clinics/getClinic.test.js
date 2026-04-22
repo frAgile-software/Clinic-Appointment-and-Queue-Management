@@ -34,14 +34,6 @@ const VALID_CLINIC = {
     contactNumber: '0123456789',
 };
 
-afterAll((done) => {
-    if (app.listener) {
-        app.listener.close(done);
-    } else {
-        done();
-    }
-});
-
 beforeEach(() => {
     jest.clearAllMocks();
 });
