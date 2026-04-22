@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get("/:id", async (req, res) => {
     try{
-        console.log("1. Incoming Payload: ", req.params);
+        console.log("Incoming Payload: ", req.params);
         const {id} = req.params;
 
         //find clinic
