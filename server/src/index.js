@@ -26,6 +26,7 @@ server.get("/hello", (req, res) => {
     res.json({message : "Hello world!"});
 });
 
+/* istanbul ignore next */ //ignores this block in code coverage
 if (require.main === module) {
     const port = process.env.PORT || 5000;
     const listener = server.listen(port, () => {
