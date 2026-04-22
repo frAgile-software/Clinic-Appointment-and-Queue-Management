@@ -31,5 +31,5 @@ const listener = server.listen(port, () => {
     console.log(`Running on port ${port}`);
 });
 
+server.listener = listener;
 module.exports = server;
-module.exports.listener = listener;
