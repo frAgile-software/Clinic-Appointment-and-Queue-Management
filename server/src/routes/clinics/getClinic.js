@@ -11,10 +11,9 @@ router.get("/:id", async (req, res) => {
         //find clinic
         const clinic = await Clinic.findById(id);
         if (!clinic) {
-            console.log("Fail: Clinic not found");
             return res.status(404).json({ error: "Clinic not found" });
         }
-        console.log("2. Validation Passed");
+
         res.status(200).json(clinic);
     }
     catch (error) {
