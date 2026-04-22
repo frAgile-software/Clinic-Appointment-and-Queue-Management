@@ -8,11 +8,6 @@ router.get("/:id", async (req, res) => {
         console.log("1. Incoming Payload: ", req.params);
         const {id} = req.params;
 
-        //Validation
-        if (!id) {
-            console.log("Fail: Missing clinic ID");
-            return res.status(400).json({ error: "Missing required field" });
-        }
         //find clinic
         const clinic = await Clinic.findById(id);
         if (!clinic) {
