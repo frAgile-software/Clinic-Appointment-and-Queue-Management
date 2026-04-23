@@ -1,15 +1,45 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./PatientDashboard.css";
 import { useAuth0 } from '@auth0/auth0-react';
 import logo from './logo.svg';
 
+// Assuming PatientDashboard is in a similar folder depth as Landing.js
+// Adjust this path if your folder structure is different!
+import { useApiAuth } from '../../hooks/apiAuth'; 
+
 function PatientDashboard() {
-  const mockPatientName = "John Doe";
-  const { logout: auth0Logout } = useAuth0();
+  const { user, logout: auth0Logout } = useAuth0();
+  const { apiFetch } = useApiAuth();
+  
+  // State to hold the fetched patient name
+  const [patientName, setPatientName] = useState("");
 
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
+
+  // Fetch the user's details from the database when the component mounts
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user?.sub) {
+        try {
+          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            // Assuming your API returns the User document directly
+            setPatientName(data.name); 
+          } else {
+            console.error("Failed to fetch user profile.");
+          }
+        } catch (error) {
+          console.error("Network error fetching user:", error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user, apiFetch]);
 
   return (
     <div className="dashboard-container">
@@ -40,7 +70,10 @@ function PatientDashboard() {
         <div className="purple-banner-container">
           <section className="top-section" aria-labelledby="welcome-heading">
             <article className="welcome-area">
-              <h1 id="welcome-heading" className="greeting">Welcome Back, {mockPatientName}!</h1>
+              {/* Dynamically render the patient name, fallback to 'Guest' if it hasn't loaded yet */}
+              <h1 id="welcome-heading" className="greeting">
+                Welcome Back, {patientName || "..."}!
+              </h1>
               <p className="subtitle">Manage your health easily and skip the waiting room</p>
               
               <div className="action-banner">
