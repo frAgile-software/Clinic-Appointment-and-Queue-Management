@@ -1,8 +1,3 @@
-// Already under '/clinics'
-// Use '/:clinicID' or similar
-// For patients to use
-
-// Used to pass build checks, replace below
 const express = require("express");
 const router = express.Router();
 const Clinic = require("../../database/models/Clinic");
@@ -14,13 +9,6 @@ router.get("/:id", async (req, res) => {
         console.log("1. Incoming request params:", req.params);
  
         const { id } = req.params;
- 
-        // Validation
-        // Reject immediately if no ID was provided in the URL segment.
-        if (!id) {
-            console.log("Fail: Missing clinic ID");
-            return res.status(400).json({ error: "Missing required field: id" });
-        }
  
         // Database lookup 
         const clinic = await Clinic.findById(id);
@@ -46,7 +34,5 @@ router.get("/:id", async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
-
-
 
 module.exports = router;
