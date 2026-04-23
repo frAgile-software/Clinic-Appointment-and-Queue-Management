@@ -58,6 +58,9 @@
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 
@@ -300,5 +303,11 @@
 .btn-primary:hover {
   background: var(--color-brand-light);
   border-color: var(--color-brand-light);
+}
+
+.nav-logo-img {
+  height: 32px;  /* Adjust size as needed */
+  width: auto;
+  display: block;
 }
 
