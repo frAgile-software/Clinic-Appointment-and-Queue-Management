@@ -1,33 +1,20 @@
-//import React, { useState, useEffect } from 'react';
-//import './StaffProfile.css';
-//import { useAuth0 } from '@auth0/auth0-react';
+import React, { useState, useEffect } from 'react';
+import './StaffProfile.css';
+import { useAuth0 } from '@auth0/auth0-react';
 
-function StaffProfile({ staffData }) {
-  //const { user } = useAuth0();
-  const clinics =[ //test stub 
-    {
-      _id: "stub-123",
-      name: "Hayden Medical Clinic",
-      address: "992 Hay Road, Sandton",
-      speciality: "General Practice"
-    },
-    {
-      _id: "stub-456",
-      name: "Forgotten Dreams Dental Clinic",
-      address: "123 Fake Street, Randburg",
-      speciality: "Dentistry"
-    }
-  ];
-  //const staffId = user?.sub;
+ function StaffProfile({}) {
+  const { user } = useAuth0();
+  const [clinics, setClinics] = useState([]);
+  const staffId = user?.sub;
 
-//fetch has been commented out for testing purposes
-/*    
+
+    
   useEffect(() => {
     if (!staffId) return; 
 
     async function fetchClinics() {
       try {
-        const response = await fetch(`/api/clinics?staffId=${staffId}`);
+        const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics?staffId=${staffId}`);
         const data = await response.json();
         setClinics(data);
       } catch (error) {
@@ -37,7 +24,7 @@ function StaffProfile({ staffData }) {
 
     fetchClinics();
   }, [staffId]);
-*/
+
   return (
     <div style={{ padding: '40px', maxWidth: '900px', margin: '0 auto' }}>
       <header>
