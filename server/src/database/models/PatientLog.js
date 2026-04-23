@@ -10,7 +10,7 @@ const patientLogSchema = new Schema({
     TimeOut: {type: Date, required: true, default: Date.now},
     TimeQStart: {type: Date, required: true, default: Date.now},
     Status: {type: String, required: true},
-});
+}, {timestamps: true});
 
 const PatientLog = mongoose.model('PatientLog', patientLogSchema);
 module.exports = PatientLog;
