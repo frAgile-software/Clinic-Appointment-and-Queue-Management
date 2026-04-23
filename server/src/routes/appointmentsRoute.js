@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-// const funkyFunc = require("./appointments/funcName");
+const cancelAppointment = require("./appointments/cancelAppointment");
 
-// router.use("/api/appointments/...", funkyFunc);
+router.use("/api/appointments/", cancelAppointment);
 
 module.exports = router;
