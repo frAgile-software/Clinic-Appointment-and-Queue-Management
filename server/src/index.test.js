@@ -19,14 +19,6 @@ const app = require('./index');
 
 describe('Server Basic Integrity', () => {
 
-    afterAll((done) => {
-        if (app.listener) {
-            app.listener.close(done);
-        } else {
-            done();
-        }
-    });
-
     test('Health Check: GET /hello returns 200', async () => {
         const res = await request(app).get('/hello');
         expect(res.statusCode).toEqual(200);
