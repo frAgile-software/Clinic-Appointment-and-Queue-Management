@@ -47,14 +47,6 @@ describe('POST /api/users/register', () => {
         role: 'Admin',
     };
 
-    afterAll((done) => {
-        if (app.listener) {
-            app.listener.close(done);
-        } else {
-            done();
-        }
-    });
-
     beforeEach(() => {
         jest.clearAllMocks();
     });
