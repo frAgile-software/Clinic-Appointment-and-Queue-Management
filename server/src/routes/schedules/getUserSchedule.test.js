@@ -1,7 +1,7 @@
 const request = require("supertest");
 const express = require("express");
 
-const getUserScheduleRouter = require("../users/getUserSchedule");
+const getUserScheduleRouter = require("../schedules/getUserSchedule");
 const User = require("../../database/models/User");
 const Schedule = require("../../database/models/Schedule");
 
@@ -10,9 +10,9 @@ jest.mock("../../database/models/Schedule");
 
 const app = express();
 app.use(express.json());
-app.use("/api/users", getUserScheduleRouter);
+app.use("/api/schedules", getUserScheduleRouter);
 
-describe("GET /api/users/:userId/schedule", () => {
+describe("GET /api/schedules/:userId", () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -20,7 +20,7 @@ describe("GET /api/users/:userId/schedule", () => {
     test("should return 404 if user does not exist", async () => {
         User.findById.mockResolvedValue(null);
 
-        const response = await request(app).get("/api/users/123456789012345678901234/schedule");
+        const response = await request(app).get("/api/schedules/123456789012345678901234");
 
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ message: "User not found." });
@@ -56,7 +56,7 @@ describe("GET /api/users/:userId/schedule", () => {
             sort: jest.fn().mockResolvedValue(mockSchedule)
         });
 
-        const response = await request(app).get("/api/users/123456789012345678901234/schedule");
+        const response = await request(app).get("/api/schedules/123456789012345678901234");
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual({ schedule: mockSchedule });
@@ -69,7 +69,7 @@ describe("GET /api/users/:userId/schedule", () => {
     test("should return 500 if an error occurs", async () => {
         User.findById.mockRejectedValue(new Error("Database failure"));
 
-        const response = await request(app).get("/api/users/123456789012345678901234/schedule");
+        const response = await request(app).get("/api/schedules/123456789012345678901234");
 
         expect(response.status).toBe(500);
         expect(response.body).toEqual({ message: "Server error." });
