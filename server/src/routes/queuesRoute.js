@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-// const funkyFunc = require("./queues/funcName");
+const addPatientQueue = require("./queues/addPatientQueue");
 
-// router.use("/api/queues/...", funkyFunc);
-// router.use("/queues/...", funkyFunc);
+router.use("/api/queues/", addPatientQueue);
+router.use("/queues/", addPatientQueue);
 
 module.exports = router;
