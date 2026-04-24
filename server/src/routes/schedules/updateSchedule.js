@@ -3,8 +3,9 @@ const router = express.Router();
 const mongoose= require("mongoose");
 const Schedule = require("../../database/models/Schedule");
 const User = require("../../database/models/User");
+
 //Staff = user id
-router.put("/schedule/:scheduleId", async (req, res) => {
+router.put("/:scheduleId", async (req, res) => {
     try {
         const { scheduleId } = req.params;
         const { Staff, DayOfWeek, StartTime, EndTime } = req.body;

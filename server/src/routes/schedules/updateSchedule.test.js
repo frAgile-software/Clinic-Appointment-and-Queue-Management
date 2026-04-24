@@ -10,16 +10,16 @@ jest.mock("../../database/models/User");
 
 const app = express();
 app.use(express.json());
-app.use("/api/users", updateScheduleRouter);
+app.use("/api/schedules", updateScheduleRouter);
 
-describe("PUT /api/users/schedule/:scheduleId", () => {
+describe("PUT /api/schedules/:scheduleId", () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
 
     test("should return 400 if scheduleId is invalid", async () => {
         const response = await request(app)
-            .put("/api/users/schedule/invalid-id")
+            .put("/api/schedules/invalid-id")
             .send({
                 DayOfWeek: 2,
                 StartTime: "09:00",
@@ -34,7 +34,7 @@ describe("PUT /api/users/schedule/:scheduleId", () => {
         Schedule.findById.mockResolvedValue(null);
 
         const response = await request(app)
-            .put("/api/users/schedule/123456789012345678901234")
+            .put("/api/schedules/123456789012345678901234")
             .send({
                 DayOfWeek: 2,
                 StartTime: "09:00",
@@ -59,7 +59,7 @@ describe("PUT /api/users/schedule/:scheduleId", () => {
         Schedule.findById.mockResolvedValue(mockSchedule);
 
         const response = await request(app)
-            .put("/api/users/schedule/123456789012345678901234")
+            .put("/api/schedules/123456789012345678901234")
             .send({
                 DayOfWeek: 9
             });
@@ -81,7 +81,7 @@ describe("PUT /api/users/schedule/:scheduleId", () => {
         Schedule.findById.mockResolvedValue(mockSchedule);
 
         const response = await request(app)
-            .put("/api/users/schedule/123456789012345678901234")
+            .put("/api/schedules/123456789012345678901234")
             .send({
                 StartTime: "17:00",
                 EndTime: "09:00"
@@ -105,7 +105,7 @@ describe("PUT /api/users/schedule/:scheduleId", () => {
         User.findById.mockResolvedValue(null);
 
         const response = await request(app)
-            .put("/api/users/schedule/123456789012345678901234")
+            .put("/api/schedules/123456789012345678901234")
             .send({
                 Staff: "111111111111111111111111"
             });
@@ -142,7 +142,7 @@ describe("PUT /api/users/schedule/:scheduleId", () => {
         User.findById.mockResolvedValue(mockUser);
 
         const response = await request(app)
-            .put("/api/users/schedule/123456789012345678901234")
+            .put("/api/schedules/123456789012345678901234")
             .send({
                 Staff: "111111111111111111111111",
                 DayOfWeek: 2,
@@ -167,7 +167,7 @@ describe("PUT /api/users/schedule/:scheduleId", () => {
         Schedule.findById.mockRejectedValue(new Error("Database failure"));
 
         const response = await request(app)
-            .put("/api/users/schedule/123456789012345678901234")
+            .put("/api/schedules/123456789012345678901234")
             .send({
                 DayOfWeek: 2,
                 StartTime: "09:00",
