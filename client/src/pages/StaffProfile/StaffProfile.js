@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 //import './StaffProfile.css';
 import { useAuth0 } from '@auth0/auth0-react';
 
-  function StaffProfile({}) {
+  function StaffProfile() {
     const { user } = useAuth0();
     const [clinics, setClinics] = useState([]);
     const [loading, setLoading] = useState(false); // loading spinner for search
