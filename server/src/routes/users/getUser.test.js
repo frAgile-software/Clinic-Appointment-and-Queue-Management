@@ -24,14 +24,6 @@ const User = require('../../database/models/User');
 
 describe('GET /api/users/:auth0Id', () => {
 
-    afterAll((done) => {
-        if (app.listener) {
-            app.listener.close(done);
-        } else {
-            done();
-        }
-    });
-
     beforeEach(() => {
         jest.clearAllMocks();
     });
