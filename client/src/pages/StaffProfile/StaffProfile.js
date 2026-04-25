@@ -8,7 +8,7 @@ import { useAuth0 } from '@auth0/auth0-react';
     const [loading, setLoading] = useState(false); // loading spinner for search
    
     
-    const staffId = user.sub; 
+    const staffId = user?.sub; 
 
     useEffect(() => { // Fetch clinics assigned to the staff member
       if (!staffId) return;
