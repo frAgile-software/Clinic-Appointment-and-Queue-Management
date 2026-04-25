@@ -30,10 +30,12 @@ server.get("/hello", (req, res) => {
     res.json({message : "Hello world!"});
 });
 
-const port = process.env.PORT || 5000;
-const listener = server.listen(port, () => {
-    console.log(`Running on port ${port}`);
-});
+/* istanbul ignore next */ //ignores this block in code coverage
+if (require.main === module) {
+    const port = process.env.PORT || 5000;
+    const listener = server.listen(port, () => {
+        console.log(`Running on port ${port}`);
+    });
+}
 
 module.exports = server;
-module.exports.listener = listener;
