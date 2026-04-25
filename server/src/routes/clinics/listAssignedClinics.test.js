@@ -19,11 +19,6 @@ describe('listAssignedClinics API', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  afterAll(() => {
-    console.log.mockRestore();
-    console.error.mockRestore();
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
