@@ -16,13 +16,16 @@ function PatientDashboard() {
   const [patientName, setPatientName] = useState("");
 
   // --- Search & Filter State ---
-  const [showSearch, setShowSearch] = useState(false); // Controls if search UI is visible
+  const [showSearch, setShowSearch] = useState(false); 
   const [search, setSearch] = useState('');
   const [clinics, setClinics] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [pagination, setPagination] = useState({page:1, totalPages:1, total:0});
   const [page, setPage] = useState(1);
+  
+  // --- Modal State ---
+  const [selectedClinic, setSelectedClinic] = useState(null);
   
   const clinicsSectionRef = useRef(null);
   const debounceTimer = useRef(null);
@@ -39,7 +42,6 @@ function PatientDashboard() {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
-  // Fetch User Data
   useEffect(() => {
     const fetchUserData = async () => {
       if (user?.sub) {
@@ -59,7 +61,6 @@ function PatientDashboard() {
     fetchUserData();
   }, [user, apiFetch]);
 
-  // Fetch Filter Options
   useEffect(() => {
     const fetchFilterOptions = async () => {
       const params = new URLSearchParams();
@@ -79,9 +80,8 @@ function PatientDashboard() {
     if (showSearch) fetchFilterOptions();
   }, [filters.province, filters.town, filters.suburb, filters.type, filters, showSearch]);
 
-  // Fetch Clinics (Debounced)
   useEffect(() => {
-    if (!showSearch) return; // Only fetch if the search section is active
+    if (!showSearch) return;
 
     clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(async () => {
@@ -120,10 +120,8 @@ function PatientDashboard() {
     return () => clearTimeout(debounceTimer.current);
   }, [search, filters, page, showSearch]);
 
-  // --- Handlers ---
   const handleStartSearch = () => {
     setShowSearch(true);
-    // Give the DOM a tiny bit of time to render the search section before scrolling
     setTimeout(() => {
       clinicsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
@@ -135,7 +133,10 @@ function PatientDashboard() {
   };
 
   const handleSearch = (e) => e.preventDefault();
-  const handleClinicClick = (clinicId) => navigate(`/clinics/${clinicId}`);
+  
+  // Open the modal instead of navigating instantly
+  const handleClinicClick = (clinic) => setSelectedClinic(clinic);
+  const closePopup = () => setSelectedClinic(null);
   
   const handlePageChange = (newPage) => {
     setPage(newPage);
@@ -226,7 +227,6 @@ function PatientDashboard() {
           </article>
         </section>
 
-        {/* Dynamic Bottom Section */}
         <section className="bottom-section" aria-label="Clinic Search" ref={clinicsSectionRef}>
           {!showSearch ? (
             <article className="grid-card full-width-card">
@@ -292,10 +292,10 @@ function PatientDashboard() {
                         <li
                           key={clinic._id}
                           className="clinic-card"
-                          onClick={() => handleClinicClick(clinic._id)}
+                          onClick={() => handleClinicClick(clinic)}
                           role="button"
                           tabIndex={0}
-                          onKeyDown={(e) => e.key === 'Enter' && handleClinicClick(clinic._id)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleClinicClick(clinic)}
                         >
                           <strong className="clinic-name">{clinic.practiceName}</strong>
                           <span className="clinic-type">{clinic.practiceTypeDescription}</span>
@@ -351,6 +351,42 @@ function PatientDashboard() {
           )}
         </section>
       </main>
+
+      {/* --- MODAL RENDERING --- */}
+      {selectedClinic && (
+        <div className="clinic-modal-overlay" onClick={closePopup}>
+          <div className="clinic-modal-outer" onClick={(e) => e.stopPropagation()}>
+            <div className="clinic-modal-inner">
+              <div className="clinic-modal-header">
+                <h2>{selectedClinic.practiceName}</h2>
+                <button className="clinic-modal-close" onClick={closePopup}>X</button>
+              </div>
+              
+              <div className="clinic-modal-details">
+                <p>Practice Type: {selectedClinic.practiceTypeDescription || 'General Practice'}</p>
+                <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalTown}</p>
+                <p>Practice Number: {selectedClinic.practiceNumber || 'Not provided'}</p>
+              </div>
+              
+              <div className="clinic-modal-footer">
+                <div className="clinic-modal-badges">
+                  <span className={`modal-badge ${selectedClinic.isOpen ? 'status-open' : 'status-closed'}`}>
+                    {selectedClinic.isOpen ? 'Open now' : 'Closed'}
+                  </span>
+                </div>
+                
+                <button 
+                  className="clinic-modal-book-btn" 
+                  onClick={() => navigate(`/clinics/${selectedClinic._id}`)}
+                >
+                  Book Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -450,3 +450,125 @@ body {
 .pagination__ellipsis {
   color: var(--text-muted);
 }
+
+/* --- POPUP MODAL STYLES --- */
+.clinic-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.3); /* Slightly more transparent to let the blur shine */
+  backdrop-filter: blur(6px); /* Adds the background blur */
+  -webkit-backdrop-filter: blur(6px); /* Safari support */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.clinic-modal-outer {
+  background-color: var(--primary-color);
+  padding: 1.5rem;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 550px; /* Increased from 450px to make the card larger */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.clinic-modal-inner {
+  background-color: #dcdcdc; 
+  border-radius: 16px;
+  padding: 2rem; /* Increased padding to match the larger width */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.clinic-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.clinic-modal-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #000;
+  max-width: 85%;
+}
+
+.clinic-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #000;
+  line-height: 1;
+  padding: 0;
+}
+
+.clinic-modal-details {
+  font-size: 0.9rem;
+  color: #111;
+  line-height: 1.6;
+}
+
+.clinic-modal-details p {
+  margin: 0;
+}
+
+.clinic-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 0.5rem;
+}
+
+.clinic-modal-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modal-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.modal-badge.visitors {
+  background-color: #ffffff;
+  color: #15803d;
+}
+
+.modal-badge.status-open {
+  background-color: #7ad86b; 
+  color: #000;
+}
+
+.modal-badge.status-closed {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.clinic-modal-book-btn {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
+}
+
+.clinic-modal-book-btn:hover {
+  opacity: 0.9;
+}
