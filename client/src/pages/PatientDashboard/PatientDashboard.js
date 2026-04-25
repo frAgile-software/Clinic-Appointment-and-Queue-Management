@@ -1,26 +1,50 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import "./PatientDashboard.css";
 import { useAuth0 } from '@auth0/auth0-react';
 import logo from './logo.svg';
 
 import { useApiAuth } from '../../hooks/apiAuth'; 
 
+const PAGE_LIMIT = 12; // clinics per page
+
 function PatientDashboard() {
   const { user, logout: auth0Logout } = useAuth0();
   const { apiFetch } = useApiAuth();
+  const navigate = useNavigate();
   
   const [patientName, setPatientName] = useState("");
+
+  // --- Search & Filter State ---
+  const [showSearch, setShowSearch] = useState(false); // Controls if search UI is visible
+  const [search, setSearch] = useState('');
+  const [clinics, setClinics] = useState([]);
+  const [loadingList, setLoadingList] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [pagination, setPagination] = useState({page:1, totalPages:1, total:0});
+  const [page, setPage] = useState(1);
+  
+  const clinicsSectionRef = useRef(null);
+  const debounceTimer = useRef(null);
+
+  const [filterOptions, setFilterOptions] = useState({
+    provinces: [], towns: [], suburbs: [], types: []
+  });
+
+  const [filters, setFilters] = useState({
+    province: '', town: '', suburb: '', type: '', service: '', _orderby: 'practiceName', _order: 'asc',
+  });
 
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
+  // Fetch User Data
   useEffect(() => {
     const fetchUserData = async () => {
       if (user?.sub) {
         try {
           const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
-          
           if (response.ok) {
             const data = await response.json();
             setPatientName(data.name); 
@@ -32,9 +56,99 @@ function PatientDashboard() {
         }
       }
     };
-
     fetchUserData();
   }, [user, apiFetch]);
+
+  // Fetch Filter Options
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      const params = new URLSearchParams();
+      if (filters.province) params.set('province', filters.province);
+      if (filters.town) params.set('town', filters.town);
+      if (filters.suburb) params.set('suburb', filters.suburb);
+      if (filters.type) params.set('type', filters.type);
+
+      try {
+        const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
+        const json = await res.json();
+        setFilterOptions(json);
+      } catch (error) {
+        console.error("Couldn't fetch filter options:", error);
+      }
+    };
+    if (showSearch) fetchFilterOptions();
+  }, [filters.province, filters.town, filters.suburb, filters.type, filters, showSearch]);
+
+  // Fetch Clinics (Debounced)
+  useEffect(() => {
+    if (!showSearch) return; // Only fetch if the search section is active
+
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(async () => {
+      setLoadingList(true);
+      setHasSearched(true);
+      try {
+        const params = new URLSearchParams();
+        if (search.trim()) params.set('name', search.trim());
+        if (filters.province) params.set('province', filters.province);
+        if (filters.town) params.set('town', filters.town);
+        if (filters.suburb) params.set('suburb', filters.suburb);
+        if (filters.type) params.set('type', filters.type);
+        if (filters.service) params.set('service', filters.service);
+        params.set('_orderby', filters._orderby);
+        params.set('_order', filters._order);
+        params.set("_page", page);
+        params.set("_page_len", PAGE_LIMIT);
+
+        const res  = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
+        const json = await res.json();
+
+        setClinics(json.data || []);
+        setPagination({
+          page: json.pagination?.page ?? page,
+          totalPages: json.pagination?.totalPages ?? 1,
+          total: json.pagination?.total ?? (json.data?.length ?? 0),
+        });
+      } catch (err) {
+        console.error('Could not search clinics:', err);
+        setClinics([]);
+      } finally {
+        setLoadingList(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(debounceTimer.current);
+  }, [search, filters, page, showSearch]);
+
+  // --- Handlers ---
+  const handleStartSearch = () => {
+    setShowSearch(true);
+    // Give the DOM a tiny bit of time to render the search section before scrolling
+    setTimeout(() => {
+      clinicsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
+  const updateFilter = (key, value) => {
+    setPage(1);
+    setFilters(f => ({ ...f, [key]: value }));
+  };
+
+  const handleSearch = (e) => e.preventDefault();
+  const handleClinicClick = (clinicId) => navigate(`/clinics/${clinicId}`);
+  
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    clinicsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const buildPageRange = (current, total) => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    if (current <= 4) return [1, 2, 3, 4, 5, '…', total];
+    if (current >= total - 3) return [1, '…', total - 4, total - 3, total - 2, total - 1, total];
+    return [1, '…', current - 1, current, current + 1, '…', total];
+  };
+  const pageRange = buildPageRange(pagination.page, pagination.totalPages);
 
   return (
     <div className="dashboard-container">
@@ -112,12 +226,129 @@ function PatientDashboard() {
           </article>
         </section>
 
-        <section className="bottom-section" aria-label="Clinic Search">
-          <article className="grid-card full-width-card">
-            <h3>Find Nearest Clinic</h3>
-            <p>Discover clinics in your area and their opening times</p>
-            <button className="card-btn">SEARCH CLINIC</button>
-          </article>
+        {/* Dynamic Bottom Section */}
+        <section className="bottom-section" aria-label="Clinic Search" ref={clinicsSectionRef}>
+          {!showSearch ? (
+            <article className="grid-card full-width-card">
+              <h3>Find Nearest Clinic</h3>
+              <p>Discover clinics in your area and their opening times</p>
+              <button className="card-btn" onClick={handleStartSearch}>SEARCH CLINIC</button>
+            </article>
+          ) : (
+            <div className="grid-card full-width-card extended-search-card">
+              <div className="extended-search-header">
+                <h3>Search Clinics</h3>
+                <p>Find a clinic near you to book an appointment or join a queue.</p>
+              </div>
+              
+              <form className="dashboard-search-bar" onSubmit={handleSearch} role="search">
+                <input
+                  type="search"
+                  placeholder="Search by clinic name…"
+                  value={search}
+                  onChange={(e) => {setSearch(e.target.value); setPage(1);}}
+                  aria-label="Search clinics"
+                />
+                <button type="submit">Search</button>
+              </form>
+              
+              <form className="dashboard-filters">
+                <select value={filters.province} onChange={e => updateFilter('province', e.target.value)}>
+                  <option value="">All provinces</option>
+                  {filterOptions.provinces.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+                <select value={filters.town} onChange={e => updateFilter('town', e.target.value)}>
+                  <option value="">All towns</option>
+                  {filterOptions.towns.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <select value={filters.suburb} onChange={e => updateFilter('suburb', e.target.value)}>
+                  <option value="">All suburbs</option>
+                  {filterOptions.suburbs.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <select value={filters.type} onChange={e => updateFilter('type', e.target.value)}>
+                  <option value="">All types</option>
+                  {filterOptions.types.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </form>
+
+              <div className="clinics-section">
+                {loadingList && (
+                  <ul className="clinics-grid" aria-busy="true">
+                    {[...Array(4)].map((_, i) => (
+                      <li key={i} className="clinic-card clinic-card--skeleton" aria-hidden="true" />
+                    ))}
+                  </ul>
+                )}
+
+                {!loadingList && clinics.length > 0 && (
+                  <>
+                    <p className="clinics-count">
+                        Showing {((pagination.page - 1) * PAGE_LIMIT) + 1}–
+                        {Math.min(pagination.page * PAGE_LIMIT, pagination.total)} of {pagination.total} clinics
+                    </p>
+
+                    <ul className="clinics-grid">
+                      {clinics.map((clinic) => (
+                        <li
+                          key={clinic._id}
+                          className="clinic-card"
+                          onClick={() => handleClinicClick(clinic._id)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => e.key === 'Enter' && handleClinicClick(clinic._id)}
+                        >
+                          <strong className="clinic-name">{clinic.practiceName}</strong>
+                          <span className="clinic-type">{clinic.practiceTypeDescription}</span>
+                          <span className="clinic-addr">
+                            {clinic.physicalAddress}, {clinic.physicalTown}
+                          </span>
+                          <span className={`clinic-badge ${clinic.isOpen ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
+                            {clinic.isOpen ? 'Open now' : 'Closed'}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {pagination.totalPages > 1 && (
+                      <nav className="pagination" aria-label="Clinic results pages" >
+                        <button
+                          className="btn pagination__btn"
+                          onClick={() => handlePageChange(pagination.page - 1)}
+                          disabled={pagination.page === 1}
+                        >
+                          ← Prev
+                        </button>
+                        {pageRange.map((item, idx) =>
+                          item === '…' ? (
+                            <span key={`ellipsis-${idx}`} className="pagination__ellipsis" aria-hidden="true">…</span>
+                          ) : (
+                            <button
+                              key={item}
+                              className={`btn pagination__btn ${item === pagination.page ? 'btn-primary pagination__btn--active' : ''}`}
+                              onClick={() => handlePageChange(item)}
+                            >
+                              {item}
+                            </button>
+                          )
+                        )}
+                        <button
+                          className="btn pagination__btn"
+                          onClick={() => handlePageChange(pagination.page + 1)}
+                          disabled={pagination.page === pagination.totalPages}
+                        >
+                          Next →
+                        </button>
+                      </nav>
+                    )}
+                  </>
+                )}
+
+                {!loadingList && hasSearched && clinics.length === 0 && (
+                  <p className="clinics-empty">No clinics found for "{search}".</p>
+                )}
+              </div>
+            </div>
+          )}
         </section>
       </main>
     </div>
