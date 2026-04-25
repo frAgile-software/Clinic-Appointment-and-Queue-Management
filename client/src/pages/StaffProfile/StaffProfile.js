@@ -7,7 +7,7 @@ import { useAuth0 } from '@auth0/auth0-react';
     const { user } = useAuth0();
     const [clinics, setClinics] = useState([]);
     const [loading, setLoading] = useState(false); // loading spinner for search
-    const [hasSearched, setHasSearched] = useState(false); // true once user has searched
+   
     
     const staffId = user.sub; 
 
@@ -39,7 +39,6 @@ import { useAuth0 } from '@auth0/auth0-react';
 
         <section style={{ marginTop: '20px' }}>
           <h2>Assigned Clinics</h2>
-
 
           {loading ? (
         <div className="loader-container">
