@@ -54,13 +54,15 @@ router.put("/:queueId", async (req, res) => {
             queueEntry.BookingDateTime = bookingDate;
         }
         const updatedQueueEntry = await queueEntry.save();
-        res.status(200).json(updatedQueueEntry);
+        return res.status(200).json({
+            message: "Queue entry updated successfully.",
+            queueEntry: updatedQueueEntry
+        });
     } catch (error) {
         console.error("Error updating queue entry:", error);
-        res.status(200).json({
-        message: "Queue entry updated successfully.",
-        queueEntry: updatedQueueEntry
-        });   
+        return res.status(500).json({
+            error: "Internal server error"
+        }); 
     }      
     });
     module.exports = router;
