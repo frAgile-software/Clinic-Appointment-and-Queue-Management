@@ -39,14 +39,6 @@ describe('GET /clinics', () => {
         }
     ];
 
-    afterAll((done) => {
-        if (app.listener) {
-            app.listener.close(done);
-        } else {
-            done();
-        }
-    });
-
     beforeEach(() => {
         jest.clearAllMocks();
     });

@@ -22,14 +22,6 @@ const request = require('supertest');
 const app = require('../../index');
 const Clinic = require('../../database/models/Clinic');
 
-afterAll((done) => {
-    if (app.listener) {
-        app.listener.close(done);
-    } else {
-        done();
-    }
-});
-
 beforeEach(() => {
     jest.clearAllMocks();
 });
