@@ -6,7 +6,7 @@ const User = require('../../database/models/User');
 
 router.get("/:auth0Id", async (req,res) => {
     try {
-        const auth0Id = req.params;
+        const {auth0Id} = req.params;
 
         console.log("Finding user...");
         const user = await User.findOne({ auth0Id });
@@ -46,3 +46,5 @@ router.get("/:auth0Id", async (req,res) => {
         res.status(500).json({message: "Server error."});
     }
 });
+
+module.exports = router;
