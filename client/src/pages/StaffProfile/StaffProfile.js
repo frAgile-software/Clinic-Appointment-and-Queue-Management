@@ -15,7 +15,7 @@ import { useAuth0 } from '@auth0/auth0-react';
       async function fetchClinics() {
         try {
             setLoading(true);
-            const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics?staffId=${staffId}`);
+            const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`);
             const data = await response.json();
             setClinics(data);
           } catch (error) {
@@ -49,8 +49,8 @@ import { useAuth0 } from '@auth0/auth0-react';
           {clinics.length > 0 ? (
             clinics.map((clinic) => (
               <div key={clinic._id} style={{ border: '2px solid black', padding: '20px' }}>
-                <h3 style={{ textTransform: 'uppercase' }}>{clinic.name}</h3>
-                <p><strong>Location:</strong> {clinic.address}</p>
+                <h3 style={{ textTransform: 'uppercase' }}>{clinic.practiceName}</h3>
+                <p><strong>Location:</strong> {clinic.physicalAddress}</p>
               </div>
             ))
           ) : (
