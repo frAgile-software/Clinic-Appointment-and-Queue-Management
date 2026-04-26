@@ -34,8 +34,14 @@ router.post("/", async (req, res) => {
         res.status(201).json({ message: "Registration successful.", role: savedUser.role });
 
     } catch (error) {
-        console.error("ERROR:", error);
-        res.status(500).json({ message: "Server error." });
+        console.error("REGISTRATION ERROR DETAILS:", {
+        message: error.message,
+        stack: error.stack
+    });
+    res.status(500).json({ 
+        message: "Server error.", 
+        error: error.message 
+    });
     }
 });
 
