@@ -20,6 +20,8 @@ router.get("/:clinicID", async (req, res) => {
 
         const staff = await Staff.findOne({ User: user._id, Clinic: clinicID });
         if (!staff) 
+            return res.status(403).json({ message: "Unauthorized." });
+
         const queue = await (uniqueSpecs.length === 0 ? 
             Queue.find({ Clinic: staff.Clinic }) :
             Queue.find({ Clinic: staff.Clinic, Speciality: { $in: uniqueSpecs } })
