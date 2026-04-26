@@ -19,7 +19,7 @@ server.use(cors({
 server.use(express.json());
 
 // protect all '/api' routes
-server.get("/api", requireAuth);
+server.use("/api", requireAuth);
 
 server.use(usersRoute);
 server.use(clinicsRoute);
