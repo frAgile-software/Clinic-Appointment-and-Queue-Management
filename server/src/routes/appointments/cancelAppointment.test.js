@@ -1,5 +1,9 @@
 jest.mock('../../database/dbConnect', () => jest.fn(() => Promise.resolve()));
 
+jest.mock('../../middleware/auth', () => ({
+    requireAuth: (req, res, next) => next() // just skip auth
+}));
+
 jest.mock('../../database/models/Appointment', () => ({
     findById: jest.fn(),
     deleteOne: jest.fn()
