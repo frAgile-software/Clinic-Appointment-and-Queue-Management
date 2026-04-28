@@ -47,8 +47,6 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
     // Mock the global fetch used for clinics and filters
     global.fetch = jest.fn((url) => {
-      // Order matters here! Filters must be checked before '/clinics' 
-      // because '/clinics/filters' contains '/clinics'
       if (url.includes('/clinics/filters')) {
         return Promise.resolve({
           ok: true,
@@ -109,8 +107,6 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     render(<PatientDashboard />);
     
     const welcomeHeading = screen.getByRole("heading", { name: /Welcome Back/i });
-    
-    // Use .toHaveTextContent to safely handle text split across multiple React nodes
     expect(welcomeHeading).toHaveTextContent("Welcome Back, ...!");
 
     await waitFor(() => {
@@ -128,7 +124,6 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     const logoutBtn = screen.getByRole("button", { name: /Logout/i });
     fireEvent.click(logoutBtn);
     
-    // Safely checks against the current environment's origin rather than a hardcoded localhost
     expect(mockLogout).toHaveBeenCalledWith({
       logoutParams: { returnTo: window.location.origin }
     });
@@ -151,7 +146,6 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     expect(screen.getByPlaceholderText(/Clinic name/i)).toBeInTheDocument();
     expect(screen.getByText(/All provinces/i)).toBeInTheDocument();
 
-    // Await clinic load so the async debounce function resolves safely
     await waitFor(() => {
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
     }, { timeout: 1500 });
@@ -165,12 +159,10 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     
     expect(screen.getByPlaceholderText(/Clinic name/i)).toBeInTheDocument();
     
-    // Verify the scroll hook was triggered
     await waitFor(() => {
       expect(window.HTMLElement.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
     });
 
-    // Await clinic load
     await waitFor(() => {
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
     }, { timeout: 1500 });
@@ -238,21 +230,29 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/clinics/clinic_123");
   });
 
+  // --- THE CRITICAL CI FIX IS HERE ---
   test("Given a reason is selected and the modal is open, When 'Book Now' is clicked, Then the reason is passed in the URL", async () => {
     await renderDashboard();
+    
+    // 1. Open the search menu
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
-    // Wait for the dropdown to map out the mocked services
+    // 2. Wait for the initial clinic list to populate
     await waitFor(() => {
       expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
-    });
-
-    fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
-
-    await waitFor(() => {
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
     }, { timeout: 1500 });
 
+    // 3. Change the dropdown. This triggers the 400ms debounce timer to fetch new clinics.
+    fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
+
+    // 4. FIX: We MUST wait for that 400ms timer to finish and fire the fetch request BEFORE moving on.
+    // Otherwise, the test will end early and cause an `act()` memory leak warning in CI.
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("service=Dentistry"));
+    }, { timeout: 1500 });
+
+    // 5. Safely click the clinic and complete the navigation
     fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
 
     const bookNowBtn = screen.getByRole("button", { name: /Book Now/i });
