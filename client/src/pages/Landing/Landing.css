@@ -35,7 +35,6 @@
   min-height: 100vh;
   background: var(--color-bg);
   color: var(--color-text);
-  /* Add these two lines to push the footer to the bottom */
   display: flex;       
   flex-direction: column; 
 }
