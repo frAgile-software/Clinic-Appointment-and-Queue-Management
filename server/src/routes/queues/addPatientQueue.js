@@ -12,12 +12,12 @@ router.post("/", async (req, res) => {
         //Find user by auth0ID
          
         const user = await User.findOne({ auth0Id: auth0ID }); // Assuming 'auth0Id' is the field name
-        if (!user) return res.status(404).json({ message: "User profile not found." });
+        if (!user) return res.status(400).json({ message: "User profile not found." });
         
         // Get referenced clinic
         const clinic = await Clinic.findOne({ $or:   { id: clinicID } });
         if (!clinic) 
-            return res.status(404).json({ message: "Clinic not found." });
+            return res.status(404).json({ message: "Clinic not found" });
 
         //check if there's a staff member with the speciality in the clinic
         const staffMember = await User.findOne({ role: "staff", clinic: clinic._id, speciality: specialityID });
@@ -42,11 +42,11 @@ router.post("/", async (req, res) => {
 
         await newQueue.save()
         console.log("Success adding user to queue");
-        res.status(201).json({ message: "Successfully joined queue" });
+        res.status(200).json({ message: "Successfully joined queue" });
 
     } catch (error) {
         console.error("Queue error:", error);
-        res.status(500).json({ message: "Server error." });
+        res.status(500).json({ message: "Server error" });
     }
 });
 
