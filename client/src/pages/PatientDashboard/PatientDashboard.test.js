@@ -24,6 +24,11 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Explicitly clear the manual prototype mock to prevent test bleed in CI
+    if (window.HTMLElement.prototype.scrollIntoView.mockClear) {
+        window.HTMLElement.prototype.scrollIntoView.mockClear();
+    }
 
     useAuth0.mockReturnValue({
       user: { sub: "auth0|12345" },
@@ -101,14 +106,15 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   });
 
   test("Given the user is logged in, Then they see a personalized welcome message", async () => {
-    // Manually render here to catch the loading state before the API resolves
     render(<PatientDashboard />);
     
-    // Use an exact string match rather than regex so the dots don't act as wildcards
-    expect(screen.getByText("Welcome Back, ...!")).toBeInTheDocument();
+    const welcomeHeading = screen.getByRole("heading", { name: /Welcome Back/i });
+    
+    // Use .toHaveTextContent to safely handle text split across multiple React nodes
+    expect(welcomeHeading).toHaveTextContent("Welcome Back, ...!");
 
     await waitFor(() => {
-      expect(screen.getByText(/Welcome Back, John Doe!/i)).toBeInTheDocument();
+      expect(welcomeHeading).toHaveTextContent("Welcome Back, John Doe!");
     });
   });
 
@@ -121,8 +127,10 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     await renderDashboard();
     const logoutBtn = screen.getByRole("button", { name: /Logout/i });
     fireEvent.click(logoutBtn);
+    
+    // Safely checks against the current environment's origin rather than a hardcoded localhost
     expect(mockLogout).toHaveBeenCalledWith({
-      logoutParams: { returnTo: "http://localhost" }
+      logoutParams: { returnTo: window.location.origin }
     });
   });
 
