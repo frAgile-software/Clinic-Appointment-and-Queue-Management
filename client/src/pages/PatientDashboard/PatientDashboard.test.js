@@ -15,7 +15,7 @@ jest.mock('react-router', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-// Mock scrollIntoView since JSDOM doesn't support it
+// Mock scrollIntoView since JSDOM doesn't support it natively
 window.HTMLElement.prototype.scrollIntoView = jest.fn();
 
 describe("Patient Dashboard - Component and Feature Tests", () => {
@@ -42,6 +42,8 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
     // Mock the global fetch used for clinics and filters
     global.fetch = jest.fn((url) => {
+      // Order matters here! Filters must be checked before '/clinics' 
+      // because '/clinics/filters' contains '/clinics'
       if (url.includes('/clinics/filters')) {
         return Promise.resolve({
           ok: true,
@@ -50,7 +52,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
             towns: ['Sandton'], 
             suburbs: [], 
             types: ['General Practice'],
-            services: ['Dentistry', 'Cardiology'] // Added services to the mock fetch
+            services: ['Dentistry', 'Cardiology'] // Mock services list
           })
         });
       }
@@ -82,17 +84,28 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     jest.restoreAllMocks();
   });
 
+  // HELPER: Renders the dashboard and waits for the initial profile fetch to prevent act() warnings
+  const renderDashboard = async () => {
+    render(<PatientDashboard />);
+    await waitFor(() => {
+      expect(screen.getByText(/Welcome Back, John Doe!/i)).toBeInTheDocument();
+    });
+  };
+
   // --- CORE DASHBOARD TESTS ---
 
-  test("Given the dashboard loads, Then the top navigation bar is displayed", () => {
-    render(<PatientDashboard />);
+  test("Given the dashboard loads, Then the top navigation bar is displayed", async () => {
+    await renderDashboard();
     expect(screen.getByRole("heading", { name: /Clinics and Qs/i })).toBeInTheDocument(); 
     expect(screen.getByRole("button", { name: /HOME/i })).toBeInTheDocument();
   });
 
   test("Given the user is logged in, Then they see a personalized welcome message", async () => {
+    // Manually render here to catch the loading state before the API resolves
     render(<PatientDashboard />);
-    expect(screen.getByText(/Welcome Back, ...!/i)).toBeInTheDocument();
+    
+    // Use an exact string match rather than regex so the dots don't act as wildcards
+    expect(screen.getByText("Welcome Back, ...!")).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText(/Welcome Back, John Doe!/i)).toBeInTheDocument();
@@ -100,14 +113,12 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   });
 
   test("Given the component mounts, Then it fetches the user profile using the Auth0 ID", async () => {
-    render(<PatientDashboard />);
-    await waitFor(() => {
-      expect(mockApiFetch).toHaveBeenCalledWith(expect.stringContaining("/api/users/auth0|12345"));
-    });
+    await renderDashboard();
+    expect(mockApiFetch).toHaveBeenCalledWith(expect.stringContaining("/api/users/auth0|12345"));
   });
 
-  test("Given the user clicks logout, Then the Auth0 logout function is triggered", () => {
-    render(<PatientDashboard />);
+  test("Given the user clicks logout, Then the Auth0 logout function is triggered", async () => {
+    await renderDashboard();
     const logoutBtn = screen.getByRole("button", { name: /Logout/i });
     fireEvent.click(logoutBtn);
     expect(mockLogout).toHaveBeenCalledWith({
@@ -117,42 +128,50 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
   // --- SEARCH EXTENSION TESTS ---
 
-  test("Given the dashboard initially loads, Then the compressed 'Find Nearest Clinic' card is shown", () => {
-    render(<PatientDashboard />);
+  test("Given the dashboard initially loads, Then the compressed 'Find Nearest Clinic' card is shown", async () => {
+    await renderDashboard();
     expect(screen.getByText(/Discover clinics in your area and their opening times/i)).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/Clinic name/i)).not.toBeInTheDocument();
   });
 
-  test("Given the user clicks 'SEARCH CLINIC', Then the search bar and filters are revealed", () => {
-    render(<PatientDashboard />);
+  test("Given the user clicks 'SEARCH CLINIC', Then the search bar and filters are revealed", async () => {
+    await renderDashboard();
     const searchBtn = screen.getByRole("button", { name: /SEARCH CLINIC/i });
     
     fireEvent.click(searchBtn);
     
     expect(screen.getByPlaceholderText(/Clinic name/i)).toBeInTheDocument();
     expect(screen.getByText(/All provinces/i)).toBeInTheDocument();
+
+    // Await clinic load so the async debounce function resolves safely
+    await waitFor(() => {
+        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+    }, { timeout: 1500 });
   });
 
-  // NEW: Tests the top banner button interaction
   test("Given the user clicks 'BOOK AN APPOINTMENT', Then the search bar is revealed and it scrolls", async () => {
-    render(<PatientDashboard />);
+    await renderDashboard();
     const bookApptBtn = screen.getByRole("button", { name: /BOOK AN APPOINTMENT/i });
     
     fireEvent.click(bookApptBtn);
     
     expect(screen.getByPlaceholderText(/Clinic name/i)).toBeInTheDocument();
     
-    // Wait for the setTimeout in handleStartSearch to trigger the scroll
+    // Verify the scroll hook was triggered
     await waitFor(() => {
       expect(window.HTMLElement.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
     });
+
+    // Await clinic load
+    await waitFor(() => {
+        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+    }, { timeout: 1500 });
   });
 
   test("Given the search card is expanded, Then it fetches and displays clinics from the API", async () => {
-    render(<PatientDashboard />);
+    await renderDashboard();
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
-    // Wait for the debounced fetch to resolve and render the clinic card
     await waitFor(() => {
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
     }, { timeout: 1500 }); 
@@ -164,7 +183,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   // --- MODAL (POPUP) TESTS ---
 
   test("Given the user clicks on a clinic card, Then the clinic details modal opens", async () => {
-    render(<PatientDashboard />);
+    await renderDashboard();
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
     let clinicCard;
@@ -178,7 +197,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   });
 
   test("Given the modal is open, When the user clicks the 'X' button, Then the modal closes", async () => {
-    render(<PatientDashboard />);
+    await renderDashboard();
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
     await waitFor(() => {
@@ -196,7 +215,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   });
 
   test("Given the modal is open, When the user clicks 'Book Now', Then they are navigated to the clinic page", async () => {
-    render(<PatientDashboard />);
+    await renderDashboard();
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
     await waitFor(() => {
@@ -211,12 +230,11 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/clinics/clinic_123");
   });
 
-  // NEW: Tests the URL parameter generation logic
   test("Given a reason is selected and the modal is open, When 'Book Now' is clicked, Then the reason is passed in the URL", async () => {
-    render(<PatientDashboard />);
+    await renderDashboard();
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
-    // Verify filter fetches correctly, then select "Dentistry"
+    // Wait for the dropdown to map out the mocked services
     await waitFor(() => {
       expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
     });
@@ -232,8 +250,6 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     const bookNowBtn = screen.getByRole("button", { name: /Book Now/i });
     fireEvent.click(bookNowBtn);
 
-    // Verify react-router navigation was triggered with the ?reason= query parameter appended
     expect(mockNavigate).toHaveBeenCalledWith("/clinics/clinic_123?reason=Dentistry");
   });
-
 });
