@@ -46,7 +46,11 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
-            provinces: ['Gauteng'], towns: ['Sandton'], suburbs: [], types: ['General Practice']
+            provinces: ['Gauteng'], 
+            towns: ['Sandton'], 
+            suburbs: [], 
+            types: ['General Practice'],
+            services: ['Dentistry', 'Cardiology'] // Added services to the mock fetch
           })
         });
       }
@@ -116,7 +120,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   test("Given the dashboard initially loads, Then the compressed 'Find Nearest Clinic' card is shown", () => {
     render(<PatientDashboard />);
     expect(screen.getByText(/Discover clinics in your area and their opening times/i)).toBeInTheDocument();
-    expect(screen.queryByPlaceholderText(/Search by clinic name…/i)).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/Clinic name/i)).not.toBeInTheDocument();
   });
 
   test("Given the user clicks 'SEARCH CLINIC', Then the search bar and filters are revealed", () => {
@@ -125,8 +129,23 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     
     fireEvent.click(searchBtn);
     
-    expect(screen.getByPlaceholderText(/Search by clinic name…/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Clinic name/i)).toBeInTheDocument();
     expect(screen.getByText(/All provinces/i)).toBeInTheDocument();
+  });
+
+  // NEW: Tests the top banner button interaction
+  test("Given the user clicks 'BOOK AN APPOINTMENT', Then the search bar is revealed and it scrolls", async () => {
+    render(<PatientDashboard />);
+    const bookApptBtn = screen.getByRole("button", { name: /BOOK AN APPOINTMENT/i });
+    
+    fireEvent.click(bookApptBtn);
+    
+    expect(screen.getByPlaceholderText(/Clinic name/i)).toBeInTheDocument();
+    
+    // Wait for the setTimeout in handleStartSearch to trigger the scroll
+    await waitFor(() => {
+      expect(window.HTMLElement.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    });
   });
 
   test("Given the search card is expanded, Then it fetches and displays clinics from the API", async () => {
@@ -136,7 +155,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     // Wait for the debounced fetch to resolve and render the clinic card
     await waitFor(() => {
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
-    }, { timeout: 1500 }); // Accounts for the 400ms debounce
+    }, { timeout: 1500 }); 
     
     expect(screen.getByText(/1 Sandton Drive, Sandton/i)).toBeInTheDocument();
     expect(screen.getByText(/Open now/i)).toBeInTheDocument();
@@ -148,16 +167,13 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     render(<PatientDashboard />);
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
-    // Wait for the clinic to render
     let clinicCard;
     await waitFor(() => {
       clinicCard = screen.getByText(/Sandton Health Clinic/i);
     }, { timeout: 1500 });
 
-    // Click the card
     fireEvent.click(clinicCard);
 
-    // Verify modal content
     expect(screen.getByText(/Practice Number: 102846748/i)).toBeInTheDocument();
   });
 
@@ -171,14 +187,11 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
     fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
     
-    // Check modal is open
     expect(screen.getByText(/Practice Number: 102846748/i)).toBeInTheDocument();
 
-    // Click X
     const closeBtn = screen.getByRole("button", { name: "X" });
     fireEvent.click(closeBtn);
 
-    // Verify modal is gone
     expect(screen.queryByText(/Practice Number: 102846748/i)).not.toBeInTheDocument();
   });
 
@@ -192,12 +205,35 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
     fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
 
-    // Click Book Now
     const bookNowBtn = screen.getByRole("button", { name: /Book Now/i });
     fireEvent.click(bookNowBtn);
 
-    // Verify react-router navigation was triggered with the correct ID
     expect(mockNavigate).toHaveBeenCalledWith("/clinics/clinic_123");
+  });
+
+  // NEW: Tests the URL parameter generation logic
+  test("Given a reason is selected and the modal is open, When 'Book Now' is clicked, Then the reason is passed in the URL", async () => {
+    render(<PatientDashboard />);
+    fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+    // Verify filter fetches correctly, then select "Dentistry"
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+    }, { timeout: 1500 });
+
+    fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
+
+    const bookNowBtn = screen.getByRole("button", { name: /Book Now/i });
+    fireEvent.click(bookNowBtn);
+
+    // Verify react-router navigation was triggered with the ?reason= query parameter appended
+    expect(mockNavigate).toHaveBeenCalledWith("/clinics/clinic_123?reason=Dentistry");
   });
 
 });

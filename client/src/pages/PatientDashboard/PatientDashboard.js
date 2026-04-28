@@ -6,7 +6,7 @@ import logo from './logo.svg';
 
 import { useApiAuth } from '../../hooks/apiAuth'; 
 
-const PAGE_LIMIT = 12; // clinics per page
+const PAGE_LIMIT = 12;
 
 function PatientDashboard() {
   const { user, logout: auth0Logout } = useAuth0();
@@ -30,8 +30,9 @@ function PatientDashboard() {
   const clinicsSectionRef = useRef(null);
   const debounceTimer = useRef(null);
 
+  // Added 'services' to store the list of specialities from the backend
   const [filterOptions, setFilterOptions] = useState({
-    provinces: [], towns: [], suburbs: [], types: []
+    provinces: [], towns: [], suburbs: [], types: [], services: []
   });
 
   const [filters, setFilters] = useState({
@@ -72,13 +73,14 @@ function PatientDashboard() {
       try {
         const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
         const json = await res.json();
-        setFilterOptions(json);
+        // Ensure services defaults to an array
+        setFilterOptions({ ...json, services: json.services || [] });
       } catch (error) {
         console.error("Couldn't fetch filter options:", error);
       }
     };
     if (showSearch) fetchFilterOptions();
-  }, [filters.province, filters.town, filters.suburb, filters.type, filters, showSearch]);
+  }, [filters.province, filters.town, filters.suburb, filters.type, showSearch]);
 
   useEffect(() => {
     if (!showSearch) return;
@@ -94,7 +96,7 @@ function PatientDashboard() {
         if (filters.town) params.set('town', filters.town);
         if (filters.suburb) params.set('suburb', filters.suburb);
         if (filters.type) params.set('type', filters.type);
-        if (filters.service) params.set('service', filters.service);
+        if (filters.service) params.set('service', filters.service); // Passing the reason to backend
         params.set('_orderby', filters._orderby);
         params.set('_order', filters._order);
         params.set("_page", page);
@@ -134,13 +136,19 @@ function PatientDashboard() {
 
   const handleSearch = (e) => e.preventDefault();
   
-  // Open the modal instead of navigating instantly
   const handleClinicClick = (clinic) => setSelectedClinic(clinic);
   const closePopup = () => setSelectedClinic(null);
   
   const handlePageChange = (newPage) => {
     setPage(newPage);
     clinicsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // --- Navigates to booking page, passing the reason as a URL parameter ---
+  const handleBookNow = () => {
+    const baseUrl = `/clinics/${selectedClinic._id}`;
+    const targetUrl = filters.service ? `${baseUrl}?reason=${encodeURIComponent(filters.service)}` : baseUrl;
+    navigate(targetUrl);
   };
 
   const buildPageRange = (current, total) => {
@@ -190,7 +198,7 @@ function PatientDashboard() {
                   <h3>Need to see a doctor?</h3>
                   <p>Schedule your next visit</p>
                 </div>
-                <button className="book-btn">BOOK AN APPOINTMENT</button>
+                <button className="book-btn" onClick={handleStartSearch}>BOOK AN APPOINTMENT</button>
               </div>
             </article>
 
@@ -238,36 +246,52 @@ function PatientDashboard() {
             <div className="grid-card full-width-card extended-search-card">
               <div className="extended-search-header">
                 <h3>Search Clinics</h3>
-                <p>Find a clinic near you to book an appointment or join a queue.</p>
+                <p>Find a clinic near you by name or the reason for your visit.</p>
               </div>
               
-              <form className="dashboard-search-bar" onSubmit={handleSearch} role="search">
-                <input
-                  type="search"
-                  placeholder="Search by clinic name…"
-                  value={search}
-                  onChange={(e) => {setSearch(e.target.value); setPage(1);}}
-                  aria-label="Search clinics"
-                />
-                <button type="submit">Search</button>
+              {/* --- DUAL SEARCH BAR --- */}
+              <form className="dashboard-dual-search" onSubmit={handleSearch} role="search">
+                <div className="search-input-group">
+                  <input
+                    type="search"
+                    placeholder="Clinic name (e.g. Parkmed)"
+                    value={search}
+                    onChange={(e) => {setSearch(e.target.value); setPage(1);}}
+                    aria-label="Search by clinic name"
+                  />
+                </div>
+                <div className="search-divider"></div>
+                <div className="search-select-group">
+                  <select 
+                    value={filters.service} 
+                    onChange={e => updateFilter('service', e.target.value)}
+                    aria-label="Filter by reason for visit"
+                  >
+                    <option value="">Reason for visit (All)</option>
+                    {filterOptions.services?.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+                <button type="submit" className="dual-search-btn">Search</button>
               </form>
               
               <form className="dashboard-filters">
                 <select value={filters.province} onChange={e => updateFilter('province', e.target.value)}>
                   <option value="">All provinces</option>
-                  {filterOptions.provinces.map(p => <option key={p} value={p}>{p}</option>)}
+                  {filterOptions.provinces?.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
                 <select value={filters.town} onChange={e => updateFilter('town', e.target.value)}>
                   <option value="">All towns</option>
-                  {filterOptions.towns.map(t => <option key={t} value={t}>{t}</option>)}
+                  {filterOptions.towns?.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
                 <select value={filters.suburb} onChange={e => updateFilter('suburb', e.target.value)}>
                   <option value="">All suburbs</option>
-                  {filterOptions.suburbs.map(s => <option key={s} value={s}>{s}</option>)}
+                  {filterOptions.suburbs?.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
                 <select value={filters.type} onChange={e => updateFilter('type', e.target.value)}>
                   <option value="">All types</option>
-                  {filterOptions.types.map(t => <option key={t} value={t}>{t}</option>)}
+                  {filterOptions.types?.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </form>
 
@@ -344,7 +368,7 @@ function PatientDashboard() {
                 )}
 
                 {!loadingList && hasSearched && clinics.length === 0 && (
-                  <p className="clinics-empty">No clinics found for "{search}".</p>
+                  <p className="clinics-empty">No clinics found matching your criteria.</p>
                 )}
               </div>
             </div>
@@ -375,9 +399,10 @@ function PatientDashboard() {
                   </span>
                 </div>
                 
+                {/* --- UPDATE: Book Now triggers handleBookNow logic --- */}
                 <button 
                   className="clinic-modal-book-btn" 
-                  onClick={() => navigate(`/clinics/${selectedClinic._id}`)}
+                  onClick={handleBookNow} 
                 >
                   Book Now
                 </button>
