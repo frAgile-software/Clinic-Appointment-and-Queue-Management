@@ -4,6 +4,8 @@ const dbConnect = require("./database/dbConnect")
 const { requireAuth } = require('./middleware/auth');
 const usersRoute = require('./routes/usersRoute');
 const clinicsRoute = require('./routes/clinicsRoute');
+const appointmentsRoute = require("./routes/appointmentsRoute");
+const queuesRoute = require("./routes/queuesRoute");
 
 dbConnect();
 
@@ -20,6 +22,8 @@ server.get("/api", requireAuth);
 
 server.use(usersRoute);
 server.use(clinicsRoute);
+server.use(appointmentsRoute);
+server.use(queuesRoute);
 
 // hello mr api! :D
 server.get("/hello", (req, res) => {
