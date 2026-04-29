@@ -15,7 +15,6 @@ function PatientDashboard() {
   
   const [patientName, setPatientName] = useState("");
 
-  // --- Search & Filter State ---
   const [showSearch, setShowSearch] = useState(false); 
   const [search, setSearch] = useState('');
   const [clinics, setClinics] = useState([]);
@@ -24,13 +23,11 @@ function PatientDashboard() {
   const [pagination, setPagination] = useState({page:1, totalPages:1, total:0});
   const [page, setPage] = useState(1);
   
-  // --- Modal State ---
   const [selectedClinic, setSelectedClinic] = useState(null);
   
   const clinicsSectionRef = useRef(null);
   const debounceTimer = useRef(null);
 
-  // Added 'services' to store the list of specialities from the backend
   const [filterOptions, setFilterOptions] = useState({
     provinces: [], towns: [], suburbs: [], types: [], services: []
   });
@@ -73,7 +70,6 @@ function PatientDashboard() {
       try {
         const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
         const json = await res.json();
-        // Ensure services defaults to an array
         setFilterOptions({ ...json, services: json.services || [] });
       } catch (error) {
         console.error("Couldn't fetch filter options:", error);
@@ -96,7 +92,7 @@ function PatientDashboard() {
         if (filters.town) params.set('town', filters.town);
         if (filters.suburb) params.set('suburb', filters.suburb);
         if (filters.type) params.set('type', filters.type);
-        if (filters.service) params.set('service', filters.service); // Passing the reason to backend
+        if (filters.service) params.set('service', filters.service); 
         params.set('_orderby', filters._orderby);
         params.set('_order', filters._order);
         params.set("_page", page);
@@ -144,7 +140,6 @@ function PatientDashboard() {
     clinicsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  // --- Navigates to booking page, passing the reason as a URL parameter ---
   const handleBookNow = () => {
     const baseUrl = `/clinics/${selectedClinic._id}`;
     const targetUrl = filters.service ? `${baseUrl}?reason=${encodeURIComponent(filters.service)}` : baseUrl;
@@ -249,7 +244,6 @@ function PatientDashboard() {
                 <p>Find a clinic near you by name or the reason for your visit.</p>
               </div>
               
-              {/* --- DUAL SEARCH BAR --- */}
               <form className="dashboard-dual-search" onSubmit={handleSearch} role="search">
                 <div className="search-input-group">
                   <input
@@ -376,7 +370,6 @@ function PatientDashboard() {
         </section>
       </main>
 
-      {/* --- MODAL RENDERING --- */}
       {selectedClinic && (
         <div className="clinic-modal-overlay" onClick={closePopup}>
           <div className="clinic-modal-outer" onClick={(e) => e.stopPropagation()}>
@@ -399,7 +392,6 @@ function PatientDashboard() {
                   </span>
                 </div>
                 
-                {/* --- UPDATE: Book Now triggers handleBookNow logic --- */}
                 <button 
                   className="clinic-modal-book-btn" 
                   onClick={handleBookNow} 

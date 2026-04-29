@@ -14,12 +14,11 @@ jest.mock('express-oauth2-jwt-bearer', () => ({
     })
 }));
 
-// Mock the Clinic model
+
 jest.mock('../../database/models/Clinic', () => ({
     distinct: jest.fn()
 }));
 
-// --- FIX: Mock the Speciality model so it doesn't try to hit a real database ---
 jest.mock('../../database/models/Speciality', () => ({
     distinct: jest.fn()
 }));
@@ -27,7 +26,7 @@ jest.mock('../../database/models/Speciality', () => ({
 const request = require('supertest');
 const app = require('../../index');
 const Clinic = require('../../database/models/Clinic');
-const Speciality = require('../../database/models/Speciality'); // Import the mocked model
+const Speciality = require('../../database/models/Speciality'); 
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -42,7 +41,6 @@ describe('GET /clinics/filters', () => {
             .mockResolvedValueOnce(['Suburp'])
             .mockResolvedValueOnce(['Lobotomy Centre']);
         
-        // --- FIX: Provide mock data for the Speciality.distinct() call ---
         Speciality.distinct.mockResolvedValueOnce(['Dentistry', 'Cardiology']);
 
         const res = await request(app).get('/clinics/filters');
@@ -53,13 +51,12 @@ describe('GET /clinics/filters', () => {
             towns: ['Moong Town','Poong Town'],
             suburbs: ['Suburp'],
             types: ['Lobotomy Centre'],
-            services: ['Cardiology', 'Dentistry'] // Expected to be sorted alphabetically
+            services: ['Cardiology', 'Dentistry'] 
         });
     });
 
     test('Applies filters from query', async () => {
         Clinic.distinct.mockResolvedValue([]);
-        // --- FIX: Ensure the mock returns an array so Promise.all doesn't crash ---
         Speciality.distinct.mockResolvedValue([]); 
 
         await request(app).get('/clinics/filters?province=Poong&town=Moong&suburb=Suburp&type=Lobotomy');
@@ -71,7 +68,6 @@ describe('GET /clinics/filters', () => {
             practiceTypeDescription: { $regex: 'Lobotomy', $options: 'i' },
         });
         
-        // Verify Speciality was called correctly
         expect(Speciality.distinct).toHaveBeenCalledWith("SpecialityName");
     });
 

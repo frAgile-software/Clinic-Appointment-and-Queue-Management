@@ -12,7 +12,6 @@ router.get("/", async (req, res) => {
             _orderby = "practiceName",
             _order = "asc",
 
-            //filters
             name,
             province,
             town,
@@ -41,8 +40,6 @@ router.get("/", async (req, res) => {
             },
             {
                 $lookup: {
-                    // IMPORTANT: Check your MongoDB database. If Mongoose named your collection 
-                    // "staff" instead of "staffs", you must remove the 's' here.
                     from: "staffs", 
                     localField: "_id",
                     foreignField: "Clinic",
@@ -51,7 +48,6 @@ router.get("/", async (req, res) => {
             },
             {
                 $lookup: {
-                    // IMPORTANT: Verify this collection name in your database too.
                     from: "staffspecialities",
                     localField: "staffUsers._id",
                     foreignField: "Staff",
@@ -66,7 +62,6 @@ router.get("/", async (req, res) => {
                     as: "services",
                 },
             },
-            // THE FIX: Use an Exact Match instead of $regex to prevent parentheses from breaking the search!
             ...(service ? [{ $match: { "services.SpecialityName": service } }] : []),
             {
                 $project: { 

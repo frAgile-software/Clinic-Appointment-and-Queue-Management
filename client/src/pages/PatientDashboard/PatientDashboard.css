@@ -206,8 +206,6 @@ body {
   width: 100%;
 }
 
-/* --- CLINIC SEARCH STYLES FROM LANDING PAGE --- */
-
 .extended-search-card {
   align-items: stretch;
 }
@@ -222,8 +220,6 @@ body {
   margin-bottom: 0.5rem;
 }
 
-/* Dashboard Search Input */
-/* --- DUAL SEARCH BAR --- */
 .dashboard-dual-search {
   display: flex;
   align-items: center;
@@ -294,7 +290,7 @@ body {
   color: #fff;
   border: none;
   cursor: pointer;
-  border-radius: 0 10px 10px 0; /* Rounds the right side of the button */
+  border-radius: 0 10px 10px 0;
   transition: background 0.15s;
   white-space: nowrap;
 }
@@ -338,7 +334,6 @@ body {
   background: var(--primary-hover);
 }
 
-/* Dashboard Filters */
 .dashboard-filters {
   display: flex;
   justify-content: center;
@@ -362,7 +357,6 @@ body {
   border-color: var(--primary-color);
 }
 
-/* Clinic Grid and Cards */
 .clinics-section {
   width: 100%;
 }
@@ -424,7 +418,6 @@ body {
   line-height: 1.4;
 }
 
-/* Badges */
 .clinic-badge {
   display: inline-block;
   margin-top: 6px;
@@ -446,7 +439,6 @@ body {
   color: #b91c1c;
 }
 
-/* Skeleton loader */
 .clinic-card--skeleton {
   min-height: 140px;
   background: linear-gradient(
@@ -473,7 +465,6 @@ body {
   padding: 3rem 0;
 }
 
-/* Pagination Buttons */
 .pagination {
   display: flex;
   justify-content: center;
@@ -519,16 +510,15 @@ body {
   color: var(--text-muted);
 }
 
-/* --- POPUP MODAL STYLES --- */
 .clinic-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.3); /* Slightly more transparent to let the blur shine */
-  backdrop-filter: blur(6px); /* Adds the background blur */
-  -webkit-backdrop-filter: blur(6px); /* Safari support */
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -540,14 +530,14 @@ body {
   padding: 1.5rem;
   border-radius: 20px;
   width: 90%;
-  max-width: 550px; /* Increased from 450px to make the card larger */
+  max-width: 550px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .clinic-modal-inner {
   background-color: #dcdcdc; 
   border-radius: 16px;
-  padding: 2rem; /* Increased padding to match the larger width */
+  padding: 2rem;
   position: relative;
   display: flex;
   flex-direction: column;
