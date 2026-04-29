@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 //import './StaffProfile.css';
 import { useAuth0 } from '@auth0/auth0-react';
-
+import { useNavigate } from 'react-router';
   function StaffProfile() {
+    const {
+    logout: auth0Logout,
+  } = useAuth0();
+
+  const navigate = useNavigate();
+
+  const logout = () => {
+        auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+  };
     const { user } = useAuth0();
     const [clinics, setClinics] = useState([]);
     const [loading, setLoading] = useState(false); // loading spinner for search
@@ -29,6 +38,18 @@ import { useAuth0 } from '@auth0/auth0-react';
     }, [staffId]);
 
     return (
+      <>
+      <nav className="staff-profile-nav" aria-label="Main navigation">
+        <span className="landing-logo">Clinics and Qs</span>
+        <section className="landing-nav-btns">
+          <button className="btn" onClick={logout}>
+            Logout
+          </button>
+          <button className="btn btn-primary" onClick={() => navigate('/dashboard/staff')}>
+            Back
+          </button>
+        </section>
+      </nav>
       <div style={{ padding: '40px', maxWidth: '900px', margin: '0 auto' }}>
         <header>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', borderBottom: '4px solid black' }}>
@@ -36,30 +57,28 @@ import { useAuth0 } from '@auth0/auth0-react';
           </h1>
         </header>
 
-        <section style={{ marginTop: '20px' }}>
-          <h2>Assigned Clinics</h2>
+       <section className="action-section">
+        <div className="action-card"> 
+          <h3>My details</h3>
+          <p><strong>Name:</strong> {user?.name}</p>
+          <p><strong>Email:</strong> {user?.email}</p>
+          <p><strong>Occupation(s):</strong> Occupation </p> 
+          <p><strong>Assigned Clinic:</strong> Clinic name</p>
+          <p><strong>Clinic Address:</strong>Clinic address</p>
+          <p><strong>Staff member since:</strong> Date hired </p> 
+        </div>
 
-          {loading ? (
-        <div className="loader-container">
-          <p>Fetching clinics...</p>
+        <div className="action-card">
+          <h3>Actions</h3>
+          <button className="action-btn">Request occupation change</button>
+          <button className="action-btn">Request clinic change</button>
+          <button className="action-btn">Request update to personal details</button>
+          <button className="action-btn">Request dismissal</button>
           
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {clinics.length > 0 ? (
-            clinics.map((clinic) => (
-              <div key={clinic._id} style={{ border: '2px solid black', padding: '20px' }}>
-                <h3 style={{ textTransform: 'uppercase' }}>{clinic.practiceName}</h3>
-                <p><strong>Location:</strong> {clinic.physicalAddress}</p>
-              </div>
-            ))
-          ) : (
-            <p>No clinics found for your ID.</p>
-          )}
-        </div>
-      )}
-    </section>
+      </section>
   </div>
+  </>
 );
 }
 
