@@ -1,84 +1,91 @@
 import React, { useState, useEffect } from 'react';
-//import './StaffProfile.css';
+import './StaffProfile.css'; // Ensure this is uncommented
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
-  function StaffProfile() {
-    const {
-    logout: auth0Logout,
-  } = useAuth0();
 
+function StaffProfile() {
+  const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
+  
+  const [clinics, setClinics] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  const staffId = user?.sub;
 
   const logout = () => {
-        auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+    auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
-    const { user } = useAuth0();
-    const [clinics, setClinics] = useState([]);
-    const [loading, setLoading] = useState(false); // loading spinner for search
-   
-    
-    const staffId = user?.sub; 
 
-    useEffect(() => { // Fetch clinics assigned to the staff member
-      if (!staffId) return;
-      async function fetchClinics() {
-        try {
-            setLoading(true);
-            const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`);
-            const data = await response.json();
-            setClinics(data);
-          } catch (error) {
-            console.error("Could not fetch clinics:", error);
-          
-        } finally {
-      setLoading(false); // Stop loading
-        }
+  useEffect(() => {
+    if (!staffId) return;
+    async function fetchClinics() {
+      try {
+        setLoading(true);
+        const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`);
+        const data = await response.json();
+        setClinics(data);
+      } catch (error) {
+        console.error("Could not fetch clinics:", error);
+      } finally {
+        setLoading(false);
       }
-      fetchClinics();
-    }, [staffId]);
+    }
+    fetchClinics();
+  }, [staffId]);
 
-    return (
-      <>
-      <nav className="staff-profile-nav" aria-label="Main navigation">
-        <span className="landing-logo">Clinics and Qs</span>
-        <section className="landing-nav-btns">
-          <button className="btn" onClick={logout}>
-            Logout
-          </button>
-          <button className="btn btn-primary" onClick={() => navigate('/dashboard/staff')}>
-            Back
-          </button>
-        </section>
-      </nav>
-      <div style={{ padding: '40px', maxWidth: '900px', margin: '0 auto' }}>
-        <header>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', borderBottom: '4px solid black' }}>
-            MY PROFILE
-          </h1>
-        </header>
+  
 
-       <section className="action-section">
-        <div className="action-card"> 
-          <h3>My details</h3>
-          <p><strong>Name:</strong> {user?.name}</p>
-          <p><strong>Email:</strong> {user?.email}</p>
-          <p><strong>Occupation(s):</strong> Occupation </p> 
-          <p><strong>Assigned Clinic:</strong> Clinic name</p>
-          <p><strong>Clinic Address:</strong>Clinic address</p>
-          <p><strong>Staff member since:</strong> Date hired </p> 
-        </div>
-
-        <div className="action-card">
-          <h3>Actions</h3>
-          <button className="action-btn">Request occupation change</button>
-          <button className="action-btn">Request clinic change</button>
-          <button className="action-btn">Request update to personal details</button>
-          <button className="action-btn">Request dismissal</button>
-          
-        </div>
+return (
+  <div className="landing"> {/* Using .landing as the base wrapper */}
+    <nav className="landing-nav" aria-label="Main navigation">
+      <span className="landing-logo">Clinics and Qs</span>
+      <section className="landing-nav-btns">
+        <button className="btn" onClick={logout}>Logout</button>
+        <button className="btn btn-primary" onClick={() => navigate('/dashboard/staff')}>Back</button>
       </section>
+    </nav>
+
+    <main className="profile-container">
+      <header className="profile-header">
+        <h1 className="profile-title">My Profile</h1>
+        <p className="profile-subtitle">Manage your staff account and clinic assignments</p>
+      </header>
+
+      {loading ? (
+        <div className="landing--loading">Loading profile details...</div>
+      ) : (
+        <section className="profile-grid">
+         
+          <div className="clinic-card profile-details-card">
+            <span className="clinic-type">Staff Information</span>
+            <h3 className="clinic-name">Personal Details</h3>
+            <div className="details-content">
+              <p><strong>Name:</strong> {user?.name}</p>
+              <p><strong>Email:</strong> {user?.email}</p>
+              <p><strong>Occupation:</strong> Specialist</p>
+              <div className="clinic-addr">
+                <strong>Assigned Clinic:</strong><br />
+                {clinics[0]?.name || "General Medical Center"}
+              </div>
+              <span className="clinic-badge clinic-badge--open">Active Staff</span>
+            </div>
+          </div>
+
+          {/* Actions Card */}
+          <div className="clinic-card profile-actions-card">
+            <span className="clinic-type">Account Actions</span>
+            <h3 className="clinic-name">Management Requests</h3>
+            <div className="action-button-list">
+              <button className="action-item-btn">Request occupation change</button>
+              <button className="action-item-btn">Request clinic change</button>
+              <button className="action-item-btn">Update personal details</button>
+              <button className="action-item-btn action-item-btn--danger">Request dismissal</button>
+            </div>
+          </div>
+        </section>
+      )}
+    </main>
   </div>
-  </>
 );
 }
 

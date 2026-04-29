@@ -1,0 +1,113 @@
+/* 1. Reuse your existing Design Tokens at the top of your file */
+:root {
+  --color-brand:        #6b2fa0;   
+  --color-brand-dark:   #4e1f7a;   
+  --color-brand-light:  #f3eafd;   
+  --color-bg:           #f4f5f7;
+  --color-surface:      #ffffff;
+  --color-border:       #e2e4e9;
+  --color-text:         #111827;
+  --color-text-muted:   #6b7280;
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --shadow-card: 0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+}
+
+/* 2. Layout */
+.profile-container {
+  padding: 56px 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.profile-header {
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+.profile-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.profile-subtitle {
+  color: var(--color-text-muted);
+  font-size: 16px;
+}
+
+/* 3. Grid Logic (Matching your Clinics Grid) */
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* 4. Card Styling (Inheriting .clinic-card styles) */
+.profile-details-card, 
+.profile-actions-card {
+  cursor: default; /* Overriding pointer since these aren't links */
+  height: fit-content;
+}
+
+.profile-details-card:hover {
+  transform: none; /* Keep static if you don't want the "bounce" effect here */
+}
+
+.details-content {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+/* 5. Action Buttons (New styles following your brand) */
+.action-button-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.action-item-btn {
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-item-btn:hover {
+  border-color: var(--color-brand);
+  background: var(--color-brand-light);
+  color: var(--color-brand-dark);
+}
+
+.action-item-btn--danger {
+  color: #b91c1c;
+}
+
+.action-item-btn--danger:hover {
+  background: #fee2e2;
+  border-color: #b91c1c;
+  color: #b91c1c;
+}
+
+/* 6. Mobile Optimization */
+@media (max-width: 640px) {
+  .profile-container {
+    padding: 32px 16px;
+  }
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
