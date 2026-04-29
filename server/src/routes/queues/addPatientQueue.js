@@ -11,18 +11,18 @@ router.post("/", async (req, res) => {
         const { clinicID, specialityID, auth0ID, bookingDateTime } = req.body;
         //Find user by auth0ID
          
-        const user = await User.findOne({ auth0Id: auth0ID }); // Assuming 'auth0Id' is the field name
+        const user = await User.findOne({ auth0Id: auth0ID }); 
         if (!user) return res.status(400).json({ message: "User profile not found." });
         
         // Get referenced clinic
-        const clinic = await Clinic.findOne({ $or:   { id: clinicID } });
+        const clinic = await Clinic.findOne({ _id: clinicID });
         if (!clinic) 
             return res.status(404).json({ message: "Clinic not found" });
 
         //check if there's a staff member with the speciality in the clinic
         const staffMember = await User.findOne({ role: "staff", clinic: clinic._id, speciality: specialityID });
         if (!staffMember) 
-            return res.status(404).json({ message: "No staff member with the specified speciality found in the clinic." });
+            return res.status(404).json({ message: "No staff member with specified speciality found in the clinic." });
 
 
         console.log("CLINIC FOUND");
