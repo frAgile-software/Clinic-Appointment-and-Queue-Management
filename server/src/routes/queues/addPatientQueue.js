@@ -22,7 +22,7 @@ router.post("/", async (req, res) => {
         //check if there's a staff member with the speciality in the clinic
         const staffMember = await User.findOne({ role: "staff", clinic: clinic._id, speciality: specialityID });
         if (!staffMember) 
-            return res.status(404).json({ message: "No staff member with specified speciality found in the clinic." });
+        return res.status(404).json({ message: "No staff member with specified speciality found in the clinic." });
 
 
         console.log("CLINIC FOUND");
