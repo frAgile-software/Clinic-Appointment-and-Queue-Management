@@ -3,29 +3,52 @@ const router = express.Router();
 const User = require("../../database/models/User");
 const Queue = require("../../database/models/Queue");
 const Staff = require("../../database/models/Staff");
+const StaffSpeciality = require("../../database/models/StaffSpeciality");
+
+const getBySpecialities = async (specialityIDs, clinic) => {
+    const uniqueSpecs = [...new Set(specialityIDs)];
+
+    const queue = await (uniqueSpecs.length === 0 ?
+        Queue.find({ Clinic: clinic }) :
+        Queue.find({ Clinic: clinic, Speciality: { $in: uniqueSpecs } })
+    ).sort({ BookingDateTime: 1 });
+
+    return queue;
+};
+const getByStaff = async (targetUserID, clinic, callingStaffLink) => {    
+            const selfSearch = targetUserID === callingStaffLink.User.id;
+    
+            const targetStaffLink = selfSearch ? callingStaffLink : await Staff.findOne({ User: targetUserID, Clinic: clinic });
+            if (!targetStaffLink) 
+                return null;
+
+            const specialities = await StaffSpeciality.find({ Staff: targetStaffLink });
+            if (!specialities) 
+                return null;
+
+            return specialities.map(spec => spec.Speciality);
+};
+
 
 router.get("/:clinicID", async (req, res) => {
     try {
-        const { specialityID, specialityIDs = [], auth0Id } = req.body;
+        const { specialityIDs = [], auth0Id } = req.body;
         const { clinicID } = req.params;
+        const { userID } = req.query;
 
-        const allSpecialityIDs = Array.isArray(specialityIDs) ? [...specialityIDs] : [];
-        if (specialityID)
-            allSpecialityIDs.push(specialityID);
-        const uniqueSpecs = [...new Set(allSpecialityIDs)];
-
-        const user = await User.findOne({ auth0Id: auth0Id });
-        if (!user) 
+        const callingUser = await User.findOne({ auth0Id: auth0Id });
+        if (!callingUser) 
             return res.status(403).json({ message: "Unauthorized." });
 
-        const staff = await Staff.findOne({ User: user._id, Clinic: clinicID });
-        if (!staff) 
+        const callingStaffLink = await Staff.findOne({ User: callingUser._id, Clinic: clinicID });
+        if (!callingStaffLink) 
             return res.status(403).json({ message: "Unauthorized." });
 
-        const queue = await (uniqueSpecs.length === 0 ? 
-            Queue.find({ Clinic: staff.Clinic }) :
-            Queue.find({ Clinic: staff.Clinic, Speciality: { $in: uniqueSpecs } })
-                ).sort({ BookingDateTime: 1 });
+
+        const queue = userID !== undefined ? await getByStaff(userID, callingStaffLink.Clinic, callingStaffLink) : await getBySpecialities(specialityIDs, callingStaffLink.Clinic);
+
+        if (queue === null)
+            return res.status(404).json({ message: "Could not find staff member." });
 
         res.status(200).json(queue);
 
