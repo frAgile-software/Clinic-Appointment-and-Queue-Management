@@ -10,8 +10,9 @@ import StaffProfile from      "./pages/StaffProfile/StaffProfile"
 
 function App() {
   const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated } = useAuth0();
+    const { isAuthenticated, isLoading } = useAuth0();
 
+    if (isLoading) return <div>Loading...</div>;
     if (!isAuthenticated) return <Navigate to="/" replace />;
     return children;
   };
