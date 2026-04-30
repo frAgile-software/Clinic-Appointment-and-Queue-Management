@@ -20,7 +20,10 @@ router.get("/:staffID/specialities", async (req, res)=> {
         const results = await StaffSpeciality.find({Staff: staffID}).populate('Speciality');
 
         // returns list of specialities
-        return res.status(200).json({UserId: staffID, Specialities: results.map(r => r.Speciality)});
+        return res.status(200).json({
+            UserId: staffID, 
+            Specialities: results.map(r => r.Speciality.SpecialityName)
+        });
 
     } catch (error) {
         console.error("User lookup error:", error);
