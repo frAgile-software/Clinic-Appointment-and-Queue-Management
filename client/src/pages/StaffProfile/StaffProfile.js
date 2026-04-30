@@ -35,7 +35,7 @@ function StaffProfile() {
       }
     }
     fetchClinics();
-  }, [staffId]);
+  }, [staffId, apiFetch]);
 
 
 
