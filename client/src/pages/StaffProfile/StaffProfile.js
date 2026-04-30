@@ -7,7 +7,7 @@ function StaffProfile() {
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
   
-  //const [clinics, setClinics] = useState([]);
+  const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
   
   const staffId = user?.sub;
