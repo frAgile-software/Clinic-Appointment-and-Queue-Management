@@ -5,14 +5,15 @@ import { useAuth0 } from '@auth0/auth0-react';
 import './Landing.css';
 import { useApiAuth } from '../../hooks/apiAuth';
 
-const PAGE_LIMIT = 12;
+
+const PAGE_LIMIT = 12; //clinics per page
 
 function Landing() {
-  const [search,      setSearch]      = useState('');    
-  const [clinics,     setClinics]     = useState([]);    
-  const [loadingList, setLoadingList] = useState(false); 
-  const [isVerifying, setIsVerifying] = useState(false); 
-  const [hasSearched, setHasSearched] = useState(false); 
+  const [search,      setSearch]      = useState('');    // current search input
+  const [clinics,     setClinics]     = useState([]);    // results from API
+  const [loadingList, setLoadingList] = useState(false); // loading spinner for search
+  const [isVerifying, setIsVerifying] = useState(false); // tracks backend role check
+  const [hasSearched, setHasSearched] = useState(false); // true once user has searched
   const [pagination,  setPagination]  = useState({page:1, totalPages:1, total:0});
   const [page,        setPage]        = useState(1);
 
@@ -20,6 +21,7 @@ function Landing() {
   const navigate     = useNavigate();
   const clinicsSectionRef = useRef(null);
 
+  //stores what filter options are available
   const [filterOptions, setFilterOptions] = useState({
     provinces: [],
     towns: [],
@@ -27,6 +29,7 @@ function Landing() {
     types: []
   });
 
+  //stores currently filter choices
   const [filters, setFilters] = useState({
     province: '',
     town: '',
@@ -42,6 +45,7 @@ function Landing() {
     setFilters(f => ({ ...f, [key]: value }));
   };
 
+  // Debounce timer ref — waits for user to stop typing before calling API
   const debounceTimer = useRef(null);
 
   const {
@@ -53,6 +57,7 @@ function Landing() {
 
   const signup = () => login({ authorizationParams: { screen_hint: 'signup' } });
 
+  // Redirect already-logged-in users to their dashboard 
   useEffect(() => {
     const verifyUserRole = async () => {
       if (!isLoading && isAuthenticated && user) {
@@ -86,7 +91,12 @@ function Landing() {
     verifyUserRole();
   }, [isLoading, isAuthenticated, user, navigate, apiFetch]);
 
+  // Search the API whenever the user types
+  // Debounced by 400ms so we don't fire on every keystroke.
+  // Uses the filterClinic route's ?name= query param.
+  // Response shape: { data: [...clinics], pagination: {...} }
   useEffect(() => {
+    // Wait for user to stop typing before calling the API
     clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(async () => {
       setLoadingList(true);
@@ -108,6 +118,7 @@ function Landing() {
         const res  = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
         const json = await res.json();
 
+        // filterClinic returns { data: [...], pagination: {...} }
         setClinics(json.data || []);
         setPagination({
           page: json.pagination?.page ?? page,
@@ -122,11 +133,14 @@ function Landing() {
       }
     }, 400);
 
+    // Cleanup timer on unmount or next keystroke
     return () => clearTimeout(debounceTimer.current);
   }, [search, filters, page]);
 
+  // Prevent form from refreshing the page 
   const handleSearch = (e) => e.preventDefault();
 
+  // ── Navigate to full clinic detail page on card click ─────
   const handleClinicClick = (clinicId) => navigate(`/clinics/${clinicId}`);
 
   const handlePageChange = (newPage) => {
@@ -166,6 +180,7 @@ function Landing() {
 
   const pageRange = buildPageRange(pagination.page, pagination.totalPages);
 
+  // Show loading screen while Auth0 / role check runs 
   if (isLoading || isVerifying) {
     return (
       <main className="landing landing--loading">
@@ -178,6 +193,7 @@ function Landing() {
     <main className="landing">
       <nav className="landing-nav" aria-label="Main navigation">
         <span className="landing-logo">
+          {/* Use a leading slash to point to the root of the public folder */}
           <img src="/logo.svg" alt="Clinics and Qs Logo" className="nav-logo-img" />
           Clinics and Qs
         </span>
@@ -187,10 +203,12 @@ function Landing() {
         </section>
       </nav>
 
+      {/*  Hero + search bar*/}
       <header className="landing-hero">
         <h1>Skip the queue. Book online.</h1>
         <p>Find a clinic near you and reserve your slot in minutes.</p>
 
+        {/* Typing calls the filterClinic API with ?name= — no page nav */}
         <form className="search-bar" onSubmit={handleSearch} role="search">
           <input
             type="search"
@@ -232,8 +250,10 @@ function Landing() {
         </form>
       </header>
 
+      {/* Clinic cards  */}
       <section className="clinics-section" aria-label="Clinic results">
 
+        {/* Skeleton while API call is in-flight */}
         {loadingList && (
           <ul className="clinics-grid" aria-busy="true">
             {[...Array(4)].map((_, i) => (
@@ -242,6 +262,7 @@ function Landing() {
           </ul>
         )}
 
+        {/* Matched clinic cards */}
         {!loadingList && clinics.length > 0 && (
           <>
           <p className="clinics-count">
@@ -315,6 +336,7 @@ function Landing() {
             </>
         )}
 
+        {/* No results — only after user has typed and nothing matched */}
         {!loadingList && hasSearched && clinics.length === 0 && (
           <p className="clinics-empty">No clinics found for "{search}".</p>
         )}

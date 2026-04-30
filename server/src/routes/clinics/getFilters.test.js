@@ -26,7 +26,7 @@ jest.mock('../../database/models/Speciality', () => ({
 const request = require('supertest');
 const app = require('../../index');
 const Clinic = require('../../database/models/Clinic');
-const Speciality = require('../../database/models/Speciality'); 
+const Speciality = require('../../database/models/Speciality'); // Import the mocked model
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -51,7 +51,7 @@ describe('GET /clinics/filters', () => {
             towns: ['Moong Town','Poong Town'],
             suburbs: ['Suburp'],
             types: ['Lobotomy Centre'],
-            services: ['Cardiology', 'Dentistry'] 
+            services: ['Cardiology', 'Dentistry'] // Expected to be sorted alphabetically
         });
     });
 
@@ -68,6 +68,7 @@ describe('GET /clinics/filters', () => {
             practiceTypeDescription: { $regex: 'Lobotomy', $options: 'i' },
         });
         
+        // Verify Speciality was called correctly
         expect(Speciality.distinct).toHaveBeenCalledWith("SpecialityName");
     });
 

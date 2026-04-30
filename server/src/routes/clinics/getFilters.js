@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Clinic = require('../../database/models/Clinic');
-const Speciality = require('../../database/models/Speciality'); 
+const Speciality = require('../../database/models/Speciality'); // Import Speciality model
 
 router.get("/", async (req, res) => {
     try {
@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
             Clinic.distinct("physicalTown", match),
             Clinic.distinct("physicalSuburb", match),
             Clinic.distinct("practiceTypeDescription", match),
-            Speciality.distinct("SpecialityName") 
+            Speciality.distinct("SpecialityName") // Fetch all distinct reasons for visit
         ]);
 
         res.status(200).json({
@@ -27,7 +27,7 @@ router.get("/", async (req, res) => {
             towns: towns.filter(Boolean).sort(),
             suburbs: suburbs.filter(Boolean).sort(),
             types: types.filter(Boolean).sort(),
-            services: services.filter(Boolean).sort(), 
+            services: services.filter(Boolean).sort(), // Return to frontend
         });
 
     } catch (error) {
