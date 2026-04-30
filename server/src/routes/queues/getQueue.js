@@ -26,7 +26,7 @@ const getByStaff = async (targetUserID, clinic, callingStaffLink) => {
             if (!specialities) 
                 return null;
 
-            return specialities.map(spec => spec.Speciality);
+            return getBySpecialities(specialities.map(spec => spec.Speciality), clinic);
 };
 
 
