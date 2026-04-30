@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import './StaffProfile.css'; 
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
+import { useApiAuth } from '../../hooks/apiAuth';
 
 function StaffProfile() {
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
+  const {apiFetch} = useApiAuth();
 
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,7 +25,7 @@ function StaffProfile() {
     async function fetchClinics() {
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`);
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`);
         const data = await response.json();
         setClinics(data);
       } catch (error) {
