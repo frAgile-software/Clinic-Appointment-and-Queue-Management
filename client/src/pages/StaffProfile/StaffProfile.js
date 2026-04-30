@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './StaffProfile.css'; // Ensure this is uncommented
+import './StaffProfile.css'; 
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 
@@ -36,7 +36,7 @@ function StaffProfile() {
   
 
 return (
-  <div className="landing"> {/* Using .landing as the base wrapper */}
+  <div className="landing"> 
     <nav className="landing-nav" aria-label="Main navigation">
       <span className="landing-logo">Clinics and Qs</span>
       <section className="landing-nav-btns">
@@ -55,23 +55,21 @@ return (
         <div className="landing--loading">Loading profile details...</div>
       ) : (
         <section className="profile-grid">
-         
           <div className="clinic-card profile-details-card">
-            <span className="clinic-type">Staff Information</span>
-            <h3 className="clinic-name">Personal Details</h3>
+            <h3 className="clinic-type">Staff Information</h3>
             <div className="details-content">
-              <p><strong>Name:</strong> {user?.name}</p>
+              <p><strong>Name:</strong> NAME</p>
               <p><strong>Email:</strong> {user?.email}</p>
-              <p><strong>Occupation:</strong> Specialist</p>
-              <div className="clinic-addr">
-                <strong>Assigned Clinic:</strong><br />
-                {clinics[0]?.name || "General Medical Center"}
+              <p><strong>Occupation:</strong> OCCUPATION</p>
+              <div className="clinic-assignments">
+                <p><strong>Assigned Clinic:</strong> General Medical Center</p>
+                <button className="btn-secondary">View Details</button>
               </div>
               <span className="clinic-badge clinic-badge--open">Active Staff</span>
             </div>
           </div>
 
-          {/* Actions Card */}
+          
           <div className="clinic-card profile-actions-card">
             <span className="clinic-type">Account Actions</span>
             <h3 className="clinic-name">Management Requests</h3>
