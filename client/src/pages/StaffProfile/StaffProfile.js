@@ -7,17 +7,20 @@ function StaffProfile() {
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
   
+  
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
   
-  void clinics; // To avoid unused variable warning
-
-  const staffId = user?.sub;
+  void clinics; // To avoid unused variable warning, remove when clinics are used in the UI
+  void user;
 
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
+
+  /* Im still using fetch clinics, even though a staff 
+  should technically only have one clinic. */
   useEffect(() => {
     if (!staffId) return;
     async function fetchClinics() {
