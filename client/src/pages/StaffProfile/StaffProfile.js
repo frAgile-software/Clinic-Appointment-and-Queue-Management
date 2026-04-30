@@ -12,7 +12,7 @@ function StaffProfile() {
   const [loading, setLoading] = useState(false);
   
   void clinics; // To avoid unused variable warning, remove when clinics are used in the UI
-  void user;
+  
 
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
