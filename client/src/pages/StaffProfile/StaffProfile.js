@@ -10,6 +10,8 @@ function StaffProfile() {
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
   
+  void clinics; // To avoid unused variable warning
+
   const staffId = user?.sub;
 
   const logout = () => {
