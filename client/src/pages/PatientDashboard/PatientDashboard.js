@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import "./PatientDashboard.css";
 import { useAuth0 } from '@auth0/auth0-react';
-import logo from './logo.svg';
+// import logo from './logo.svg';
 
 import { useApiAuth } from '../../hooks/apiAuth'; 
 
@@ -160,20 +160,20 @@ function PatientDashboard() {
   const pageRange = buildPageRange(pagination.page, pagination.totalPages);
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <div className="header-logo">
-          <img src={logo} alt="Logo" className="logo-icon" />
+    <section className="dashboard-container">
+      <section className="dashboard-header">
+        <section className="header-logo">
+          <img src="/logo.svg" alt="Logo" className="logo-icon" />
           <h2>Clinics and Qs</h2>
-        </div>
+        </section>
         
-        <nav className="header-nav hidden-for-mockup" aria-label="Main Navigation">
+        <section className="header-nav hidden-for-mockup" aria-label="Main Navigation">
           <button className="nav-btn active">HOME</button>
           <button className="nav-btn">APPOINTMENTS</button>
           <button className="nav-btn">QUEUE STATUS</button>
-        </nav>
+        </section>
 
-        <div className="header-actions">
+        <section className="header-actions">
           <button className="profile-btn" aria-label="Profile">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -181,77 +181,77 @@ function PatientDashboard() {
             </svg>
           </button>
           <button className="logout-btn" onClick={logout}>Logout</button>
-        </div>
-      </header>
+        </section>
+      </section>
 
-      <main className="dashboard-main">
-        <div className="purple-banner-container">
+      <section className="dashboard-main">
+        <section className="purple-banner-container">
           <section className="top-section" aria-labelledby="welcome-heading">
-            <article className="welcome-area">
+            <section className="welcome-area">
               <h1 id="welcome-heading" className="greeting">
                 Welcome Back, {patientName || "..."}!
               </h1>
               <p className="subtitle">Manage your health easily and skip the waiting room</p>
               
-              <div className="action-banner">
-                <div className="action-text">
+              <section className="action-banner">
+                <section className="action-text">
                   <h3>Need to see a doctor?</h3>
                   <p>Schedule your next visit</p>
-                </div>
+                </section>
                 <button className="book-btn" onClick={handleStartSearch}>BOOK AN APPOINTMENT</button>
-              </div>
-            </article>
+              </section>
+            </section>
 
-            <aside className="notifications-card" aria-labelledby="notifications-heading">
-              <header className="notif-header">
+            <section className="notifications-card" aria-labelledby="notifications-heading">
+              <section className="notif-header">
                 <h3 id="notifications-heading">Notifications</h3>
                 <span className="bell-icon" aria-hidden="true">
                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                 </span>
-              </header>
-              <div className="notifications-list">
-              </div>
-            </aside>
+              </section>
+              <section className="notifications-list">
+              </section>
+            </section>
           </section>
-        </div>
+        </section>
 
         <section className="action-grid" aria-label="Quick Actions">
-          <article className="grid-card">
+          <section className="grid-card">
             <h3>Upcoming Appointments</h3>
             <p>You have 1 appointment upcoming</p>
             <button className="card-btn">VIEW DETAILS</button>
-          </article>
+          </section>
           
-          <article className="grid-card">
+          <section className="grid-card">
             <h3>Join Virtual Queue</h3>
             <p>Join the queue remotely</p>
             <button className="card-btn">JOIN QUEUE</button>
-          </article>
+          </section>
           
-          <article className="grid-card">
+          <section className="grid-card">
             <h3>My Queue Status</h3>
             <p>Currently not in a queue</p>
             <button className="card-btn">CHECK STATUS</button>
-          </article>
+          </section>
         </section>
 
         <section className="bottom-section" aria-label="Clinic Search" ref={clinicsSectionRef}>
           {!showSearch ? (
-            <article className="grid-card full-width-card">
+            <section className="grid-card full-width-card">
               <h3>Find Nearest Clinic</h3>
               <p>Discover clinics in your area and their opening times</p>
               <button className="card-btn" onClick={handleStartSearch}>SEARCH CLINIC</button>
-            </article>
+            </section>
           ) : (
-            <div className="grid-card full-width-card extended-search-card">
-              <div className="extended-search-header">
+            <section className="grid-card full-width-card extended-search-card">
+              <section className="extended-search-header">
                 <h3>Search Clinics</h3>
                 <p>Find a clinic near you by name or the reason for your visit.</p>
-              </div>
+              </section>
               
               {/* --- DUAL SEARCH BAR --- */}
               <form className="dashboard-dual-search" onSubmit={handleSearch} role="search">
-                <div className="search-input-group">
+                <section className="search-input-group">
                   <input
                     type="search"
                     placeholder="Clinic name (e.g. Parkmed)"
@@ -259,9 +259,9 @@ function PatientDashboard() {
                     onChange={(e) => {setSearch(e.target.value); setPage(1);}}
                     aria-label="Search by clinic name"
                   />
-                </div>
-                <div className="search-divider"></div>
-                <div className="search-select-group">
+                </section>
+                <hr className="search-divider" />
+                <section className="search-select-group">
                   <select 
                     value={filters.service} 
                     onChange={e => updateFilter('service', e.target.value)}
@@ -272,7 +272,7 @@ function PatientDashboard() {
                         <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
-                </div>
+                </section>
                 <button type="submit" className="dual-search-btn">Search</button>
               </form>
               
@@ -295,7 +295,7 @@ function PatientDashboard() {
                 </select>
               </form>
 
-              <div className="clinics-section">
+              <section className="clinics-section">
                 {loadingList && (
                   <ul className="clinics-grid" aria-busy="true">
                     {[...Array(4)].map((_, i) => (
@@ -334,7 +334,7 @@ function PatientDashboard() {
                     </ul>
 
                     {pagination.totalPages > 1 && (
-                      <nav className="pagination" aria-label="Clinic results pages" >
+                      <section className="pagination" aria-label="Clinic results pages" >
                         <button
                           className="btn pagination__btn"
                           onClick={() => handlePageChange(pagination.page - 1)}
@@ -362,7 +362,7 @@ function PatientDashboard() {
                         >
                           Next →
                         </button>
-                      </nav>
+                      </section>
                     )}
                   </>
                 )}
@@ -370,34 +370,34 @@ function PatientDashboard() {
                 {!loadingList && hasSearched && clinics.length === 0 && (
                   <p className="clinics-empty">No clinics found matching your criteria.</p>
                 )}
-              </div>
-            </div>
+              </section>
+            </section>
           )}
         </section>
-      </main>
+      </section>
 
       {/* --- MODAL RENDERING --- */}
       {selectedClinic && (
-        <div className="clinic-modal-overlay" onClick={closePopup}>
-          <div className="clinic-modal-outer" onClick={(e) => e.stopPropagation()}>
-            <div className="clinic-modal-inner">
-              <div className="clinic-modal-header">
+        <section className="clinic-modal-overlay" onClick={closePopup}>
+          <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()}>
+            <section className="clinic-modal-inner">
+              <section className="clinic-modal-header">
                 <h2>{selectedClinic.practiceName}</h2>
                 <button className="clinic-modal-close" onClick={closePopup}>X</button>
-              </div>
+              </section>
               
-              <div className="clinic-modal-details">
+              <section className="clinic-modal-details">
                 <p>Practice Type: {selectedClinic.practiceTypeDescription || 'General Practice'}</p>
                 <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalTown}</p>
                 <p>Practice Number: {selectedClinic.practiceNumber || 'Not provided'}</p>
-              </div>
+              </section>
               
-              <div className="clinic-modal-footer">
-                <div className="clinic-modal-badges">
+              <section className="clinic-modal-footer">
+                <section className="clinic-modal-badges">
                   <span className={`modal-badge ${selectedClinic.isOpen ? 'status-open' : 'status-closed'}`}>
                     {selectedClinic.isOpen ? 'Open now' : 'Closed'}
                   </span>
-                </div>
+                </section>
                 
                 <button 
                   className="clinic-modal-book-btn" 
@@ -405,13 +405,13 @@ function PatientDashboard() {
                 >
                   Book Now
                 </button>
-              </div>
-            </div>
-          </div>
-        </div>
+              </section>
+            </section>
+          </section>
+        </section>
       )}
 
-    </div>
+    </section>
   );
 }
 
