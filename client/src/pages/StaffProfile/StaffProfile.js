@@ -18,7 +18,7 @@ function StaffProfile() {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
-
+//
   /* Im still using fetch clinics, even though a staff 
   should technically only have one clinic. */
   useEffect(() => {
