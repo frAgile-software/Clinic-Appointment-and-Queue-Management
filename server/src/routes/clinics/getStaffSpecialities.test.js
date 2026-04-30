@@ -107,3 +107,63 @@ describe('GET /clinics/:staffID/specialities', () => {
         expect(res.statusCode).toEqual(500);
     });
 });
+
+describe('GET /api/clinics/:staffID/specialities', () => {
+
+    test('Returns 200 specialities when found', async () => {
+        User.findById.mockResolvedValueOnce(VALID_USER);
+        StaffSpeciality.find.mockReturnValueOnce({
+            populate: jest.fn().mockResolvedValueOnce(MOCK_SPECIALITIES)
+        });
+
+        const res = await request(app).get('/api/clinics/1234/specialities');
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toEqual({
+            UserId: '1234',
+            Specialities: ['Cardiology', 'Neurology']
+        });
+    });
+
+    test('Returns 200 with empty Specialities when none found', async () => {
+        User.findById.mockResolvedValueOnce(VALID_USER);
+        StaffSpeciality.find.mockReturnValueOnce({
+            populate: jest.fn().mockResolvedValueOnce([])
+        });
+
+        const res = await request(app).get('/api/clinics/1234/specialities');
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toEqual({
+            UserId: '1234',
+            Specialities: []
+        });
+    });
+
+    test('Returns 403 when user is not a staff member', async () => {
+        User.findById.mockResolvedValueOnce({
+            _id: '1234',
+            role: 'Patient',
+        });
+
+        const res = await request(app).get('/api/clinics/1234/specialities');
+
+        expect(res.statusCode).toEqual(403);
+    });
+
+    test('Returns 404 when staff not found', async () => {
+        User.findById.mockResolvedValueOnce(null);
+
+        const res = await request(app).get('/api/clinics/1234/specialities');
+
+        expect(res.statusCode).toEqual(404);
+    });
+
+    test('Returns 500 on server error', async () => {
+        User.findById.mockRejectedValueOnce(new Error("Server error."));
+
+        const res = await request(app).get('/api/clinics/1234/specialities');
+
+        expect(res.statusCode).toEqual(500);
+    });
+});
