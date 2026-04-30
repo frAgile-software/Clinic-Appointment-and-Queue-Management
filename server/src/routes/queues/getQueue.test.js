@@ -18,8 +18,8 @@ jest.mock('../../database/models/StaffSpeciality');
 describe('GET /api/queue/:clinicID', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'log').mockImplementation(() => { });
+    jest.spyOn(console, 'error').mockImplementation(() => { });
   });
 
   afterEach(() => {
@@ -75,6 +75,38 @@ describe('GET /api/queue/:clinicID', () => {
     expect(res.body.message).toBe('Unauthorized.');
   });
 
+  it('should return 404 if staff link not found', async () => {
+    const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
+    const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
+    User.findOne.mockResolvedValue(mockUser);
+    Staff.findOne.mockResolvedValueOnce(mockStaff);
+    Staff.findOne.mockResolvedValue(null);
+
+    const res = await request(app)
+      .get('/api/queue/clinicId')
+      .send({ auth0Id: 'auth0|doctor' })
+      .query({ userID: 'userId' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe('Could not find staff member.');
+  });
+
+  it('should return 404 if staff specialities not found', async () => {
+    const mockUser = { _id: 'userId', id: 'userId', auth0Id: 'auth0|doctor' };
+    const mockStaff = { _id: 'staffId', User: 'userId', Clinic: 'clinicId' };
+    User.findOne.mockResolvedValue(mockUser);
+    Staff.findOne.mockResolvedValue(mockStaff);
+    StaffSpeciality.find.mockResolvedValue(null);
+
+    const res = await request(app)
+      .get('/api/queue/clinicId')
+      .send({ auth0Id: 'auth0|doctor' })
+      .query({ userID: 'userId2' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe('Could not find staff member.');
+  });
+
   it('should return queue for a staff', async () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
     const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
@@ -87,7 +119,7 @@ describe('GET /api/queue/:clinicID', () => {
     Queue.find.mockReturnValue({
       sort: jest.fn().mockResolvedValue(mockQueue)
     });
-    StaffSpeciality.find.mockResolvedValue([{Speciality: 'spec1'}]);
+    StaffSpeciality.find.mockResolvedValue([{ Speciality: 'spec1' }]);
 
     const res = await request(app)
       .get('/api/queue/clinicId')

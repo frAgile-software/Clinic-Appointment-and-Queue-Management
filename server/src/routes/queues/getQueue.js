@@ -15,18 +15,17 @@ const getBySpecialities = async (specialityIDs, clinic) => {
 
     return queue;
 };
-const getByStaff = async (targetUserID, clinic, callingStaffLink) => {    
-            const selfSearch = targetUserID === callingStaffLink.User.id;
-    
-            const targetStaffLink = selfSearch ? callingStaffLink : await Staff.findOne({ User: targetUserID, Clinic: clinic });
-            if (!targetStaffLink) 
-                return null;
+const getByStaff = async (targetUserID, clinic) => {
 
-            const specialities = await StaffSpeciality.find({ Staff: targetStaffLink });
-            if (!specialities) 
-                return null;
+    const targetStaffLink = await Staff.findOne({ User: targetUserID, Clinic: clinic });
+    if (!targetStaffLink)
+        return null;
 
-            return getBySpecialities(specialities.map(spec => spec.Speciality), clinic);
+    const specialities = await StaffSpeciality.find({ Staff: targetStaffLink });
+    if (!specialities)
+        return null;
+
+    return getBySpecialities(specialities.map(spec => spec.Speciality), clinic);
 };
 
 
@@ -37,15 +36,15 @@ router.get("/:clinicID", async (req, res) => {
         const { userID } = req.query;
 
         const callingUser = await User.findOne({ auth0Id: auth0Id });
-        if (!callingUser) 
+        if (!callingUser)
             return res.status(403).json({ message: "Unauthorized." });
 
         const callingStaffLink = await Staff.findOne({ User: callingUser._id, Clinic: clinicID });
-        if (!callingStaffLink) 
+        if (!callingStaffLink)
             return res.status(403).json({ message: "Unauthorized." });
 
 
-        const queue = userID !== undefined ? await getByStaff(userID, callingStaffLink.Clinic, callingStaffLink) : await getBySpecialities(specialityIDs, callingStaffLink.Clinic);
+        const queue = userID !== undefined ? await getByStaff(userID, callingStaffLink.Clinic) : await getBySpecialities(specialityIDs, callingStaffLink.Clinic);
 
         if (queue === null)
             return res.status(404).json({ message: "Could not find staff member." });
