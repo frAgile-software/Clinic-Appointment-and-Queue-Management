@@ -9,6 +9,7 @@ function StaffProfile() {
   const navigate = useNavigate();
   const {apiFetch} = useApiAuth();
 
+  
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -99,23 +100,24 @@ return (
       <h3 className="clinic-name">Edit Personal Details</h3>
       
       <form className="details-content">
-
+          
           <div className='inline-components'>
             <label>Name</label>
             <input type="text" defaultValue={user?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
-            <label>Email</label>
-            <input type="email" defaultValue={user?.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <label>Surname</label>
+            <input type="text" defaultValue={user?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
             <label>Title</label>
             <input type="text" defaultValue={user?.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
-            <label>Surname</label>
-            <input type="text" defaultValue={user?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <label>Email</label>
+            <input type="email" defaultValue={user?.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
+          
 
         <div className="landing-nav-btns" style={{marginTop: '20px'}}>
           <button type="button" className="btn btn-primary" onClick={toggleChangeDetailsModal}>Save Changes</button>

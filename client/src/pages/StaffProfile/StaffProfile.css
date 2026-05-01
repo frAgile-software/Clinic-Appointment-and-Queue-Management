@@ -59,7 +59,21 @@
 .inline-components {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  align-items: center; /* Keeps label and input vertically aligned */
+  gap: 12px;
+  margin-bottom: 15px; /* Adds space between each row */
+}
+
+.inline-components label {
+  width: 80px;         /* Adjust this number until your longest label fits */
+  min-width: 80px;     /* Prevents the label from shrinking */
+  text-align: right;   /* Optional: makes labels look very organized */
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.inline-components input {
+  flex: 1;             /* Makes the input fill the remaining space in the modal */
 }
 
 .details-content {
