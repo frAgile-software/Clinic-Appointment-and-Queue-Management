@@ -32,17 +32,20 @@ function StaffProfile() {
   };
 
   const handleUpdate = async () => {
-  
+  if (!staffId){
+    console.error("No staffId found, cannot update.");
+    return;
+  };
   const updatedData = {
     name: nameRef.current.value,
     surname: surnameRef.current.value,
     title: titleRef.current.value,
-    email: emailRef.current.value,
   };
 
   try {
+    console.log("Updating with data:", updatedData);    
     const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`, {
-      method: 'PUT',
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedData),
     });
@@ -86,7 +89,7 @@ function StaffProfile() {
         console.error("Could not fetch profile data:", error);
       }
     };
-// . 
+
     fetchProfileData();
   }, [staffId, apiFetch]);
 
@@ -159,12 +162,12 @@ return (
           </div>
           <div className='inline-components'>
             <label>Email</label>
-            <input type="email" ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="email" defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           
 
         <div className="landing-nav-btns" style={{marginTop: '20px'}}>
-          <button type="button" className="btn btn-primary" onClick={toggleChangeDetailsModal}>Save Changes</button>
+          <button type="button" className="btn btn-primary" onClick={handleUpdate}>Save Changes</button>
           <button type="button" className="btn" style={{color: 'var(--color-text)'}} onClick={toggleChangeDetailsModal}>Cancel</button>
         </div>
         
