@@ -40,7 +40,6 @@ describe("DELETE /api/queues/:queueId", () => {
             Clinic: "111111111111111111111111",
             Speciality: "222222222222222222222222",
             Patient: "333333333333333333333333",
-            BookingDateTime: "2026-05-01T10:30:00.000Z"
         };
 
         Queue.findByIdAndDelete.mockResolvedValue(mockDeletedQueueEntry);
