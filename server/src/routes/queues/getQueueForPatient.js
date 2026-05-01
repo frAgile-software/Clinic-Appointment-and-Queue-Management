@@ -2,8 +2,6 @@ const express = require("express");
 const router = express.Router();
 const User = require("../../database/models/User");
 const Queue = require("../../database/models/Queue");
-const Staff = require("../../database/models/Staff");
-const StaffSpeciality = require("../../database/models/StaffSpeciality");
 
 router.get("/patient/:auth0Id", async (req, res) => {
     try {
