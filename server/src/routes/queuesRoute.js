@@ -4,9 +4,11 @@ const addPatientQueue = require("./queues/addPatientQueue");
 const deleteQueue = require("./queues/deleteQueue");
 const updateQueue = require("./queues/updateQueue");
 const getQueue = require("./queues/getQueue");
+const getQueueForPatient = require("./queues/getQueueForPatient");
 
 const { requireAuth } = require('../middleware/auth');
 
+router.use("/api/queues", requireAuth, getQueueForPatient);
 router.use("/api/queues", requireAuth, addPatientQueue);
 router.use("/api/queues", requireAuth, deleteQueue);
 router.use("/api/queues", requireAuth, updateQueue);
