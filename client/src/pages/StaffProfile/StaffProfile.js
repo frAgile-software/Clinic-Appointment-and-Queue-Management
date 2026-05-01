@@ -104,7 +104,7 @@ return (
         
         <div className="landing-nav-btns" style={{marginTop: '20px'}}>
           <button type="button" className="btn btn-primary" onClick={toggleChangeDetailsModal}>Save Changes</button>
-          <button type="button" className="btn" style={{color: 'var(--color-text)'}} onClick={toggleChangeModal}>Cancel</button>
+          <button type="button" className="btn" style={{color: 'var(--color-text)'}} onClick={toggleChangeDetailsModal}>Cancel</button>
         </div>
       </form>
     </div>
