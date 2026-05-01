@@ -205,6 +205,21 @@ function PatientDashboard() {
     setSelectedService(filters.service || '');
     setShowQueuePanel(true);
   };
+  
+  const handleLeaveQueue = async () => {
+    try {
+      console.log("Queue:", patientQueue);
+      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${patientQueue.queue._id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setPatientQueue(null);
+      }
+    } catch (error) {
+      console.log("Error leaving queue:", error);
+    }
+  };
 
   const buildPageRange = (current, total) => {
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -284,7 +299,7 @@ function PatientDashboard() {
                 <p>{patientQueue.queue.Clinic.practiceName}</p>
                 <p>{patientQueue.queue.Speciality.SpecialityName}</p>
                 <p>Position: <strong>{patientQueue.position}</strong></p>
-                <button className="card-btn">LEAVE QUEUE</button>
+                <button className="card-btn" onClick={handleLeaveQueue}>LEAVE QUEUE</button>
               </>
             ) : (
               <>
@@ -472,13 +487,14 @@ function PatientDashboard() {
                       <button className="clinic-modal-book-btn" onClick={() => setShowQueuePanel(false)}>
                         Back
                       </button>
-                      <button
-                        className="clinic-modal-book-btn"
-                        onClick={handleConfirmQueue}
-                        disabled={!selectedService}
-                      >
-                        Confirm
-                      </button>
+                      {selectedService && (
+                        <button
+                          className="clinic-modal-book-btn"
+                          onClick={handleConfirmQueue}
+                        >
+                          Confirm
+                        </button>
+                      )}
                     </section>
                   </section>
                 </>

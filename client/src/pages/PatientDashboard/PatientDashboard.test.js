@@ -479,7 +479,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       expect(screen.getByText(/Practice Number: 102846748/i)).toBeInTheDocument();
     });
 
-    test("Given the queue panel is open, When no service is selected, Then the Confirm button is disabled", async () => {
+    test("Given the queue panel is open, When no service is selected, Then the Confirm button is invisible", async () => {
       await renderDashboard();
       fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
@@ -494,7 +494,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
       fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
 
-      expect(screen.getByRole("button", { name: /Confirm/i })).toBeDisabled();
+      expect(screen.queryByRole("button", { name: /Confirm/i })).not.toBeInTheDocument();
     });
 
     test("Given the queue panel is open with a pre-selected service, Then the dropdown is pre-filled", async () => {
@@ -572,8 +572,8 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       fireEvent.change(queueServiceSelect, { target: { value: 'Dentistry' } });
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: /Confirm/i })).not.toBeDisabled();
-      });
+      expect(screen.getByRole("button", { name: /Confirm/i })).toBeInTheDocument();
+    });
 
       fireEvent.click(screen.getByRole("button", { name: /Confirm/i }));
 
