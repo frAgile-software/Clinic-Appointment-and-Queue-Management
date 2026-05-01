@@ -176,7 +176,7 @@ export default function Booking() {
         setLoadingDoctors(false);
       }
     })();
-  }, [clinicId]);
+  }, [clinicId, apiFetch]);
 
   /* ── Load doctor schedule ── */
   const loadSchedule = useCallback(async (doctor) => {
