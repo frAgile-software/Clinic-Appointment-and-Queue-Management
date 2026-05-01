@@ -28,6 +28,7 @@ function PatientDashboard() {
   const [selectedClinic, setSelectedClinic] = useState(null);
   const [showQueuePanel, setShowQueuePanel] = useState(false);
   const [selectedService, setSelectedService] = useState('');
+  const [patientQueue, setPatientQueue] = useState(null);
   
   const clinicsSectionRef = useRef(null);
   const debounceTimer = useRef(null);
@@ -63,6 +64,23 @@ function PatientDashboard() {
     };
     fetchUserData();
   }, [user, apiFetch]);
+
+  useEffect(() => {
+    const fetchPatientQueue = async () => {
+      if (user?.sub) {
+        try {
+          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/patient/${user.sub}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.inQueue) setPatientQueue(data.queue);
+          }
+        } catch (error) {
+          console.error("Network error fetching queue:", error);
+        }
+      }
+    };
+    fetchPatientQueue();
+  }, [user , apiFetch]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -145,9 +163,12 @@ function PatientDashboard() {
       });
 
       if (response.ok) {
+        const queueResponse = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/patient/${user.sub}`);
+        const data = await queueResponse.json();
+        if (data.inQueue) setPatientQueue(data.queue);
+        
         setShowQueuePanel(false);
         closePopup();
-        // TODO: show queue in queue card, with leave queue button
       }
     } catch (error) {
       console.error("Failed to join queue:", error);
@@ -254,9 +275,21 @@ function PatientDashboard() {
           </section>
           
           <section className="grid-card">
-            <h3>Join Virtual Queue</h3>
-            <p>Join the queue remotely</p>
-            <button className="card-btn" onClick={handleStartSearch}>JOIN QUEUE</button>
+            {patientQueue ? (
+              <>
+                <h3>Your Queue Status</h3>
+                <p><strong>{patientQueue.queue.Clinic.practiceName}</strong></p>
+                <p>{patientQueue.queue.Speciality.SpecialityName}</p>
+                <p>Position: <strong>{patientQueue.position}</strong></p>
+                <button className="card-btn">LEAVE QUEUE</button>
+              </>
+            ) : (
+              <>
+                <h3>Join Virtual Queue</h3>
+                <p>Join the queue remotely</p>
+                <button className="card-btn" onClick={handleStartSearch}>JOIN QUEUE</button>
+              </>
+            )}
           </section>
           
           <section className="grid-card">
