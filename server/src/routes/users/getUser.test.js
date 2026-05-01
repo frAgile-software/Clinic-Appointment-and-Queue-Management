@@ -4,7 +4,7 @@ jest.mock('express-oauth2-jwt-bearer', () => ({
     auth: jest.fn(() => (req, res, next) => {
         req.auth = {
             payload: {
-                sub: 'auth0|mockUserId123',
+                sub: 'auth0-mockUserId123',
                 aud: process.env.SERVER_URL,
                 iss: 'https://clinicsandqs-users.eu.auth0.com/',
                 scope: 'openid profile email',
@@ -26,11 +26,19 @@ describe('GET /api/users/:auth0Id', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        // Suppress console output to prevent CI pipeline failures on expected errors
+        jest.spyOn(console, 'log').mockImplementation(() => {});
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        console.log.mockRestore();
+        console.error.mockRestore();
     });
 
     test('Returns 200 user when found', async () => {
         User.findOne.mockResolvedValueOnce({
-            auth0Id: 'auth0|mockUserId123',
+            auth0Id: 'auth0-mockUserId123',
             name: 'Test',
             surname: 'User',
             title: 'Ms',
@@ -38,7 +46,7 @@ describe('GET /api/users/:auth0Id', () => {
             role: 'Admin',
         });
 
-        const res = await request(app).get('/api/users/auth0|mockUserId123');
+        const res = await request(app).get('/api/users/auth0-mockUserId123');
 
         expect(res.statusCode).toEqual(200);
         expect(res.body).toMatchObject({
@@ -50,7 +58,7 @@ describe('GET /api/users/:auth0Id', () => {
     test('Returns 404 if not found', async() => {
         User.findOne.mockResolvedValueOnce(null);
 
-        const res = await request(app).get('/api/users/auth0|mockUserId123');
+        const res = await request(app).get('/api/users/auth0-mockUserId123');
 
         expect(res.statusCode).toEqual(404);
     });
@@ -58,7 +66,7 @@ describe('GET /api/users/:auth0Id', () => {
     test('Returns 500 for server failure', async () => {
         User.findOne.mockRejectedValueOnce(new Error('Server error.'));
 
-        const res = await request(app).get('/api/users/auth0|mockUserId123');
+        const res = await request(app).get('/api/users/auth0-mockUserId123');
 
         expect(res.statusCode).toEqual(500);
     });
