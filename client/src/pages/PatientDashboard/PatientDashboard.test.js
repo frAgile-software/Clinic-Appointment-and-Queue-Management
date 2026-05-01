@@ -194,7 +194,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
   test("Given the modal is open, When the user clicks the 'X' button, Then the modal closes", async () => {
     await renderDashboard();
-    fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC CLINIC/i }));
+    fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
