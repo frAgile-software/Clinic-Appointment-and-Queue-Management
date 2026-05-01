@@ -6,7 +6,6 @@ import PatientDashboard from "./PatientDashboard";
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiAuth } from '../../hooks/apiAuth';
 
-// 1. Mock dependencies
 jest.mock('@auth0/auth0-react');
 jest.mock('../../hooks/apiAuth');
 
@@ -15,7 +14,6 @@ jest.mock('react-router', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-// Mock scrollIntoView since JSDOM doesn't support it natively
 window.HTMLElement.prototype.scrollIntoView = jest.fn();
 
 describe("Patient Dashboard - Component and Feature Tests", () => {
@@ -38,12 +36,34 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       apiFetch: mockApiFetch,
     });
 
-    mockApiFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ name: "John Doe", surname: "Smith" }),
+    mockApiFetch.mockImplementation((url, options) => {
+      if (url.includes('/api/users/')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ name: "John Doe", surname: "Smith" }),
+        });
+      }
+      if (url.includes('/api/appointments/auth0|12345')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ([
+            {
+              _id: 'app_1',
+              Clinic: { _id: 'clinic_123', practiceName: 'Test Clinic' },
+              Staff: { name: 'Dr.', surname: 'Smith' },
+              Speciality: { name: 'Dentistry' },
+              BookingDateTime: '2026-05-01T10:00:00Z'
+            }
+          ]),
+        });
+      }
+      if (url.includes('/api/appointments/app_1') && options?.method === 'DELETE') {
+        return Promise.resolve({ ok: true });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
     });
 
-    global.fetch = jest.fn((url) => {
+    global.fetch = jest.fn((url, options) => {
       if (url.includes('/clinics/filters')) {
         return Promise.resolve({
           ok: true,
@@ -91,8 +111,6 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     });
   };
 
-  // --- CORE DASHBOARD TESTS ---
-
   test("Given the dashboard loads, Then the top navigation bar is displayed", async () => {
     await renderDashboard();
     expect(screen.getByRole("heading", { name: /Clinics and Qs/i })).toBeInTheDocument(); 
@@ -125,7 +143,57 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     });
   });
 
-  // --- SEARCH EXTENSION TESTS ---
+  test("Given appointments load, Then the dashboard shows the correct appointment count", async () => {
+    await renderDashboard();
+    expect(screen.getByText(/You have 1 appointment\(s\) upcoming/i)).toBeInTheDocument();
+  });
+
+  test("Given the user clicks 'VIEW DETAILS', Then the appointments modal opens showing the data", async () => {
+    await renderDashboard();
+    const viewDetailsBtn = screen.getByRole("button", { name: /VIEW DETAILS/i });
+    
+    fireEvent.click(viewDetailsBtn);
+    
+    expect(screen.getByRole("heading", { name: /Your Appointments/i })).toBeInTheDocument();
+    expect(screen.getByText(/Test Clinic/i)).toBeInTheDocument();
+    expect(screen.getByText(/Dr. Smith/i)).toBeInTheDocument();
+  });
+
+  test("Given the appointments modal is open, When user clicks 'Cancel Appointment', Then it shows a confirmation popup and deletes on confirm", async () => {
+    await renderDashboard();
+    fireEvent.click(screen.getByRole("button", { name: /VIEW DETAILS/i }));
+    
+    const cancelBtn = screen.getByRole("button", { name: /Cancel Appointment/i });
+    fireEvent.click(cancelBtn);
+
+    expect(screen.getByText(/Are you sure you want to cancel this appointment?/i)).toBeInTheDocument();
+
+    const confirmBtn = screen.getByRole("button", { name: /Yes, Cancel/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/appointments/app_1"), 
+        expect.objectContaining({ method: 'DELETE' })
+      );
+    });
+  });
+
+  test("Given the appointments modal is open, When user clicks 'Reschedule', Then it navigates to /book with reschedule state", async () => {
+    await renderDashboard();
+    fireEvent.click(screen.getByRole("button", { name: /VIEW DETAILS/i }));
+    
+    const rescheduleBtn = screen.getByRole("button", { name: /Reschedule/i });
+    fireEvent.click(rescheduleBtn);
+
+    expect(mockNavigate).toHaveBeenCalledWith("/book", expect.objectContaining({
+      state: expect.objectContaining({
+        clinicId: 'clinic_123',
+        rescheduleAppointmentId: 'app_1',
+        fromBookNow: true
+      })
+    }));
+  });
 
   test("Given the dashboard initially loads, Then the compressed 'Find Nearest Clinic' card is shown", async () => {
     await renderDashboard();
@@ -176,11 +244,31 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     expect(screen.getByText(/Open now/i)).toBeInTheDocument();
   });
 
-  // --- MODAL (POPUP) TESTS ---
-
-  test("Given the user clicks on a clinic card, Then the clinic details modal opens", async () => {
+  test("Given no reason is selected, When the user clicks a clinic card, Then an error message is shown and modal does not open", async () => {
     await renderDashboard();
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+    let clinicCard;
+    await waitFor(() => {
+      clinicCard = screen.getByText(/Sandton Health Clinic/i);
+    }, { timeout: 1500 });
+
+    fireEvent.click(clinicCard);
+
+    expect(screen.getByText(/Please select a reason for your visit before selecting a clinic./i)).toBeInTheDocument();
+    expect(screen.queryByText(/Practice Number: 102846748/i)).not.toBeInTheDocument();
+  });
+
+  test("Given a reason is selected, When the user clicks on a clinic card, Then the clinic details modal opens", async () => {
+    await renderDashboard();
+    fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
+      expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+    }, { timeout: 1500 });
+
+    fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
 
     let clinicCard;
     await waitFor(() => {
@@ -197,7 +285,14 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
     await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+    }, { timeout: 1500 });
+
+    fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("service=Dentistry"));
     }, { timeout: 1500 });
 
     fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
@@ -210,29 +305,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     expect(screen.queryByText(/Practice Number: 102846748/i)).not.toBeInTheDocument();
   });
 
-  test("Given the modal is open, When the user clicks 'Book Now', Then they are navigated to /book with clinic state", async () => {
-    await renderDashboard();
-    fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
-    }, { timeout: 1500 });
-
-    fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
-
-    const bookNowBtn = screen.getByRole("button", { name: /Book Now/i });
-    fireEvent.click(bookNowBtn);
-
-    expect(mockNavigate).toHaveBeenCalledWith("/book", {
-      state: expect.objectContaining({
-        clinicId:    'clinic_123',
-        clinicName:  'Sandton Health Clinic',
-        fromBookNow: true,
-      }),
-    });
-  });
-
-  test("Given a reason is selected and the modal is open, When 'Book Now' is clicked, Then the reason is passed in state", async () => {
+  test("Given a reason is selected and the modal is open, When 'Book Now' is clicked, Then they are navigated to /book with clinic and reason state", async () => {
     await renderDashboard();
     
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiAuth } from '../../hooks/apiAuth';
 import './Booking.css';
-import logo from '../PatientDashboard/logo.svg';
+// import logo from '../PatientDashboard/logo.svg';
 
 /* ── Helpers ── */
 
@@ -91,6 +91,7 @@ export default function Booking() {
     clinicType,
     specialty,
     fromBookNow,
+    rescheduleAppointmentId,
   } = location.state || {};
 
   /* ── State ── */
@@ -254,6 +255,12 @@ export default function Booking() {
         throw new Error(errJson.message || 'Booking failed.');
       }
 
+      if (rescheduleAppointmentId) {
+        await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${rescheduleAppointmentId}`, {
+          method: 'DELETE'
+        });
+      }
+
       setSuccess(true);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
@@ -282,8 +289,7 @@ export default function Booking() {
       <nav className="booking-nav" aria-label="Main navigation">
         <span style={{ flex: 1 }} />
         <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, justifyContent: 'center' }}>
-          <img src={logo} alt="Clinics and Qs logo" style={{ width: 32, height: 32 }} />
-          <span className="booking-nav-logo">Clinics and Qs</span>
+          <img src="/logo.svg" alt="Clinics and Qs logo" style={{ width: 32, height: 32 }} />
         </span>
         <span style={{ flex: 1 }} />
       </nav>
@@ -313,7 +319,7 @@ export default function Booking() {
           <button className="booking-nav-back" onClick={() => navigate(-1)}>← Back</button>
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, justifyContent: 'center' }}>
-          <img src={logo} alt="Clinics and Qs logo" style={{ width: 32, height: 32 }} />
+          <img src="/logo.svg" alt="Clinics and Qs logo" style={{ width: 32, height: 32 }} />
           <span className="booking-nav-logo">Clinics and Qs</span>
         </span>
         <span style={{ flex: 1 }} />
@@ -321,7 +327,9 @@ export default function Booking() {
 
       {/* Hero */}
       <header className="booking-hero" aria-label="Booking context">
-        <h1 className="booking-hero-title">Booking An Appointment</h1>
+        <h1 className="booking-hero-title">
+          {rescheduleAppointmentId ? 'Reschedule Appointment' : 'Booking An Appointment'}
+        </h1>
         <section className="booking-context-row" style={{ justifyContent: 'center' }}>
           <article className="booking-context-card">
             <p className="context-card-label">Selected Clinic</p>
@@ -339,7 +347,7 @@ export default function Booking() {
       <section className="booking-body" aria-label="Booking steps">
 
         {/* ── Steps 1 + 2 side by side ── */}
-        <div className="steps-row">
+        <section className="steps-row">
 
           {/* Step 1: Visit Description */}
           <article className="booking-section steps-row-item" aria-labelledby="step1-heading">
@@ -350,7 +358,7 @@ export default function Booking() {
                 <p className="section-subtitle">Briefly describe the purpose of your visit</p>
               </hgroup>
             </header>
-            <div className="description-wrap">
+            <section className="description-wrap">
               <textarea
                 className="visit-description-input"
                 placeholder="e.g. Follow-up on blood pressure medication, persistent headache for 3 days…"
@@ -361,7 +369,7 @@ export default function Booking() {
                 aria-label="Visit description"
               />
               <p className="description-char-count">{visitDescription.length}/500</p>
-            </div>
+            </section>
           </article>
 
           {/* Step 2: Select Doctor */}
@@ -411,7 +419,7 @@ export default function Booking() {
             )}
           </article>
 
-        </div>
+        </section>
 
         {/* ── Step 3: Week Calendar ── */}
         {selectedDoctor && (
@@ -470,10 +478,10 @@ export default function Booking() {
                   })}
                 </ol>
 
-                <div className="cal-legend">
+                <section className="cal-legend">
                   <span className="legend-dot legend-dot--avail" /> Available
                   <span className="legend-dot legend-dot--unavail" style={{ marginLeft: 16 }} /> Unavailable
-                </div>
+                </section>
               </section>
             )}
           </article>

@@ -448,7 +448,6 @@ describe('POST /api/appointments', () => {
 describe('Booking component', () => {
   beforeEach(() => {
     process.env.REACT_APP_SERVER_URL = 'http://localhost:5000';
-    // Default: all apiFetch calls return empty — covers staff, schedule, booked slots
     mockApiFetch.mockResolvedValue({
       ok: true,
       json: async () => ({ users: [], schedule: [], bookedSlots: [] }),
@@ -490,7 +489,6 @@ describe('Booking component', () => {
   });
 
   it('renders doctor pill when staff returned', async () => {
-    // apiFetch is used for all authenticated calls including staff
     mockApiFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -524,14 +522,12 @@ describe('Booking component', () => {
   });
 
   it('shows calendar after doctor selected', async () => {
-    // first apiFetch → staff list
     mockApiFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         users: [{ _id: 'u1', name: 'Alice', surname: 'Smith' }],
       }),
     });
-    // second apiFetch → schedule (triggered on doctor click)
     mockApiFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -559,6 +555,41 @@ describe('Booking component', () => {
     renderBooking();
     await waitFor(() => {
       expect(screen.getByText('0/500')).toBeInTheDocument();
+    });
+  });
+
+  it('deletes old appointment if rescheduleAppointmentId is provided after confirming the new booking', async () => {
+    mockApiFetch.mockResolvedValueOnce({
+      ok: true, json: async () => ({ users: [{ _id: 'u1', name: 'A', surname: 'B' }] })
+    }).mockResolvedValueOnce({
+      ok: true, json: async () => ({ schedule: [{ DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' }] })
+    }).mockResolvedValueOnce({
+      ok: true, json: async () => ({ bookedSlots: [] })
+    }).mockResolvedValueOnce({
+      ok: true, json: async () => ({ message: 'Created' })
+    }).mockResolvedValueOnce({
+      ok: true, json: async () => ({ message: 'Deleted' })
+    });
+
+    renderBooking({ rescheduleAppointmentId: 'old_appt_123' });
+
+    fireEvent.click(await screen.findByText(/Dr A B/i));
+    
+    // Pick the next available Monday from the mock window
+    const availableCell = await screen.findByRole('button', { name: /Select/i });
+    fireEvent.click(availableCell);
+
+    // Pick 8 AM slot
+    fireEvent.click(await screen.findByRole('button', { name: /Book 08:00/i }));
+
+    // Confirm the new booking
+    fireEvent.click(await screen.findByRole('button', { name: /Confirm Appointment/i }));
+
+    await waitFor(() => {
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/appointments/old_appt_123'),
+        expect.objectContaining({ method: 'DELETE' })
+      );
     });
   });
 });
