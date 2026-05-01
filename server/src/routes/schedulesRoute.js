@@ -6,6 +6,6 @@ const  updateSchedule = require('./schedules/updateSchedule');
 const  getUserSchedule = require('./schedules/getUserSchedule');
 
 router.use("/api/schedules", requireAuth, updateSchedule);
-router.use("/api/schedules", requireAuth, getUserSchedule);
+router.use("/api/users", requireAuth, getUserSchedule);
 
 module.exports = router;

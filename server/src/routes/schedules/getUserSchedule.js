@@ -4,7 +4,7 @@ const Schedule = require("../../database/models/Schedule");
 const User = require("../../database/models/User");
 
 // GET /api/users/:userId/schedule
-router.get("/:userId", async (req, res) => {
+router.get("/:userId/schedule", async (req, res) => {
     try {
         const { userId } = req.params;
 
