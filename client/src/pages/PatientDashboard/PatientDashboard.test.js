@@ -25,7 +25,6 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Explicitly clear the manual prototype mock to prevent test bleed in CI
     if (window.HTMLElement.prototype.scrollIntoView.mockClear) {
         window.HTMLElement.prototype.scrollIntoView.mockClear();
     }
@@ -39,13 +38,11 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       apiFetch: mockApiFetch,
     });
 
-    // Mock the authenticated user profile fetch
     mockApiFetch.mockResolvedValue({
       ok: true,
       json: async () => ({ name: "John Doe", surname: "Smith" }),
     });
 
-    // Mock the global fetch used for clinics and filters
     global.fetch = jest.fn((url) => {
       if (url.includes('/clinics/filters')) {
         return Promise.resolve({
@@ -55,7 +52,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
             towns: ['Sandton'], 
             suburbs: [], 
             types: ['General Practice'],
-            services: ['Dentistry', 'Cardiology'] // Mock services list
+            services: ['Dentistry', 'Cardiology']
           })
         });
       }
@@ -87,7 +84,6 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     jest.restoreAllMocks();
   });
 
-  // HELPER: Renders the dashboard and waits for the initial profile fetch to prevent act() warnings
   const renderDashboard = async () => {
     render(<PatientDashboard />);
     await waitFor(() => {
@@ -214,7 +210,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     expect(screen.queryByText(/Practice Number: 102846748/i)).not.toBeInTheDocument();
   });
 
-  test("Given the modal is open, When the user clicks 'Book Now', Then they are navigated to the clinic page", async () => {
+  test("Given the modal is open, When the user clicks 'Book Now', Then they are navigated to /book with clinic state", async () => {
     await renderDashboard();
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
@@ -227,34 +223,43 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     const bookNowBtn = screen.getByRole("button", { name: /Book Now/i });
     fireEvent.click(bookNowBtn);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/clinics/clinic_123");
+    expect(mockNavigate).toHaveBeenCalledWith("/book", {
+      state: expect.objectContaining({
+        clinicId:    'clinic_123',
+        clinicName:  'Sandton Health Clinic',
+        fromBookNow: true,
+      }),
+    });
   });
 
-  test("Given a reason is selected and the modal is open, When 'Book Now' is clicked, Then the reason is passed in the URL", async () => {
+  test("Given a reason is selected and the modal is open, When 'Book Now' is clicked, Then the reason is passed in state", async () => {
     await renderDashboard();
     
-    // 1. Open the search menu
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
-    // 2. Wait for the initial clinic list to populate
     await waitFor(() => {
       expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
     }, { timeout: 1500 });
 
-    // 3. Change the dropdown. This triggers the 400ms debounce timer to fetch new clinics.
     fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("service=Dentistry"));
     }, { timeout: 1500 });
 
-    // 5. Safely click the clinic and complete the navigation
     fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
 
     const bookNowBtn = screen.getByRole("button", { name: /Book Now/i });
     fireEvent.click(bookNowBtn);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/clinics/clinic_123?reason=Dentistry");
+    expect(mockNavigate).toHaveBeenCalledWith("/book", {
+      state: expect.objectContaining({
+        clinicId:    'clinic_123',
+        clinicName:  'Sandton Health Clinic',
+        fromBookNow: true,
+        specialty:   'Dentistry',
+      }),
+    });
   });
 });

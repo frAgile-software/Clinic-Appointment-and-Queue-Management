@@ -145,11 +145,18 @@ function PatientDashboard() {
   };
 
   // --- Navigates to booking page, passing the reason as a URL parameter ---
-  const handleBookNow = () => {
-    const baseUrl = `/clinics/${selectedClinic._id}`;
-    const targetUrl = filters.service ? `${baseUrl}?reason=${encodeURIComponent(filters.service)}` : baseUrl;
-    navigate(targetUrl);
-  };
+ const handleBookNow = () => {
+  navigate('/book', {
+    state: {
+      clinicId:     selectedClinic._id,
+      clinicName:   selectedClinic.practiceName,
+      clinicAddress: `${selectedClinic.physicalAddress}, ${selectedClinic.physicalTown}`,
+      clinicType:   selectedClinic.practiceTypeDescription,
+      specialty:    filters.service || null,
+      fromBookNow:  true,   // access guard Booking.js checks
+    },
+  });
+};
 
   const buildPageRange = (current, total) => {
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
