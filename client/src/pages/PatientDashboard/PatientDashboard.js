@@ -225,7 +225,7 @@ function PatientDashboard() {
           <section className="grid-card">
             <h3>Join Virtual Queue</h3>
             <p>Join the queue remotely</p>
-            <button className="card-btn">JOIN QUEUE</button>
+            <button className="card-btn" onClick={handleStartSearch}>JOIN QUEUE</button>
           </section>
           
           <section className="grid-card">
@@ -398,6 +398,13 @@ function PatientDashboard() {
                     {selectedClinic.isOpen ? 'Open now' : 'Closed'}
                   </span>
                 </section>
+
+                <button
+                  className="clinic-modal-book-btn"
+                  //onClick={handleJoinQueue}
+                >
+                  Join Queue
+                </button>
                 
                 <button 
                   className="clinic-modal-book-btn" 
