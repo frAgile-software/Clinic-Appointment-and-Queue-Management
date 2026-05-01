@@ -31,8 +31,8 @@ describe('GET /api/queue/:clinicID', () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
     const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
     const mockQueue = [
-      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', BookingDateTime: new Date().toString() },
-      { _id: 'queue2', Clinic: 'clinicId', Speciality: 'spec2', Patient: 'patient2', BookingDateTime: new Date().toString() }
+      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', createdAt: new Date().toISOString() },
+      { _id: 'queue2', Clinic: 'clinicId', Speciality: 'spec2', Patient: 'patient2', createdAt: new Date().toISOString() }
     ];
 
     User.findOne.mockResolvedValue(mockUser);
@@ -111,7 +111,7 @@ describe('GET /api/queue/:clinicID', () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
     const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
     const mockQueue = [
-      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', BookingDateTime: new Date() }
+      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', createdAt: new Date() }
     ];
 
     User.findOne.mockResolvedValue(mockUser);
@@ -137,7 +137,7 @@ describe('GET /api/queue/:clinicID', () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
     const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
     const mockQueue = [
-      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', BookingDateTime: new Date() }
+      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', createdAt: new Date() }
     ];
 
     User.findOne.mockResolvedValue(mockUser);

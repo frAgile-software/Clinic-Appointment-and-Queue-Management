@@ -11,7 +11,7 @@ const getBySpecialities = async (specialityIDs, clinic) => {
     const queue = await (uniqueSpecs.length === 0 ?
         Queue.find({ Clinic: clinic }) :
         Queue.find({ Clinic: clinic, Speciality: { $in: uniqueSpecs } })
-    ).sort({ BookingDateTime: 1 });
+    ).sort({ createdAt: 1 });
 
     return queue;
 };
