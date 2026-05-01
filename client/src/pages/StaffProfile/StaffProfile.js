@@ -9,6 +9,7 @@ function StaffProfile() {
   const navigate = useNavigate();
   const {apiFetch} = useApiAuth();
 
+  const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -19,6 +20,11 @@ function StaffProfile() {
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
+
+  const toggleChangeDetailsModal = () => {
+    setIsChangeDetailsModalOpen(!isChangeDetailsModalOpen);
+  };
+
 
   useEffect(() => {
     if (!staffId) return;
@@ -80,14 +86,33 @@ return (
             <div className="action-button-list">
               <button className="action-item-btn">Request occupation change</button>
               <button className="action-item-btn">Request clinic change</button>
-              <button className="action-item-btn">Update personal details</button>
+              <button className="action-item-btn" onClick={toggleChangeDetailsModal}>Update personal details</button>
               <button className="action-item-btn action-item-btn--danger">Request dismissal</button>
             </div>
           </div>
         </section>
       )}
+
+      {isChangeDetailsModalOpen && (
+  <div className="modal-overlay">
+    <div className="modal-content clinic-card"> {/* Reusing your clinic-card style */}
+      <h3 className="clinic-name">Edit Personal Details</h3>
+      
+      <form className="details-content">
+        <label>Name</label>
+        <input type="text" defaultValue={user?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+        
+        <div className="landing-nav-btns" style={{marginTop: '20px'}}>
+          <button type="button" className="btn btn-primary" onClick={toggleChangeDetailsModal}>Save Changes</button>
+          <button type="button" className="btn" style={{color: 'var(--color-text)'}} onClick={toggleChangeModal}>Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
     </main>
   </div>
+  
 );
 }
 

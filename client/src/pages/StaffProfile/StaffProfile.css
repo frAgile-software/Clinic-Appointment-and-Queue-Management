@@ -132,4 +132,31 @@
   color: #b91c1c;
 }
 
+/* The dim background */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it stays above the nav */
+}
 
+/* The popup box */
+.modal-content {
+  background: var(--color-surface);
+  padding: 32px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  animation: modalAppear 0.2s ease-out;
+}
+
+@keyframes modalAppear {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
