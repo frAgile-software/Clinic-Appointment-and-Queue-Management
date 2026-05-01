@@ -50,10 +50,10 @@ router.post("/", async (req, res) => {
         console.log("CLINIC FOUND");
         console.log("APPROPRIATE STAFF MEMBER EXISTS");
 
-        //check if user is already in a queue in this clinic
+        //check if user is already in a queue
         const existingQueueEntry = await Queue.findOne({ Patient: user._id });
         if (existingQueueEntry) 
-            return res.status(409).json({ message: "User is already in a queue for this clinic." });
+            return res.status(409).json({ message: "User is already in a queue." });
 
         const newQueue = new Queue({
             Clinic: clinic._id,
