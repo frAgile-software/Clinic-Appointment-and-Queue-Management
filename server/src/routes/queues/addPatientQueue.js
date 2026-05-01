@@ -8,7 +8,7 @@ router.post("/", async (req, res) => {
     try {
         console.log("USER REGISTRATION");
         console.log("Incoming Payload:", req.body);
-        const { clinicID, specialityID, auth0ID, bookingDateTime } = req.body;
+        const { clinicID, specialityID, auth0ID} = req.body;
         //Find user by auth0ID
          
         const user = await User.findOne({ auth0Id: auth0ID }); 
@@ -37,7 +37,6 @@ router.post("/", async (req, res) => {
             Clinic: clinic._id,
             Speciality: specialityID,
             Patient: user._id,
-            BookingDateTime: bookingDateTime
         });
 
         await newQueue.save()
