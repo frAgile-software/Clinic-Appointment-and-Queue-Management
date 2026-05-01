@@ -27,7 +27,7 @@ describe("POST /api/queues", () => {
         const response = await request(app)
                     .post("/api/queues")
                     .send({clinicID: "123456789012345678901234",
-                        specialityID: "222222222222222222222222",
+                        specialityName: "mock speciality",
                         auth0ID: "auth0|1234567890",
                     });
 
@@ -39,7 +39,7 @@ describe("POST /api/queues", () => {
         const response = await request(app)
                 .post("/api/queues")
                 .send({clinicID: "123456789012345678901234",
-                    specialityID: "222222222222222222222222",
+                    specialityName: "mock speciality",
                     auth0ID: "auth0|1234567890",
                 });
                
@@ -50,6 +50,7 @@ describe("POST /api/queues", () => {
     test("should return 409 if user is already in a queue for the clinic", async () => {  //passing test
         User.findOne.mockResolvedValue({ _id: "mock-user-id" });
         Clinic.findOne.mockResolvedValue({ _id: "mock-clinic-id" });
+        Speciality.findOne.mockResolvedValueOnce({ _id: "mock-spec-id" });
         User.findOne.mockResolvedValue({ 
             role: "staff",
             clinic: "mock-clinic-id",
@@ -61,7 +62,7 @@ describe("POST /api/queues", () => {
                 .post("/api/queues")
                 .send({
                     clinicID: "123456789012345678901234",
-                    specialityID: "222222222222222222222222",
+                    specialityName: "mock speciality",
                     auth0ID: "auth0|1234567890",
                 });
         expect(response.status).toBe(409);
@@ -72,29 +73,46 @@ describe("POST /api/queues", () => {
     test("should return 404 if no staff member with the specified speciality is found in the clinic", async () => { 
         User.findOne.mockResolvedValueOnce({ _id: "mock-user-id" });
         Clinic.findOne.mockResolvedValue({ _id: "mock-clinic-id" });
+        Speciality.findOne.mockResolvedValueOnce({ _id: "mock-spec-id" });
         User.findOne.mockResolvedValueOnce(null); // No staff member with the specified speciality
 
         const response = await request(app)
                 .post("/api/queues")
                 .send({clinicID: "123456789012345678901234",
-                    specialityID: "222222222222222222222222",
+                    specialityName: "mock speciality",
                     auth0ID: "auth0|1234567890",
                 });
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ message: "No staff member with specified speciality found in the clinic." });
-        });
+    });
+
+    test("should return 404 if no speciality is found with name", async () => { 
+        User.findOne.mockResolvedValueOnce({ _id: "mock-user-id" });
+        Clinic.findOne.mockResolvedValue({ _id: "mock-clinic-id" });
+        Speciality.findOne.mockResolvedValueOnce(null);
+
+        const response = await request(app)
+                .post("/api/queues")
+                .send({clinicID: "123456789012345678901234",
+                    specialityName: "mock speciality",
+                    auth0ID: "auth0|1234567890",
+                });
+        expect(response.status).toBe(404);
+        expect(response.body).toEqual({ message: "Speciality not found." });
+    });
 
 
     test("should return 200 and success message if user is successfully added to the queue", async () => { 
         User.findOne.mockResolvedValueOnce({ _id: "mock-user-id" });
         Clinic.findOne.mockResolvedValue({ _id: "mock-clinic-id" });
         User.findOne.mockResolvedValueOnce({ role: "staff", clinic: "mock-clinic-id", speciality: "222222222222222222222222" });
+        Speciality.findOne.mockResolvedValueOnce({ _id: "mock-spec-id" });
         Queue.findOne.mockResolvedValue(null);
         Queue.prototype.save = jest.fn().mockResolvedValue();
         const response = await request(app)
                 .post("/api/queues")
                 .send({clinicID: "123456789012345678901234",
-                    specialityID: "222222222222222222222222",
+                    specialityName: "mock speciality",
                     auth0ID: "auth0|1234567890",
                 });
         expect(response.status).toBe(200);

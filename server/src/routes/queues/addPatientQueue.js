@@ -3,12 +3,13 @@ const router = express.Router();
 const User = require("../../database/models/User");
 const Clinic = require("../../database/models/Clinic");
 const Queue = require("../../database/models/Queue");
+const Speciality = require("../../database/models/Speciality");
 
 router.post("/", async (req, res) => {
     try {
         console.log("USER REGISTRATION");
         console.log("Incoming Payload:", req.body);
-        const { clinicID, specialityID, auth0ID} = req.body;
+        const { clinicID, specialityName, auth0ID} = req.body;
         //Find user by auth0ID
          
         const user = await User.findOne({ auth0Id: auth0ID }); 
@@ -19,8 +20,12 @@ router.post("/", async (req, res) => {
         if (!clinic) 
             return res.status(404).json({ message: "Clinic not found" });
 
+        const speciality = await Speciality.findOne({ SpecialityName: specialityName});
+        if (!speciality) 
+            return res.status(404).json({ message: "Speciality not found."});
+
         //check if there's a staff member with the speciality in the clinic
-        const staffMember = await User.findOne({ role: "staff", clinic: clinic._id, speciality: specialityID });
+        const staffMember = await User.findOne({ role: "staff", clinic: clinic._id, speciality: speciality._id });
         if (!staffMember) 
         return res.status(404).json({ message: "No staff member with specified speciality found in the clinic." });
 
@@ -29,13 +34,13 @@ router.post("/", async (req, res) => {
         console.log("APPROPRIATE STAFF MEMBER EXISTS");
 
         //check if user is already in a queue in this clinic
-        const existingQueueEntry = await Queue.findOne({ Patient: user._id, Clinic: clinic._id });
+        const existingQueueEntry = await Queue.findOne({ Patient: user._id });
         if (existingQueueEntry) 
             return res.status(409).json({ message: "User is already in a queue for this clinic." });
 
         const newQueue = new Queue({
             Clinic: clinic._id,
-            Speciality: specialityID,
+            Speciality: speciality._id,
             Patient: user._id,
         });
 
