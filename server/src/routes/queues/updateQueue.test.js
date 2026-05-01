@@ -132,27 +132,12 @@ describe("PUT /api/queues/:queueId", () => {
         expect(response.body).toEqual({ error: "Patient not found" });
     });
 
-    test("should return 400 if booking date is invalid", async () => {
-        Queue.findById.mockResolvedValue({
-            _id: "123456789012345678901234",
-            save: jest.fn()
-        });
-
-        const response = await request(app)
-            .put("/api/queues/123456789012345678901234")
-            .send({ BookingDateTime: "not-a-date" });
-
-        expect(response.status).toBe(400);
-        expect(response.body).toEqual({ error: "Invalid booking date" });
-    });
-
     test("should update queue entry successfully", async () => {
         const updatedQueueEntry = {
             _id: "123456789012345678901234",
             Clinic: "111111111111111111111111",
             Speciality: "222222222222222222222222",
             Patient: "333333333333333333333333",
-            BookingDateTime: "2026-05-01T10:30:00.000Z"
         };
 
         const mockQueueEntry = {
@@ -160,7 +145,6 @@ describe("PUT /api/queues/:queueId", () => {
             Clinic: "oldClinic",
             Speciality: "oldSpeciality",
             Patient: "oldPatient",
-            BookingDateTime: new Date("2026-04-01T08:00:00.000Z"),
             save: jest.fn().mockResolvedValue(updatedQueueEntry)
         };
 
@@ -175,7 +159,6 @@ describe("PUT /api/queues/:queueId", () => {
                 Clinic: "111111111111111111111111",
                 Speciality: "222222222222222222222222",
                 Patient: "333333333333333333333333",
-                BookingDateTime: "2026-05-01T10:30:00.000Z"
             });
 
         expect(response.status).toBe(200);

@@ -29,7 +29,6 @@ describe("POST /api/queues", () => {
                     .send({clinicID: "123456789012345678901234",
                         specialityID: "222222222222222222222222",
                         auth0ID: "auth0|1234567890",
-                        bookingDateTime: "2026-05-01T10:30:00.000Z"
                     });
 
         expect(response.status).toBe(404);
@@ -42,7 +41,6 @@ describe("POST /api/queues", () => {
                 .send({clinicID: "123456789012345678901234",
                     specialityID: "222222222222222222222222",
                     auth0ID: "auth0|1234567890",
-                    bookingDateTime: "2026-05-01T10:30:00.000Z"
                 });
                
                 expect(response.status).toBe(400);
@@ -65,7 +63,6 @@ describe("POST /api/queues", () => {
                     clinicID: "123456789012345678901234",
                     specialityID: "222222222222222222222222",
                     auth0ID: "auth0|1234567890",
-                    bookingDateTime: "2026-05-01T10:30:00.000Z"
                 });
         expect(response.status).toBe(409);
         expect(response.body).toEqual({ message: "User is already in a queue for this clinic." });
@@ -82,7 +79,6 @@ describe("POST /api/queues", () => {
                 .send({clinicID: "123456789012345678901234",
                     specialityID: "222222222222222222222222",
                     auth0ID: "auth0|1234567890",
-                    bookingDateTime: "2026-05-01T10:30:00.000Z"
                 });
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ message: "No staff member with specified speciality found in the clinic." });
@@ -100,7 +96,6 @@ describe("POST /api/queues", () => {
                 .send({clinicID: "123456789012345678901234",
                     specialityID: "222222222222222222222222",
                     auth0ID: "auth0|1234567890",
-                    bookingDateTime: "2026-05-01T10:30:00.000Z"
                 });
         expect(response.status).toBe(200);
         expect(response.body).toEqual({ message: "Successfully joined queue" });
