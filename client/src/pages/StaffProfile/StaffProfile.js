@@ -3,8 +3,13 @@ import './StaffProfile.css';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useApiAuth } from '../../hooks/apiAuth';
-
+import { useRef } from 'react';
 function StaffProfile() {
+  const nameRef = useRef(); //for changing of details
+  const surnameRef = useRef();
+  const titleRef = useRef();
+  const emailRef = useRef();
+
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
   const {apiFetch} = useApiAuth();
@@ -13,7 +18,7 @@ function StaffProfile() {
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  
   void clinics; // To avoid unused variable warning
 
   const staffId = user?.sub;
@@ -26,6 +31,30 @@ function StaffProfile() {
     setIsChangeDetailsModalOpen(!isChangeDetailsModalOpen);
   };
 
+  const handleUpdate = async () => {
+  
+  const updatedData = {
+    name: nameRef.current.value,
+    surname: surnameRef.current.value,
+    title: titleRef.current.value,
+    email: emailRef.current.value,
+  };
+
+  try {
+    const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedData),
+    });
+
+    if (response.ok) {
+      setProfileData(updatedData);
+      toggleChangeDetailsModal();
+    }
+  } catch (error) {
+    console.error("Update failed:", error);
+  }
+  };
 
   useEffect(() => {
     if (!staffId) return;
@@ -118,19 +147,19 @@ return (
           
           <div className='inline-components'>
             <label>Name</label>
-            <input type="text" defaultValue={profileData.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="text" ref={nameRef} defaultValue={profileData.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
             <label>Surname</label>
-            <input type="text" defaultValue={profileData.surname} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="text" ref={surnameRef} defaultValue={profileData.surname} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
             <label>Title</label>
-            <input type="text" defaultValue={profileData.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="text" ref={titleRef} defaultValue={profileData.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
             <label>Email</label>
-            <input type="email" defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="email" ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           
 
