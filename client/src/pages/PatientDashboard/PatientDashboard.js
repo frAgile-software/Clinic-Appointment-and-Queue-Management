@@ -132,7 +132,26 @@ function PatientDashboard() {
   };
 
   const handleConfirmQueue =async () => {
-    // TODO: handle confirm join queue
+    if (!selectedService) return;
+
+    try {
+      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/`, {
+        method: 'POST',
+        body: JSON.stringify({
+          clinicID: selectedClinic._id,
+          specialityName: selectedService,
+          auth0ID: user.sub,
+        })
+      });
+
+      if (response.ok) {
+        setShowQueuePanel(false);
+        closePopup();
+        // TODO: show queue in queue card, with leave queue button
+      }
+    } catch (error) {
+      console.error("Failed to join queue:", error);
+    }
   }
 
   const updateFilter = (key, value) => {
