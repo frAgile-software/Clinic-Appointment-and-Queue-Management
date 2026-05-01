@@ -6,11 +6,15 @@ const Clinic = require("../../database/models/Clinic");
 const User = require("../../database/models/User");
 const Speciality = require("../../database/models/Speciality");
 const Queue = require("../../database/models/Queue");
+const StaffSpeciality = require("../../database/models/StaffSpeciality");
+const Staff = require("../../database/models/Staff");
 
 jest.mock("../../database/models/Queue");
 jest.mock("../../database/models/Clinic");
 jest.mock("../../database/models/User");
 jest.mock("../../database/models/Speciality");
+jest.mock("../../database/models/StaffSpeciality");
+jest.mock("../../database/models/Staff");
 
 const app = express();
 app.use(express.json());
@@ -51,10 +55,10 @@ describe("POST /api/queues", () => {
         User.findOne.mockResolvedValue({ _id: "mock-user-id" });
         Clinic.findOne.mockResolvedValue({ _id: "mock-clinic-id" });
         Speciality.findOne.mockResolvedValueOnce({ _id: "mock-spec-id" });
-        User.findOne.mockResolvedValue({ 
-            role: "staff",
-            clinic: "mock-clinic-id",
-            speciality: "222222222222222222222222" });
+        Staff.find.mockReturnValueOnce({
+            select: jest.fn().mockResolvedValueOnce([{ _id: "mock-staff-id" }])
+        });
+        StaffSpeciality.findOne.mockResolvedValueOnce({ _id: "mock-staff-speciality"});
 
         Queue.findOne.mockResolvedValue({ _id: "mock-queue-id" }); // User is already in a queue for the clinic
 
@@ -74,7 +78,10 @@ describe("POST /api/queues", () => {
         User.findOne.mockResolvedValueOnce({ _id: "mock-user-id" });
         Clinic.findOne.mockResolvedValue({ _id: "mock-clinic-id" });
         Speciality.findOne.mockResolvedValueOnce({ _id: "mock-spec-id" });
-        User.findOne.mockResolvedValueOnce(null); // No staff member with the specified speciality
+        Staff.find.mockReturnValueOnce({
+            select: jest.fn().mockResolvedValueOnce([{ _id: "mock-staff-id" }])
+        });
+        StaffSpeciality.findOne.mockResolvedValueOnce(null);
 
         const response = await request(app)
                 .post("/api/queues")
@@ -107,6 +114,11 @@ describe("POST /api/queues", () => {
         Clinic.findOne.mockResolvedValue({ _id: "mock-clinic-id" });
         User.findOne.mockResolvedValueOnce({ role: "staff", clinic: "mock-clinic-id", speciality: "222222222222222222222222" });
         Speciality.findOne.mockResolvedValueOnce({ _id: "mock-spec-id" });
+        Staff.find.mockReturnValueOnce({
+            select: jest.fn().mockResolvedValueOnce([{ _id: "mock-staff-id" }])
+        });
+        StaffSpeciality.findOne.mockResolvedValueOnce({ _id: "mock-staff-speciality"});
+
         Queue.findOne.mockResolvedValue(null);
         Queue.prototype.save = jest.fn().mockResolvedValue();
         const response = await request(app)
