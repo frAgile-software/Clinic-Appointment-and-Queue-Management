@@ -8,7 +8,8 @@ function StaffProfile() {
   const nameRef = useRef(); //for changing of details
   const surnameRef = useRef();
   const titleRef = useRef();
-  const emailRef = useRef();
+
+  
 
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
