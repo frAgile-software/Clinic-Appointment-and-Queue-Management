@@ -55,7 +55,13 @@
 .profile-details-card:hover {
   transform: none; /* Keep static if you don't want the "bounce" effect here */
 }
-
+.search-bar {
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
 .inline-components {
   display: flex;
   flex-direction: row;
