@@ -4,7 +4,7 @@ jest.mock('express-oauth2-jwt-bearer', () => ({
     auth: jest.fn(() => (req, res, next) => {
         req.auth = {
             payload: {
-                sub: 'auth0-mockUserId123',
+                sub: 'auth0|mockUserId123',
                 aud: process.env.SERVER_URL,
                 iss: 'https://clinicsandqs-users.eu.auth0.com/',
                 scope: 'openid profile email',
@@ -15,9 +15,10 @@ jest.mock('express-oauth2-jwt-bearer', () => ({
 }));
 
 jest.mock('../../database/models/User', () => {
+
     const mockUser = jest.fn().mockImplementation(() => ({
         save: jest.fn().mockResolvedValueOnce({
-            auth0Id: 'auth0-mockUserId123',
+            auth0Id: 'auth0|mockUserId123',
             name: 'Test',
             surname: 'User',
             title: 'Ms',
@@ -38,7 +39,7 @@ const User = require('../../database/models/User');
 describe('POST /api/users/register', () => {
 
     const validUser = {
-        auth0Id: 'auth0-mockUserId123',
+        auth0Id: 'auth0|mockUserId123',
         name: 'Test',
         surname: 'User',
         title: 'Ms',
@@ -48,14 +49,6 @@ describe('POST /api/users/register', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        // Suppress console output to prevent CI pipeline failures on expected errors
-        jest.spyOn(console, 'log').mockImplementation(() => {});
-        jest.spyOn(console, 'error').mockImplementation(() => {});
-    });
-
-    afterEach(() => {
-        console.log.mockRestore();
-        console.error.mockRestore();
     });
 
     test('Returns 400 when required fields missing', async () => {

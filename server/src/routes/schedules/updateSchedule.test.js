@@ -13,15 +13,8 @@ app.use(express.json());
 app.use("/api/schedules", updateScheduleRouter);
 
 describe("PUT /api/schedules/:scheduleId", () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-        jest.spyOn(console, 'log').mockImplementation(() => {});
-        jest.spyOn(console, 'error').mockImplementation(() => {});
-    });
-
     afterEach(() => {
-        console.log.mockRestore();
-        console.error.mockRestore();
+        jest.clearAllMocks();
     });
 
     test("should return 400 if scheduleId is invalid", async () => {

@@ -562,7 +562,13 @@ describe('Booking component', () => {
     mockApiFetch.mockResolvedValueOnce({
       ok: true, json: async () => ({ users: [{ _id: 'u1', name: 'A', surname: 'B' }] })
     }).mockResolvedValueOnce({
-      ok: true, json: async () => ({ schedule: [{ DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' }] })
+      ok: true, json: async () => ({ 
+        schedule: [
+          { DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' },
+          { DayOfWeek: 2, StartTime: '08:00', EndTime: '17:00' },
+          { DayOfWeek: 3, StartTime: '08:00', EndTime: '17:00' }
+        ] 
+      })
     }).mockResolvedValueOnce({
       ok: true, json: async () => ({ bookedSlots: [] })
     }).mockResolvedValueOnce({
@@ -575,9 +581,13 @@ describe('Booking component', () => {
 
     fireEvent.click(await screen.findByText(/Dr A B/i));
     
-    // Pick the next available Monday from the mock window
-    const availableCell = await screen.findByRole('button', { name: /Select/i });
-    fireEvent.click(availableCell);
+    // Because the test might run on a Friday/Weekend where the current week view has NO available future days,
+    // we advance the calendar by one week to ensure we hit a standard full week in the booking window.
+    fireEvent.click(await screen.findByRole('button', { name: /Next week/i }));
+
+    // Pick the first available slot from the mock window
+    const availableCells = await screen.findAllByRole('button', { name: /Select/i });
+    fireEvent.click(availableCells[0]);
 
     // Pick 8 AM slot
     fireEvent.click(await screen.findByRole('button', { name: /Book 08:00/i }));

@@ -1,0 +1,2917 @@
+
+> program@1.0.0 test
+> concurrently "npm test --prefix server" "CI=true npm test --prefix client" --coverage
+
+[1] 
+[1] > client@0.1.0 test
+[1] > react-scripts test
+[1] 
+[0] 
+[0] > server@1.0.0 test
+[0] > jest
+[0] 
+[0] PASS src/routes/appointments/getAppointments.test.js
+[0] PASS src/routes/users/registerUser.test.js
+[0] PASS src/routes/appointments/cancelAppointment.test.js
+[0] PASS src/routes/appointments/createApointment.test.js
+[0] PASS src/routes/clinics/getFilters.test.js
+[0]   ● Console
+[0] 
+[0]     console.error
+[0]       Error fetching filter options: Error: Server error.
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/clinics/getFilters.test.js:76:47)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       32 |
+[0]       33 |     } catch (error) {
+[0]     > 34 |         console.error("Error fetching filter options:", error);
+[0]          |                 ^
+[0]       35 |         res.status(500).json({ message: "Server error." });
+[0]       36 |     }
+[0]       37 | });
+[0] 
+[0]       at error (src/routes/clinics/getFilters.js:34:17)
+[0] 
+[0] PASS src/routes/schedules/getUserSchedule.test.js
+[0] PASS src/routes/clinics/filterClinics.test.js
+[0]   ● Console
+[0] 
+[0]     console.log
+[0]       Error filtering clinics:  Error: DB error
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/clinics/filterClinics.test.js:232:63)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       at log (src/routes/clinics/filterClinics.js:100:17)
+[0] 
+[0] FAIL src/routes/clinics/listStaff.test.js
+[0]   ● listStaff API › should return 403 if sender is not found
+[0] 
+[0]     expect(received).toBe(expected) // Object.is equality
+[0] 
+[0]     Expected: 403
+[0]     Received: 200
+[0] 
+[0]       59 |       .send({ auth0Id: 'auth123' });
+[0]       60 |
+[0]     > 61 |     expect(response.status).toBe(403);
+[0]          |                             ^
+[0]       62 |     expect(response.body.message).toBe('Unauthorized.');
+[0]       63 |   });
+[0]       64 |
+[0] 
+[0]       at Object.toBe (src/routes/clinics/listStaff.test.js:61:29)
+[0] 
+[0]   ● listStaff API › should return 403 if sender is not staff of clinic
+[0] 
+[0]     expect(received).toBe(expected) // Object.is equality
+[0] 
+[0]     Expected: 403
+[0]     Received: 200
+[0] 
+[0]       72 |       .send({ auth0Id: 'auth123' });
+[0]       73 |
+[0]     > 74 |     expect(response.status).toBe(403);
+[0]          |                             ^
+[0]       75 |     expect(response.body.message).toBe('Unauthorized.');
+[0]       76 |   });
+[0]       77 |
+[0] 
+[0]       at Object.toBe (src/routes/clinics/listStaff.test.js:74:29)
+[0] 
+[0] PASS src/routes/clinics/createClinic.test.js
+[0] PASS src/routes/schedules/updateSchedule.test.js
+[0] PASS src/routes/clinics/listAssignedClinics.test.js
+[0] PASS src/routes/clinics/linkStaff.test.js
+[0] PASS src/routes/queues/getQueue.test.js
+[0] PASS src/routes/appointments/updateAppointment.test.js
+[0] PASS src/routes/queues/updateQueue.test.js
+[0]   ● Console
+[0] 
+[0]     console.error
+[0]       Error updating queue entry: Error: Database failure
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/queues/updateQueue.test.js:194:42)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       60 |         });
+[0]       61 |     } catch (error) {
+[0]     > 62 |         console.error("Error updating queue entry:", error);
+[0]          |                 ^
+[0]       63 |         return res.status(500).json({
+[0]       64 |             error: "Internal server error"
+[0]       65 |         }); 
+[0] 
+[0]       at error (src/routes/queues/updateQueue.js:62:17)
+[0] 
+[1] PASS src/pages/StaffProfile/StaffProfile.test.js
+[0] PASS src/routes/clinics/updateClinic.test.js
+[0] PASS src/index.test.js
+[0] PASS src/routes/users/updateUser.test.js
+[1] PASS src/pages/AdminDashboard/AdminDashboard.test.js
+[0] PASS src/routes/users/getUser.test.js
+[0] PASS src/routes/clinics/getClinic.test.js
+[0]   ● Console
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.error
+[0]       Error fetching clinics:  Error: Server error
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/clinics/getClinic.test.js:61:47)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       18 |     }
+[0]       19 |     catch (error) {
+[0]     > 20 |         console.error("Error fetching clinics: ", error);
+[0]          |                 ^
+[0]       21 |         res.status(500).json({ message: "Server error" });
+[0]       22 |     }
+[0]       23 |     
+[0] 
+[0]       at error (src/routes/clinics/getClinic.js:20:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.error
+[0]       Error fetching clinics:  Error: Server error
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/clinics/getClinic.test.js:90:47)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       18 |     }
+[0]       19 |     catch (error) {
+[0]     > 20 |         console.error("Error fetching clinics: ", error);
+[0]          |                 ^
+[0]       21 |         res.status(500).json({ message: "Server error" });
+[0]       22 |     }
+[0]       23 |     
+[0] 
+[0]       at error (src/routes/clinics/getClinic.js:20:17)
+[0] 
+[1] PASS src/App.test.js
+[1] PASS src/pages/StaffDashboard/StaffDashboard.test.js
+[0] 
+[0] Test Suites: 1 failed, 19 passed, 20 total
+[0] Tests:       2 failed, 122 passed, 124 total
+[0] Snapshots:   0 total
+[0] Time:        6.028 s
+[0] Ran all test suites.
+[1] PASS src/pages/Registration/Registration.test.js
+[0] npm test --prefix server exited with code 1
+[1] PASS src/pages/Landing/Landing.test.js
+[1]   ● Console
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get user from url undefined/api/users/auth0|123
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:67:19)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       User found. Redirecting...
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:71:21)
+[1] 
+[1]     console.log
+[1]       Attempting to get user from url undefined/api/users/auth0|123
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:67:19)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       User found. Redirecting...
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:71:21)
+[1] 
+[1]     console.log
+[1]       Attempting to get user from url undefined/api/users/auth0|123
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:67:19)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       User found. Redirecting...
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:71:21)
+[1] 
+[1]     console.log
+[1]       Attempting to get user from url undefined/api/users/auth0|123
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:67:19)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get user from url undefined/api/users/auth0|123
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:67:19)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.error
+[1]       Failed to verify user profile.
+[1] 
+[1]     [0m [90m 80 |[39m             navigate([32m'/register'[39m)[33m;[39m
+[1]      [90m 81 |[39m           } [36melse[39m {
+[1]     [31m[1m>[22m[39m[90m 82 |[39m             console[33m.[39merror([32m'Failed to verify user profile.'[39m)[33m;[39m
+[1]      [90m    |[39m                     [31m[1m^[22m[39m
+[1]      [90m 83 |[39m             setIsVerifying([36mfalse[39m)[33m;[39m
+[1]      [90m 84 |[39m           }
+[1]      [90m 85 |[39m         } [36mcatch[39m (error) {[0m
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:82:21)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: 'GAUTENG',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?province=GAUTENG
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: 'JOHANNESBURG',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?town=JOHANNESBURG
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: 'PARKTOWN',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?suburb=PARKTOWN
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: 'SPECIALIST',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?type=SPECIALIST
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: 'GAUTENG',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?province=GAUTENG
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?province=GAUTENG&_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: 'GAUTENG',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?province=GAUTENG
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?province=GAUTENG&_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.error
+[1]       You called act(async () => ...) without await. This could lead to unexpected testing behaviour, interleaving multiple act calls and mixing their scopes. You should - await act(async () => ...);
+[1] 
+[1]     [0m [90m 462 |[39m                 [36mawait[39m act([36masync[39m () [33m=>[39m {
+[1]      [90m 463 |[39m                     [36mawait[39m userEvent[33m.[39mclick(screen[33m.[39mgetByLabelText([32m'Next page'[39m))[33m;[39m
+[1]     [31m[1m>[22m[39m[90m 464 |[39m                     jest[33m.[39mrunAllTimers()[33m;[39m
+[1]      [90m     |[39m                          [31m[1m^[22m[39m
+[1]      [90m 465 |[39m                 })[33m;[39m
+[1]      [90m 466 |[39m
+[1]      [90m 467 |[39m                 expect(global[33m.[39mfetch)[33m.[39mtoHaveBeenCalledWith(expect[33m.[39mstringContaining([32m'_page=2'[39m))[33m;[39m[0m
+[1] 
+[1]       at node_modules/react/cjs/react.development.js:835:21
+[1]       at runJobs (node_modules/@sinonjs/fake-timers/src/fake-timers-src.js:506:22)
+[1]       at Object.runAll (node_modules/@sinonjs/fake-timers/src/fake-timers-src.js:1455:13)
+[1]       at FakeTimers.runAllTimers (node_modules/@jest/fake-timers/build/modernFakeTimers.js:75:19)
+[1]       at src/pages/Landing/Landing.test.js:464:26
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=2&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=2&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1] FAIL src/pages/Booking/Booking.test.js
+[1]   ● Booking component › deletes old appointment if rescheduleAppointmentId is provided after confirming the new booking
+[1] 
+[1]     Unable to find role="button" and name `/Select/i`
+[1] 
+[1]     Ignored nodes: comments, script, style
+[1]     [36m<body>[39m
+[1]       [36m<div>[39m
+[1]         [36m<main[39m
+[1]           [33mclass[39m=[32m"booking-page"[39m
+[1]         [36m>[39m
+[1]           [36m<nav[39m
+[1]             [33maria-label[39m=[32m"Main navigation"[39m
+[1]             [33mclass[39m=[32m"booking-nav"[39m
+[1]           [36m>[39m
+[1]             [36m<span[39m
+[1]               [33mstyle[39m=[32m"flex: 1;"[39m
+[1]             [36m>[39m
+[1]               [36m<button[39m
+[1]                 [33mclass[39m=[32m"booking-nav-back"[39m
+[1]               [36m>[39m
+[1]                 [0m← Back[0m
+[1]               [36m</button>[39m
+[1]             [36m</span>[39m
+[1]             [36m<span[39m
+[1]               [33mstyle[39m=[32m"display: flex; align-items: center; gap: 10px; flex: 1; justify-content: center;"[39m
+[1]             [36m>[39m
+[1]               [36m<img[39m
+[1]                 [33malt[39m=[32m"Clinics and Qs logo"[39m
+[1]                 [33msrc[39m=[32m"/logo.svg"[39m
+[1]                 [33mstyle[39m=[32m"width: 32px; height: 32px;"[39m
+[1]               [36m/>[39m
+[1]               [36m<span[39m
+[1]                 [33mclass[39m=[32m"booking-nav-logo"[39m
+[1]               [36m>[39m
+[1]                 [0mClinics and Qs[0m
+[1]               [36m</span>[39m
+[1]             [36m</span>[39m
+[1]             [36m<span[39m
+[1]               [33mstyle[39m=[32m"flex: 1;"[39m
+[1]             [36m/>[39m
+[1]           [36m</nav>[39m
+[1]           [36m<header[39m
+[1]             [33maria-label[39m=[32m"Booking context"[39m
+[1]             [33mclass[39m=[32m"booking-hero"[39m
+[1]           [36m>[39m
+[1]             [36m<h1[39m
+[1]               [33mclass[39m=[32m"booking-hero-title"[39m
+[1]             [36m>[39m
+[1]               [0mReschedule Appointment[0m
+[1]             [36m</h1>[39m
+[1]             [36m<section[39m
+[1]               [33mclass[39m=[32m"booking-context-row"[39m
+[1]               [33mstyle[39m=[32m"justify-content: center;"[39m
+[1]             [36m>[39m
+[1]               [36m<article[39m
+[1]                 [33mclass[39m=[32m"booking-context-card"[39m
+[1]               [36m>[39m
+[1]                 [36m<p[39m
+[1]                   [33mclass[39m=[32m"context-card-label"[39m
+[1]                 [36m>[39m
+[1]                   [0mSelected Clinic[0m
+[1]                 [36m</p>[39m
+[1]                 [36m<p[39m
+[1]                   [33mclass[39m=[32m"context-card-name"[39m
+[1]                 [36m>[39m
+[1]                   [0mCity Clinic[0m
+[1]                 [36m</p>[39m
+[1]                 [36m<p[39m
+[1]                   [33mclass[39m=[32m"context-card-sub"[39m
+[1]                 [36m>[39m
+[1]                   [0mGeneral Practice[0m
+[1]                 [36m</p>[39m
+[1]                 [36m<p[39m
+[1]                   [33mclass[39m=[32m"context-card-sub"[39m
+[1]                 [36m>[39m
+[1]                   [0m1 Main St[0m
+[1]                 [36m</p>[39m
+[1]               [36m</article>[39m
+[1]               [36m<article[39m
+[1]                 [33mclass[39m=[32m"booking-context-card"[39m
+[1]               [36m>[39m
+[1]                 [36m<p[39m
+[1]                   [33mclass[39m=[32m"context-card-label"[39m
+[1]                 [36m>[39m
+[1]                   [0mReason[0m
+[1]                 [36m</p>[39m
+[1]                 [36m<p[39m
+[1]                   [33mclass[39m=[32m"context-card-name"[39m
+[1]                 [36m>[39m
+[1]                   [0mCardiology[0m
+[1]                 [36m</p>[39m
+[1]               [36m</article>[39m
+[1]             [36m</section>[39m
+[1]           [36m</header>[39m
+[1]           [36m<section[39m
+[1]             [33maria-label[39m=[32m"Booking steps"[39m
+[1]             [33mclass[39m=[32m"booking-body"[39m
+[1]           [36m>[39m
+[1]             [36m<section[39m
+[1]               [33mclass[39m=[32m"steps-row"[39m
+[1]             [36m>[39m
+[1]               [36m<article[39m
+[1]                 [33maria-labelledby[39m=[32m"step1-heading"[39m
+[1]                 [33mclass[39m=[32m"booking-section steps-row-item"[39m
+[1]               [36m>[39m
+[1]                 [36m<header[39m
+[1]                   [33mclass[39m=[32m"section-header"[39m
+[1]                 [36m>[39m
+[1]                   [36m<span[39m
+[1]                     [33maria-hidden[39m=[32m"true"[39m
+[1]                     [33mclass[39m=[32m"section-step-badge"[39m
+[1]                   [36m>[39m
+[1]                     [0m1[0m
+[1]                   [36m</span>[39m
+[1]                   [36m<hgroup>[39m
+[1]                     [36m<p[39m
+[1]                       [33mclass[39m=[32m"section-title"[39m
+[1]                       [33mid[39m=[32m"step1-heading"[39m
+[1]                     [36m>[39m
+[1]                       [0mVisit Description[0m
+[1]                     [36m</p>[39m
+[1]                     [36m<p[39m
+[1]                       [33mclass[39m=[32m"section-subtitle"[39m
+[1]                     [36m>[39m
+[1]                       [0mBriefly describe the purpose of your visit[0m
+[1]                     [36m</p>[39m
+[1]                   [36m</hgroup>[39m
+[1]                 [36m</header>[39m
+[1]                 [36m<section[39m
+[1]                   [33mclass[39m=[32m"description-wrap"[39m
+[1]                 [36m>[39m
+[1]                   [36m<textarea[39m
+[1]                     [33maria-label[39m=[32m"Visit description"[39m
+[1]                     [33mclass[39m=[32m"visit-description-input"[39m
+[1]                     [33mmaxlength[39m=[32m"500"[39m
+[1]                     [33mplaceholder[39m=[32m"e.g. Follow-up on blood pressure medication, persistent headache for 3 days..."[39m
+[1]                     [33mrows[39m=[32m"5"[39m
+[1]                   [36m/>[39m
+[1]                   [36m<p[39m
+[1]                     [33mclass[39m=[32m"description-char-count"[39m
+[1]                   [36m>[39m
+[1]                     [0m0[0m
+[1]                     [0m/500[0m
+[1]                   [36m</p>[39m
+[1]                 [36m</section>[39m
+[1]               [36m</article>[39m
+[1]               [36m<article[39m
+[1]                 [33maria-labelledby[39m=[32m"step2-heading"[39m
+[1]                 [33mclass[39m=[32m"booking-section steps-row-item"[39m
+[1]               [36m>[39m
+[1]                 [36m<header[39m
+[1]                   [33mclass[39m=[32m"section-header"[39m
+[1]                 [36m>[39m
+[1]                   [36m<span[39m
+[1]                     [33maria-hidden[39m=[32m"true"[39m
+[1]                     [33mclass[39m=[32m"section-step-badge"[39m
+[1]                   [36m>[39m
+[1]                     [0m2[0m
+[1]                   [36m</span>[39m
+[1]                   [36m<hgroup>[39m
+[1]                     [36m<p[39m
+[1]                       [33mclass[39m=[32m"section-title"[39m
+[1]                       [33mid[39m=[32m"step2-heading"[39m
+[1]                     [36m>[39m
+[1]                       [0mSelect a Doctor[0m
+[1]                     [36m</p>[39m
+[1]                     [36m<p[39m
+[1]                       [33mclass[39m=[32m"section-subtitle"[39m
+[1]                     [36m>[39m
+[1]                       [0mChoose from available doctors at this clinic[0m
+[1]                     [36m</p>[39m
+[1]                   [36m</hgroup>[39m
+[1]                 [36m</header>[39m
+[1]                 [36m<ul[39m
+[1]                   [33mclass[39m=[32m"doctor-pills"[39m
+[1]                 [36m>[39m
+[1]                   [36m<li[39m
+[1]                     [33maria-pressed[39m=[32m"true"[39m
+[1]                     [33mclass[39m=[32m"doctor-pill doctor-pill--selected"[39m
+[1]                     [33mrole[39m=[32m"button"[39m
+[1]                     [33mtabindex[39m=[32m"0"[39m
+[1]                   [36m>[39m
+[1]                     [36m<span[39m
+[1]                       [33maria-hidden[39m=[32m"true"[39m
+[1]                       [33mclass[39m=[32m"doctor-pill-avatar"[39m
+[1]                     [36m>[39m
+[1]                       [0mAB[0m
+[1]                     [36m</span>[39m
+[1]                     [36m<span>[39m
+[1]                       [36m<p[39m
+[1]                         [33mclass[39m=[32m"doctor-pill-name"[39m
+[1]                       [36m>[39m
+[1]                         [0mDr [0m
+[1]                         [0mA B[0m
+[1]                       [36m</p>[39m
+[1]                       [36m<p[39m
+[1]                         [33mclass[39m=[32m"doctor-pill-spec"[39m
+[1]                       [36m>[39m
+[1]                         [0mCardiology[0m
+[1]                       [36m</p>[39m
+[1]                     [36m</span>[39m
+[1]                   [36m</li>[39m
+[1]                 [36m</ul>[39m
+[1]               [36m</article>[39m
+[1]             [36m</section>[39m
+[1]             [36m<article[39m
+[1]               [33maria-labelledby[39m=[32m"step3-heading"[39m
+[1]               [33mclass[39m=[32m"booking-section"[39m
+[1]             [36m>[39m
+[1]               [36m<header[39m
+[1]                 [33mclass[39m=[32m"section-header"[39m
+[1]               [36m>[39m
+[1]                 [36m<span[39m
+[1]                   [33maria-hidden[39m=[32m"true"[39m
+[1]                   [33mclass[39m=[32m"section-step-badge"[39m
+[1]                 [36m>[39m
+[1]                   [0m3[0m
+[1]                 [36m</span>[39m
+[1]                 [36m<hgroup>[39m
+[1]                   [36m<p[39m
+[1]                     [33mclass[39m=[32m"section-title"[39m
+[1]                     [33mid[39m=[32m"step3-heading"[39m
+[1]                   [36m>[39m
+[1]                     [0mSelect a Date[0m
+[1]                   [36m</p>[39m
+[1]                   [36m<p[39m
+[1]                     [33mclass[39m=[32m"section-subtitle"[39m
+[1]                   [36m>[39m
+[1]                     [0mAvailability for Dr [0m
+[1]                     [0mA B[0m
+[1]                     [0m · Next 14 days from tomorrow[0m
+[1]                   [36m</p>[39m
+[1]                 [36m</hgroup>[39m
+[1]               [36m</header>[39m
+[1]               [36m<section[39m
+[1]                 [33mclass[39m=[32m"calendar-wrap"[39m
+[1]               [36m>[39m
+[1]                 [36m<header[39m
+[1]                   [33maria-label[39m=[32m"Week navigation"[39m
+[1]                   [33mclass[39m=[32m"calendar-month-nav"[39m
+[1]                 [36m>[39m
+[1]                   [36m<button[39m
+[1]                     [33maria-label[39m=[32m"Previous week"[39m
+[1]                     [33mclass[39m=[32m"cal-nav-btn"[39m
+[1]                   [36m>[39m
+[1]                     [0m‹[0m
+[1]                   [36m</button>[39m
+[1]                   [36m<h2[39m
+[1]                     [33mclass[39m=[32m"cal-month-label"[39m
+[1]                   [36m>[39m
+[1]                     [0m27 Apr – 03 May[0m
+[1]                   [36m</h2>[39m
+[1]                   [36m<button[39m
+[1]                     [33maria-label[39m=[32m"Next week"[39m
+[1]                     [33mclass[39m=[32m"cal-nav-btn"[39m
+[1]                   [36m>[39m
+[1]                     [0m›[0m
+[1]                   [36m</button>[39m
+[1]                 [36m</header>[39m
+[1]                 [36m<ol[39m
+[1]                   [33maria-label[39m=[32m"Week calendar"[39m
+[1]                   [33mclass[39m=[32m"week-grid"[39m
+[1]                 [36m>[39m
+[1]                   [36m<li[39m
+[1]                     [33mclass[39m=[32m"week-cell cal-cell--unavailable"[39m
+[1]                   [36m>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-name"[39m
+[1]                     [36m>[39m
+[1]                       [0mMon[0m
+[1]                     [36m</span>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-num"[39m
+[1]                     [36m>[39m
+[1]                       [0m27[0m
+[1]                     [36m</span>[39m
+[1]                   [36m</li>[39m
+[1]                   [36m<li[39m
+[1]                     [33mclass[39m=[32m"week-cell cal-cell--unavailable"[39m
+[1]                   [36m>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-name"[39m
+[1]                     [36m>[39m
+[1]                       [0mTue[0m
+[1]                     [36m</span>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-num"[39m
+[1]                     [36m>[39m
+[1]                       [0m28[0m
+[1]                     [36m</span>[39m
+[1]                   [36m</li>[39m
+[1]                   [36m<li[39m
+[1]                     [33mclass[39m=[32m"week-cell cal-cell--unavailable"[39m
+[1]                   [36m>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-name"[39m
+[1]                     [36m>[39m
+[1]                       [0mWed[0m
+[1]                     [36m</span>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-num"[39m
+[1]                     [36m>[39m
+[1]                       [0m29[0m
+[1]                     [36m</span>[39m
+[1]                   [36m</li>[39m
+[1]                   [36m<li[39m
+[1]                     [33mclass[39m=[32m"week-cell cal-cell--unavailable"[39m
+[1]                   [36m>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-name"[39m
+[1]                     [36m>[39m
+[1]                       [0mThu[0m
+[1]                     [36m</span>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-num"[39m
+[1]                     [36m>[39m
+[1]                       [0m30[0m
+[1]                     [36m</span>[39m
+[1]                   [36m</li>[39m
+[1]                   [36m<li[39m
+[1]                     [33mclass[39m=[32m"week-cell cal-cell--unavailable cal-cell--today"[39m
+[1]                   [36m>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-name"[39m
+[1]                     [36m>[39m
+[1]                       [0mFri[0m
+[1]                     [36m</span>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-num"[39m
+[1]                     [36m>[39m
+[1]                       [0m1[0m
+[1]                     [36m</span>[39m
+[1]                   [36m</li>[39m
+[1]                   [36m<li[39m
+[1]                     [33mclass[39m=[32m"week-cell cal-cell--unavailable"[39m
+[1]                   [36m>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-name"[39m
+[1]                     [36m>[39m
+[1]                       [0mSat[0m
+[1]                     [36m</span>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-num"[39m
+[1]                     [36m>[39m
+[1]                       [0m2[0m
+[1]                     [36m</span>[39m
+[1]                   [36m</li>[39m
+[1]                   [36m<li[39m
+[1]                     [33mclass[39m=[32m"week-cell cal-cell--unavailable"[39m
+[1]                   [36m>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-name"[39m
+[1]                     [36m>[39m
+[1]                       [0mSun[0m
+[1]                     [36m</span>[39m
+[1]                     [36m<span[39m
+[1]                       [33mclass[39m=[32m"week-cell-num"[39m
+[1]                     [36m>[39m
+[1]                       [0m3[0m
+[1]                     [36m</span>[39m
+[1]                   [36m</li>[39m
+[1]                 [36m</ol>[39m
+[1]                 [36m<section[39m
+[1]                   [33mclass[39m=[32m"cal-legend"[39m
+[1]                 [36m>[39m
+[1]                   [36m<span[39m
+[1]                     [33mclass[39m=[32m"legend-dot legend-dot--avail"[39m
+[1]                   [36m/>[39m
+[1]                   [0m Available[0m
+[1]                   [36m<span[39m
+[1]                     [33mclass[39m=[32m"legend-dot legend-dot--unavail"[39m
+[1]                     [33mstyle[39m=[32m"margin-left: 16px;"[39m
+[1]                   [36m/>[39m
+[1]                   [0m Unavailable[0m
+[1]                 [36m</section>[39m
+[1]               [36m</section>[39m
+[1]             [36m</article>[39m
+[1]           [36m</section>[39m
+[1]         [36m</main>[39m
+[1]       [36m</div>[39m
+[1]     [36m</body>[39m
+[1] 
+[1]     [0m [90m 577 |[39m     
+[1]      [90m 578 |[39m     [90m// Pick the next available Monday from the mock window[39m
+[1]     [31m[1m>[22m[39m[90m 579 |[39m     [36mconst[39m availableCell [33m=[39m [36mawait[39m screen[33m.[39mfindByRole([32m'button'[39m[33m,[39m { name[33m:[39m [35m/Select/i[39m })[33m;[39m
+[1]      [90m     |[39m                                        [31m[1m^[22m[39m
+[1]      [90m 580 |[39m     fireEvent[33m.[39mclick(availableCell)[33m;[39m
+[1]      [90m 581 |[39m
+[1]      [90m 582 |[39m     [90m// Pick 8 AM slot[39m[0m
+[1] 
+[1]       at waitForWrapper (node_modules/@testing-library/dom/dist/wait-for.js:163:27)
+[1]       at findByRole (node_modules/@testing-library/dom/dist/query-helpers.js:86:33)
+[1]       at Object.<anonymous> (src/pages/Booking/Booking.test.js:579:40)
+[1] 
+[1] PASS src/pages/PatientDashboard/PatientDashboard.test.js (8.332 s)
+[1] 
+[1] Test Suites: 1 failed, 7 passed, 8 total
+[1] Tests:       1 failed, 108 passed, 109 total
+[1] Snapshots:   0 total
+[1] Time:        10.84 s, estimated 11 s
+[1] Ran all test suites.
+[1] CI=true npm test --prefix client exited with code 1
+
+> program@1.0.0 test
+> concurrently "npm test --prefix server" "CI=true npm test --prefix client" --coverage
+
+[0] 
+[0] > server@1.0.0 test
+[0] > jest
+[0] 
+[1] 
+[1] > client@0.1.0 test
+[1] > react-scripts test
+[1] 
+[0] npm test --prefix server exited with code SIGINT
+[1] CI=true npm test --prefix client exited with code SIGINT
+
+> program@1.0.0 test
+> concurrently "npm test --prefix server" "CI=true npm test --prefix client" --coverage
+
+[0] 
+[0] > server@1.0.0 test
+[0] > jest
+[0] 
+[1] 
+[1] > client@0.1.0 test
+[1] > react-scripts test
+[1] 
+[0] PASS src/routes/appointments/cancelAppointment.test.js
+[0]   ● Console
+[0] 
+[0]     console.log
+[0]       Appointment found.
+[0] 
+[0]       at log (src/routes/appointments/cancelAppointment.js:16:17)
+[0] 
+[0]     console.log
+[0]       Appointment logged as cancelled in PatientLog.
+[0] 
+[0]       at log (src/routes/appointments/cancelAppointment.js:31:17)
+[0] 
+[0]     console.log
+[0]       Cancel appointment error: Error: Server error.
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/appointments/cancelAppointment.test.js:86:52)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       at log (src/routes/appointments/cancelAppointment.js:38:17)
+[0] 
+[0] PASS src/routes/appointments/getAppointments.test.js
+[0]   ● Console
+[0] 
+[0]     console.log
+[0]       Finding user...
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:11:17)
+[0] 
+[0]     console.log
+[0]       Finding user...
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:11:17)
+[0] 
+[0]     console.log
+[0]       User found. Finding appointments...
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:19:17)
+[0] 
+[0]     console.log
+[0]       Appointments found.
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:41:17)
+[0] 
+[0]     console.log
+[0]       Finding user...
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:11:17)
+[0] 
+[0]     console.log
+[0]       User found. Finding appointments...
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:19:17)
+[0] 
+[0]     console.log
+[0]       Appointments found.
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:41:17)
+[0] 
+[0]     console.log
+[0]       Finding user...
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:11:17)
+[0] 
+[0]     console.log
+[0]       User found. Finding appointments...
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:19:17)
+[0] 
+[0]     console.log
+[0]       No appointments found.
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:37:21)
+[0] 
+[0]     console.log
+[0]       Finding user...
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:11:17)
+[0] 
+[0]     console.log
+[0]       User found. Finding appointments...
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:19:17)
+[0] 
+[0]     console.log
+[0]       Finding user...
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:11:17)
+[0] 
+[0]     console.log
+[0]       Error fetching appointments: Error: Server error.
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/appointments/getAppointments.test.js:113:44)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       at log (src/routes/appointments/getAppointments.js:45:17)
+[0] 
+[0] PASS src/routes/appointments/createApointment.test.js
+[0]   ● Console
+[0] 
+[0]     console.error
+[0]       Error creating appointment: Error: DB connection lost
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/appointments/createApointment.test.js:194:44)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       46 |
+[0]       47 |     } catch (error) {
+[0]     > 48 |         console.error("Error creating appointment:", error);
+[0]          |                 ^
+[0]       49 |         res.status(500).json({ message: "Server error." });
+[0]       50 |     }
+[0]       51 | });
+[0] 
+[0]       at error (src/routes/appointments/createAppointment.js:48:17)
+[0] 
+[0]     console.error
+[0]       Error creating appointment: Error: Save failed
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/appointments/createApointment.test.js:209:52)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       46 |
+[0]       47 |     } catch (error) {
+[0]     > 48 |         console.error("Error creating appointment:", error);
+[0]          |                 ^
+[0]       49 |         res.status(500).json({ message: "Server error." });
+[0]       50 |     }
+[0]       51 | });
+[0] 
+[0]       at error (src/routes/appointments/createAppointment.js:48:17)
+[0] 
+[0] PASS src/routes/users/registerUser.test.js
+[0]   ● Console
+[0] 
+[0]     console.log
+[0]       USER REGISTRATION
+[0] 
+[0]       at log (src/routes/users/registerUser.js:7:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload: { name: 'Test' }
+[0] 
+[0]       at log (src/routes/users/registerUser.js:8:17)
+[0] 
+[0]     console.log
+[0]       FAIL: Missing required fields
+[0] 
+[0]       at log (src/routes/users/registerUser.js:13:21)
+[0] 
+[0]     console.log
+[0]       USER REGISTRATION
+[0] 
+[0]       at log (src/routes/users/registerUser.js:7:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload: {
+[0]         auth0Id: 'auth0|mockUserId123',
+[0]         name: 'Test',
+[0]         surname: 'User',
+[0]         title: 'Ms',
+[0]         email: 'test@example.com',
+[0]         role: 'Admin'
+[0]       }
+[0] 
+[0]       at log (src/routes/users/registerUser.js:8:17)
+[0] 
+[0]     console.log
+[0]       Payload validated
+[0] 
+[0]       at log (src/routes/users/registerUser.js:17:17)
+[0] 
+[0]     console.log
+[0]       FAIL: User already exists in database
+[0] 
+[0]       at log (src/routes/users/registerUser.js:21:21)
+[0] 
+[0]     console.log
+[0]       USER REGISTRATION
+[0] 
+[0]       at log (src/routes/users/registerUser.js:7:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload: {
+[0]         auth0Id: 'auth0|mockUserId123',
+[0]         name: 'Test',
+[0]         surname: 'User',
+[0]         title: 'Ms',
+[0]         email: 'test@example.com',
+[0]         role: 'Admin'
+[0]       }
+[0] 
+[0]       at log (src/routes/users/registerUser.js:8:17)
+[0] 
+[0]     console.log
+[0]       Payload validated
+[0] 
+[0]       at log (src/routes/users/registerUser.js:17:17)
+[0] 
+[0]     console.log
+[0]       No duplicates found. Creating user...
+[0] 
+[0]       at log (src/routes/users/registerUser.js:25:17)
+[0] 
+[0]     console.log
+[0]       Attempting to save to MongoDB...
+[0] 
+[0]       at log (src/routes/users/registerUser.js:30:17)
+[0] 
+[0]     console.log
+[0]       Success registering user!
+[0] 
+[0]       at log (src/routes/users/registerUser.js:33:17)
+[0] 
+[0]     console.log
+[0]       USER REGISTRATION
+[0] 
+[0]       at log (src/routes/users/registerUser.js:7:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload: {
+[0]         auth0Id: 'auth0|mockUserId123',
+[0]         name: 'Test',
+[0]         surname: 'User',
+[0]         title: 'Ms',
+[0]         email: 'test@example.com',
+[0]         role: 'Admin'
+[0]       }
+[0] 
+[0]       at log (src/routes/users/registerUser.js:8:17)
+[0] 
+[0]     console.log
+[0]       Payload validated
+[0] 
+[0]       at log (src/routes/users/registerUser.js:17:17)
+[0] 
+[0]     console.log
+[0]       No duplicates found. Creating user...
+[0] 
+[0]       at log (src/routes/users/registerUser.js:25:17)
+[0] 
+[0]     console.log
+[0]       Attempting to save to MongoDB...
+[0] 
+[0]       at log (src/routes/users/registerUser.js:30:17)
+[0] 
+[0]     console.error
+[0]       ERROR: Error: Server error.
+[0]           at mockConstructor.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/users/registerUser.test.js:89:51)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-mock/build/index.js:295:43
+[0]           at mockConstructor.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-mock/build/index.js:312:13)
+[0]           at new mockConstructor (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-mock/build/index.js:102:19)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/users/registerUser.js:26:25
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0] 
+[0]       35 |
+[0]       36 |     } catch (error) {
+[0]     > 37 |         console.error("ERROR:", error);
+[0]          |                 ^
+[0]       38 |         res.status(500).json({ message: "Server error." });
+[0]       39 |     }
+[0]       40 | });
+[0] 
+[0]       at error (src/routes/users/registerUser.js:37:17)
+[0] 
+[0] PASS src/routes/clinics/getFilters.test.js
+[0]   ● Console
+[0] 
+[0]     console.error
+[0]       Error fetching filter options: Error: Server error.
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/clinics/getFilters.test.js:76:47)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       32 |
+[0]       33 |     } catch (error) {
+[0]     > 34 |         console.error("Error fetching filter options:", error);
+[0]          |                 ^
+[0]       35 |         res.status(500).json({ message: "Server error." });
+[0]       36 |     }
+[0]       37 | });
+[0] 
+[0]       at error (src/routes/clinics/getFilters.js:34:17)
+[0] 
+[0] FAIL src/routes/schedules/getUserSchedule.test.js
+[0]   ● GET /api/schedules/:userId › should return 404 if user does not exist
+[0] 
+[0]     expect(received).toEqual(expected) // deep equality
+[0] 
+[0]     - Expected  - 3
+[0]     + Received  + 1
+[0] 
+[0]     - Object {
+[0]     -   "message": "User not found.",
+[0]     - }
+[0]     + Object {}
+[0] 
+[0]       24 |
+[0]       25 |         expect(response.status).toBe(404);
+[0]     > 26 |         expect(response.body).toEqual({ message: "User not found." });
+[0]          |                               ^
+[0]       27 |         expect(User.findById).toHaveBeenCalledWith("123456789012345678901234");
+[0]       28 |     });
+[0]       29 |
+[0] 
+[0]       at Object.toEqual (src/routes/schedules/getUserSchedule.test.js:26:31)
+[0] 
+[0]   ● GET /api/schedules/:userId › should return 200 with schedule if user exists
+[0] 
+[0]     expect(received).toBe(expected) // Object.is equality
+[0] 
+[0]     Expected: 200
+[0]     Received: 404
+[0] 
+[0]       59 |         const response = await request(app).get("/api/schedules/123456789012345678901234");
+[0]       60 |
+[0]     > 61 |         expect(response.status).toBe(200);
+[0]          |                                 ^
+[0]       62 |         expect(response.body).toEqual({ schedule: mockSchedule });
+[0]       63 |         expect(User.findById).toHaveBeenCalledWith("123456789012345678901234");
+[0]       64 |         expect(Schedule.find).toHaveBeenCalledWith({
+[0] 
+[0]       at Object.toBe (src/routes/schedules/getUserSchedule.test.js:61:33)
+[0] 
+[0]   ● GET /api/schedules/:userId › should return 500 if an error occurs
+[0] 
+[0]     expect(received).toBe(expected) // Object.is equality
+[0] 
+[0]     Expected: 500
+[0]     Received: 404
+[0] 
+[0]       72 |         const response = await request(app).get("/api/schedules/123456789012345678901234");
+[0]       73 |
+[0]     > 74 |         expect(response.status).toBe(500);
+[0]          |                                 ^
+[0]       75 |         expect(response.body).toEqual({ message: "Server error." });
+[0]       76 |     });
+[0]       77 | });
+[0] 
+[0]       at Object.toBe (src/routes/schedules/getUserSchedule.test.js:74:33)
+[0] 
+[0] PASS src/routes/clinics/linkStaff.test.js
+[0] PASS src/routes/clinics/filterClinics.test.js
+[0]   ● Console
+[0] 
+[0]     console.log
+[0]       Error filtering clinics:  Error: DB error
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/clinics/filterClinics.test.js:232:63)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       at log (src/routes/clinics/filterClinics.js:100:17)
+[0] 
+[0] PASS src/routes/clinics/createClinic.test.js
+[0] PASS src/routes/queues/getQueue.test.js
+[0] PASS src/routes/schedules/updateSchedule.test.js
+[0]   ● Console
+[0] 
+[0]     console.error
+[0]       Error updating schedule: Error: Database failure
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/schedules/updateSchedule.test.js:167:45)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       63 |         res.status(200).json({ message: "Schedule entry updated successfully.", schedule: updatedSchedule });
+[0]       64 |     } catch (error) {
+[0]     > 65 |         console.error("Error updating schedule:", error);
+[0]          |                 ^
+[0]       66 |         res.status(500).json({ message: "Server error." });
+[0]       67 |     }
+[0]       68 | });
+[0] 
+[0]       at error (src/routes/schedules/updateSchedule.js:65:17)
+[0] 
+[0] FAIL src/routes/clinics/listStaff.test.js
+[0]   ● listStaff API › should return 403 if sender is not found
+[0] 
+[0]     expect(received).toBe(expected) // Object.is equality
+[0] 
+[0]     Expected: 403
+[0]     Received: 200
+[0] 
+[0]       59 |       .send({ auth0Id: 'auth123' });
+[0]       60 |
+[0]     > 61 |     expect(response.status).toBe(403);
+[0]          |                             ^
+[0]       62 |     expect(response.body.message).toBe('Unauthorized.');
+[0]       63 |   });
+[0]       64 |
+[0] 
+[0]       at Object.toBe (src/routes/clinics/listStaff.test.js:61:29)
+[0] 
+[0]   ● listStaff API › should return 403 if sender is not staff of clinic
+[0] 
+[0]     expect(received).toBe(expected) // Object.is equality
+[0] 
+[0]     Expected: 403
+[0]     Received: 200
+[0] 
+[0]       72 |       .send({ auth0Id: 'auth123' });
+[0]       73 |
+[0]     > 74 |     expect(response.status).toBe(403);
+[0]          |                             ^
+[0]       75 |     expect(response.body.message).toBe('Unauthorized.');
+[0]       76 |   });
+[0]       77 |
+[0] 
+[0]       at Object.toBe (src/routes/clinics/listStaff.test.js:74:29)
+[0] 
+[0] PASS src/routes/clinics/listAssignedClinics.test.js
+[0] PASS src/routes/queues/updateQueue.test.js
+[0]   ● Console
+[0] 
+[0]     console.error
+[0]       Error updating queue entry: Error: Database failure
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/queues/updateQueue.test.js:194:42)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       60 |         });
+[0]       61 |     } catch (error) {
+[0]     > 62 |         console.error("Error updating queue entry:", error);
+[0]          |                 ^
+[0]       63 |         return res.status(500).json({
+[0]       64 |             error: "Internal server error"
+[0]       65 |         }); 
+[0] 
+[0]       at error (src/routes/queues/updateQueue.js:62:17)
+[0] 
+[0] PASS src/routes/users/getUser.test.js
+[0]   ● Console
+[0] 
+[0]     console.error
+[0]       User lookup error: Error: Server error.
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/users/getUser.test.js:59:44)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       15 |
+[0]       16 |     } catch (error) {
+[0]     > 17 |         console.error("User lookup error:", error);
+[0]          |                 ^
+[0]       18 |         res.status(500).json({ message: "Server error." });
+[0]       19 |     }
+[0]       20 | });
+[0] 
+[0]       at error (src/routes/users/getUser.js:17:17)
+[0] 
+[0] PASS src/index.test.js
+[0] PASS src/routes/users/updateUser.test.js
+[0]   ● Console
+[0] 
+[0]     console.log
+[0]       Updated user: {
+[0]         auth0Id: 'auth0|mockUserId123',
+[0]         name: 'Test',
+[0]         surname: 'User',
+[0]         title: 'Ms',
+[0]         email: 'test@example.com',
+[0]         role: 'Admin'
+[0]       }
+[0] 
+[0]       at log (src/routes/users/updateUser.js:20:17)
+[0] 
+[0]     console.log
+[0]       Error: Error: Server error.
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/users/updateUser.test.js:66:44)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       at log (src/routes/users/updateUser.js:24:17)
+[0] 
+[0] PASS src/routes/clinics/getClinic.test.js
+[1] PASS src/pages/AdminDashboard/AdminDashboard.test.js
+[1] PASS src/pages/StaffProfile/StaffProfile.test.js
+[0]   ● Console
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.error
+[0]       Error fetching clinics:  Error: Server error
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/clinics/getClinic.test.js:61:47)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       18 |     }
+[0]       19 |     catch (error) {
+[0]     > 20 |         console.error("Error fetching clinics: ", error);
+[0]          |                 ^
+[0]       21 |         res.status(500).json({ message: "Server error" });
+[0]       22 |     }
+[0]       23 |     
+[0] 
+[0]       at error (src/routes/clinics/getClinic.js:20:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.log
+[0]       Incoming Payload:  [Object: null prototype] { id: '69420' }
+[0] 
+[0]       at log (src/routes/clinics/getClinic.js:8:17)
+[0] 
+[0]     console.error
+[0]       Error fetching clinics:  Error: Server error
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/clinics/getClinic.test.js:90:47)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       18 |     }
+[0]       19 |     catch (error) {
+[0]     > 20 |         console.error("Error fetching clinics: ", error);
+[0]          |                 ^
+[0]       21 |         res.status(500).json({ message: "Server error" });
+[0]       22 |     }
+[0]       23 |     
+[0] 
+[0]       at error (src/routes/clinics/getClinic.js:20:17)
+[0] 
+[0] PASS src/routes/clinics/updateClinic.test.js
+[1] PASS src/pages/Registration/Registration.test.js
+[1] PASS src/App.test.js
+[0] PASS src/routes/appointments/updateAppointment.test.js
+[0]   ● Console
+[0] 
+[0]     console.error
+[0]       Error updating appointment: Error: Database failure
+[0]           at Object.<anonymous> (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/src/routes/appointments/updateAppointment.test.js:244:48)
+[0]           at Promise.finally.completed (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+[0]           at new Promise (<anonymous>)
+[0]           at callAsyncCircusFn (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+[0]           at _callCircusTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+[0]           at processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]           at _runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+[0]           at /home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+[0]           at _runTestsForDescribeBlock (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+[0]           at run (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+[0]           at runAndTransformResultsToJestFormat (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+[0]           at jestAdapter (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-circus/build/runner.js:101:19)
+[0]           at runTestInternal (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:275:16)
+[0]           at runTest (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:343:7)
+[0]           at Object.worker (/home/ryx13/Documents/University/Year 3/CS3/Software Design/SD_project/Clinic-Appointment-and-Queue-Management/server/node_modules/jest-runner/build/testWorker.js:497:12)
+[0] 
+[0]       74 |         res.status(200).json({ message: "Appointment updated successfully.", appointment: updatedAppointment });
+[0]       75 |     }catch(error) {
+[0]     > 76 |         console.error("Error updating appointment:", error);
+[0]          |                 ^
+[0]       77 |         res.status(500).json({ message: "Server error." });
+[0]       78 |     }
+[0]       79 |
+[0] 
+[0]       at error (src/routes/appointments/updateAppointment.js:76:17)
+[0] 
+[1] PASS src/pages/StaffDashboard/StaffDashboard.test.js
+[0] 
+[0] Test Suites: 2 failed, 18 passed, 20 total
+[0] Tests:       5 failed, 119 passed, 124 total
+[0] Snapshots:   0 total
+[0] Time:        5.615 s
+[0] Ran all test suites.
+[0] npm test --prefix server exited with code 1
+[1] PASS src/pages/Booking/Booking.test.js
+[1] PASS src/pages/Landing/Landing.test.js
+[1]   ● Console
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get user from url undefined/api/users/auth0|123
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:67:19)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       User found. Redirecting...
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:71:21)
+[1] 
+[1]     console.log
+[1]       Attempting to get user from url undefined/api/users/auth0|123
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:67:19)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       User found. Redirecting...
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:71:21)
+[1] 
+[1]     console.log
+[1]       Attempting to get user from url undefined/api/users/auth0|123
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:67:19)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       User found. Redirecting...
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:71:21)
+[1] 
+[1]     console.log
+[1]       Attempting to get user from url undefined/api/users/auth0|123
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:67:19)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get user from url undefined/api/users/auth0|123
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:67:19)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.error
+[1]       Failed to verify user profile.
+[1] 
+[1]     [0m [90m 80 |[39m             navigate([32m'/register'[39m)[33m;[39m
+[1]      [90m 81 |[39m           } [36melse[39m {
+[1]     [31m[1m>[22m[39m[90m 82 |[39m             console[33m.[39merror([32m'Failed to verify user profile.'[39m)[33m;[39m
+[1]      [90m    |[39m                     [31m[1m^[22m[39m
+[1]      [90m 83 |[39m             setIsVerifying([36mfalse[39m)[33m;[39m
+[1]      [90m 84 |[39m           }
+[1]      [90m 85 |[39m         } [36mcatch[39m (error) {[0m
+[1] 
+[1]       at verifyUserRole (src/pages/Landing/Landing.js:82:21)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: 'GAUTENG',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?province=GAUTENG
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: 'JOHANNESBURG',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?town=JOHANNESBURG
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: 'PARKTOWN',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?suburb=PARKTOWN
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: 'SPECIALIST',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?type=SPECIALIST
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: 'GAUTENG',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?province=GAUTENG
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?province=GAUTENG&_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: 'GAUTENG',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?province=GAUTENG
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?province=GAUTENG&_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.error
+[1]       You called act(async () => ...) without await. This could lead to unexpected testing behaviour, interleaving multiple act calls and mixing their scopes. You should - await act(async () => ...);
+[1] 
+[1]     [0m [90m 462 |[39m                 [36mawait[39m act([36masync[39m () [33m=>[39m {
+[1]      [90m 463 |[39m                     [36mawait[39m userEvent[33m.[39mclick(screen[33m.[39mgetByLabelText([32m'Next page'[39m))[33m;[39m
+[1]     [31m[1m>[22m[39m[90m 464 |[39m                     jest[33m.[39mrunAllTimers()[33m;[39m
+[1]      [90m     |[39m                          [31m[1m^[22m[39m
+[1]      [90m 465 |[39m                 })[33m;[39m
+[1]      [90m 466 |[39m
+[1]      [90m 467 |[39m                 expect(global[33m.[39mfetch)[33m.[39mtoHaveBeenCalledWith(expect[33m.[39mstringContaining([32m'_page=2'[39m))[33m;[39m[0m
+[1] 
+[1]       at node_modules/react/cjs/react.development.js:835:21
+[1]       at runJobs (node_modules/@sinonjs/fake-timers/src/fake-timers-src.js:506:22)
+[1]       at Object.runAll (node_modules/@sinonjs/fake-timers/src/fake-timers-src.js:1455:13)
+[1]       at FakeTimers.runAllTimers (node_modules/@jest/fake-timers/build/modernFakeTimers.js:75:19)
+[1]       at src/pages/Landing/Landing.test.js:464:26
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=2&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       FILTERS: {
+[1]         province: '',
+[1]         town: '',
+[1]         suburb: '',
+[1]         type: '',
+[1]         service: '',
+[1]         _orderby: 'practiceName',
+[1]         _order: 'asc'
+[1]       }
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:160:17)
+[1] 
+[1]     console.log
+[1]       Attempting to get filters from undefined/clinics/filters?
+[1] 
+[1]       at fetchFilterOptions (src/pages/Landing/Landing.js:161:17)
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=1&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1]     console.log
+[1]       Trying to fetch: undefined/clinics?_orderby=practiceName&_order=asc&_page=2&_page_len=12
+[1] 
+[1]       at src/pages/Landing/Landing.js:117:17
+[1] 
+[1] PASS src/pages/PatientDashboard/PatientDashboard.test.js (7.897 s)
+[1] 
+[1] Test Suites: 8 passed, 8 total
+[1] Tests:       109 passed, 109 total
+[1] Snapshots:   0 total
+[1] Time:        10.463 s
+[1] Ran all test suites.
+[1] CI=true npm test --prefix client exited with code 0
