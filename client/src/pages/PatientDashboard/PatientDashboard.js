@@ -67,11 +67,14 @@ function PatientDashboard() {
 
   useEffect(() => {
     const fetchPatientQueue = async () => {
+      console.log("user:", user);
       if (user?.sub) {
         try {
           const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/patient/${user.sub}`);
+          console.log("Queue response status:", response.status);
           if (response.ok) {
             const data = await response.json();
+            console.log("Queue data:", data.queue);
             if (data.inQueue) setPatientQueue(data.queue);
           }
         } catch (error) {
