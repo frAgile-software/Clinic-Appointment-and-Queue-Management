@@ -17,8 +17,17 @@ app.use(express.json());
 app.use("/api/appointments", updateAppointmentRouter);
 
 describe("PUT /api/appointments/:appointmentID", () => {
-    afterEach(() => {
+    
+    beforeEach(() => {
         jest.clearAllMocks();
+        // Suppress console output to prevent CI pipeline failures on expected errors
+        jest.spyOn(console, 'log').mockImplementation(() => {});
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        console.log.mockRestore();
+        console.error.mockRestore();
     });
 
     test("should return 400 if appointment ID is invalid", async () => {

@@ -35,12 +35,12 @@ const Appointment = require('../../database/models/Appointment');
 const validBody = {
     Clinic:          'clinic123',
     Staff:           '69efb380a80012230d32b7a1',
-    patientAuth0Id:  'auth0|test123',
+    patientAuth0Id:  'auth0-test123',
     BookingDateTime: '2025-05-06T09:00:00.000Z',
     description:     'Chest pain follow-up',
 };
 
-const mockPatient = { _id: 'patient001', auth0Id: 'auth0|test123', role: 'Patient' };
+const mockPatient = { _id: 'patient001', auth0Id: 'auth0-test123', role: 'Patient' };
 const mockStaff   = { _id: '69efb380a80012230d32b7a1', role: 'Staff' };
 const mockClinic  = { _id: 'clinic123', practiceName: 'City Clinic' };
 
@@ -48,6 +48,14 @@ describe('POST /api/appointments', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        // Suppress console output to prevent CI pipeline failures on expected errors
+        jest.spyOn(console, 'log').mockImplementation(() => {});
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        console.log.mockRestore();
+        console.error.mockRestore();
     });
 
     /* ── Happy path ── */
@@ -76,7 +84,7 @@ describe('POST /api/appointments', () => {
 
         await request(app).post('/api/appointments').send(validBody);
 
-        expect(User.findOne).toHaveBeenCalledWith({ auth0Id: 'auth0|test123' });
+        expect(User.findOne).toHaveBeenCalledWith({ auth0Id: 'auth0-test123' });
     });
 
     test('calls User.findById with Staff id', async () => {
