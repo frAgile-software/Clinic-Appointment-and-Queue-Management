@@ -588,6 +588,17 @@ body {
   margin: 0;
 }
 
+.clinic-modal-details select {
+  width: 100%;
+  padding: 14px 10px;
+  font-size: 1rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
 .clinic-modal-footer {
   display: flex;
   justify-content: space-between;

@@ -26,6 +26,8 @@ function PatientDashboard() {
   
   // --- Modal State ---
   const [selectedClinic, setSelectedClinic] = useState(null);
+  const [showQueuePanel, setShowQueuePanel] = useState(false);
+  const [selectedService, setSelectedService] = useState('');
   
   const clinicsSectionRef = useRef(null);
   const debounceTimer = useRef(null);
@@ -129,6 +131,10 @@ function PatientDashboard() {
     }, 100);
   };
 
+  const handleConfirmQueue =async () => {
+    // TODO: handle confirm join queue
+  }
+
   const updateFilter = (key, value) => {
     setPage(1);
     setFilters(f => ({ ...f, [key]: value }));
@@ -149,6 +155,12 @@ function PatientDashboard() {
     const baseUrl = `/clinics/${selectedClinic._id}`;
     const targetUrl = filters.service ? `${baseUrl}?reason=${encodeURIComponent(filters.service)}` : baseUrl;
     navigate(targetUrl);
+  };
+
+  const handleJoinQueue = () => {
+    //shows queue joining panel, and fills in service if selected
+    setSelectedService(filters.service || '');
+    setShowQueuePanel(true);
   };
 
   const buildPageRange = (current, total) => {
@@ -381,38 +393,82 @@ function PatientDashboard() {
         <section className="clinic-modal-overlay" onClick={closePopup}>
           <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()}>
             <section className="clinic-modal-inner">
-              <section className="clinic-modal-header">
-                <h2>{selectedClinic.practiceName}</h2>
-                <button className="clinic-modal-close" onClick={closePopup}>X</button>
-              </section>
-              
-              <section className="clinic-modal-details">
-                <p>Practice Type: {selectedClinic.practiceTypeDescription || 'General Practice'}</p>
-                <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalTown}</p>
-                <p>Practice Number: {selectedClinic.practiceNumber || 'Not provided'}</p>
-              </section>
-              
-              <section className="clinic-modal-footer">
-                <section className="clinic-modal-badges">
-                  <span className={`modal-badge ${selectedClinic.isOpen ? 'status-open' : 'status-closed'}`}>
-                    {selectedClinic.isOpen ? 'Open now' : 'Closed'}
-                  </span>
-                </section>
+              {showQueuePanel ? (
+                <>
+                  <section className="clinic-modal-header">
+                    <p>Join Queue at</p>
+                    <button className="clinic-modal-close" onClick={closePopup}>X</button>
+                  </section>
 
-                <button
-                  className="clinic-modal-book-btn"
-                  //onClick={handleJoinQueue}
-                >
-                  Join Queue
-                </button>
-                
-                <button 
-                  className="clinic-modal-book-btn" 
-                  onClick={handleBookNow} 
-                >
-                  Book Now
-                </button>
-              </section>
+                  <section className="clinic-modal-details">
+                    <h3>{selectedClinic.practiceName}</h3>
+                    <p>{selectedClinic.physicalAddress}</p>
+                  </section>
+
+                  <section className="clinic-modal-details">
+                    <p>for the service  
+                      <select
+                        className=""
+                        value={selectedService}
+                        onChange={(e) => setSelectedService(e.target.value)}
+                      >
+                        <option value="">Select a service</option>
+                        {filterOptions.services?.map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </p>
+
+                    <section className="clinic-modal-footer">
+                      <button className="clinic-modal-book-btn" onClick={() => setShowQueuePanel(false)}>
+                        Back
+                      </button>
+                      <button
+                        className="clinic-modal-book-btn"
+                        onClick={handleConfirmQueue}
+                        disabled={!selectedService}
+                      >
+                        Confirm
+                      </button>
+                    </section>
+                  </section>
+                </>
+              ) : (
+                <>
+                  <section className="clinic-modal-header">
+                    <h2>{selectedClinic.practiceName}</h2>
+                    <button className="clinic-modal-close" onClick={closePopup}>X</button>
+                  </section>
+                  
+                  <section className="clinic-modal-details">
+                    <p>Practice Type: {selectedClinic.practiceTypeDescription || 'General Practice'}</p>
+                    <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalTown}</p>
+                    <p>Practice Number: {selectedClinic.practiceNumber || 'Not provided'}</p>
+                  </section>
+                  
+                  <section className="clinic-modal-footer">
+                    <section className="clinic-modal-badges">
+                      <span className={`modal-badge ${selectedClinic.isOpen ? 'status-open' : 'status-closed'}`}>
+                        {selectedClinic.isOpen ? 'Open now' : 'Closed'}
+                      </span>
+                    </section>
+
+                    <button
+                      className="clinic-modal-book-btn"
+                      onClick={handleJoinQueue}
+                    >
+                      Join Queue
+                    </button>
+                    
+                    <button 
+                      className="clinic-modal-book-btn" 
+                      onClick={handleBookNow} 
+                    >
+                      Book Now
+                    </button>
+                  </section>
+                </>
+              )}
             </section>
           </section>
         </section>
