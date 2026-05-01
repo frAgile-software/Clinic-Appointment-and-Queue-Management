@@ -14,10 +14,9 @@ jest.mock('express-oauth2-jwt-bearer', () => ({
     })
 }));
 
-// Better class-mock implementation that provides the default save method directly to the instance
 jest.mock('../../database/models/User', () => {
     const mockUser = jest.fn().mockImplementation(() => ({
-        save: jest.fn().mockResolvedValue({
+        save: jest.fn().mockResolvedValueOnce({
             auth0Id: 'auth0-mockUserId123',
             name: 'Test',
             surname: 'User',
@@ -77,6 +76,8 @@ describe('POST /api/users/register', () => {
 
     test('Return 201 for successful registration', async () => {
         User.findOne.mockResolvedValueOnce(null);
+
+        User.prototype.save = jest.fn().mockResolvedValueOnce(validUser);
 
         const res = await request(app).post('/api/users/register')
             .send(validUser);

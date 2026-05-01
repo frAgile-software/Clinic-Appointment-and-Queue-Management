@@ -57,7 +57,6 @@ describe('PATCH /api/users/:auth0Id', () => {
 
     test('Returns 200 on PATCH success', async () => {
         User.findOne.mockResolvedValueOnce(validUser);
-
         User.findOneAndUpdate.mockResolvedValueOnce(validUser);
 
         const res = await request(app).patch('/api/users/auth0-mockUserId123')
