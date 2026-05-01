@@ -31,8 +31,8 @@ describe('GET /api/queue/:clinicID', () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
     const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
     const mockQueue = [
-      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', createdAt: new Date().toString() },
-      { _id: 'queue2', Clinic: 'clinicId', Speciality: 'spec2', Patient: 'patient2', createdAt: new Date().toString() }
+      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', updatedAt: new Date().toString() },
+      { _id: 'queue2', Clinic: 'clinicId', Speciality: 'spec2', Patient: 'patient2', updatedAt: new Date().toString() }
     ];
 
     User.findOne.mockResolvedValue(mockUser);
@@ -112,7 +112,7 @@ describe('GET /api/queue/:clinicID', () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
     const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
     const mockQueue = [
-      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', createdAt: new Date() }
+      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', updatedAt: new Date() }
     ];
 
     User.findOne.mockResolvedValue(mockUser);
@@ -132,7 +132,7 @@ describe('GET /api/queue/:clinicID', () => {
     expect(Queue.find).toHaveBeenCalledWith({
       Clinic: mockStaff.Clinic,
       Speciality: { $in: ['spec1'] },
-      options: { sort: {createdAt: 1} }
+      options: { sort: {updatedAt: 1} }
     });
   });
 
@@ -140,7 +140,7 @@ describe('GET /api/queue/:clinicID', () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
     const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
     const mockQueue = [
-      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', createdAt: new Date() }
+      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', updatedAt: new Date() }
     ];
 
     User.findOne.mockResolvedValue(mockUser);
@@ -158,7 +158,7 @@ describe('GET /api/queue/:clinicID', () => {
     expect(Queue.find).toHaveBeenCalledWith({
       Clinic: mockStaff.Clinic,
       Speciality: { $in: ['spec1', 'spec2'] },
-      options: { sort: { createdAt: 1 } }
+      options: { sort: { updatedAt: 1 } }
     });
   });
 
