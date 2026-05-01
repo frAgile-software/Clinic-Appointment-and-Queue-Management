@@ -8,8 +8,8 @@ function StaffProfile() {
   const nameRef = useRef(); //for changing of details
   const surnameRef = useRef();
   const titleRef = useRef();
+  const emailRef = useRef();
 
-  
 
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
@@ -19,8 +19,11 @@ function StaffProfile() {
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+  const [occupations, setOccupations] = useState([]);
   void clinics; // To avoid unused variable warning
+  void occupations; // To avoid unused variable warning
+
+  
 
   const staffId = user?.sub;
 
@@ -41,6 +44,7 @@ function StaffProfile() {
     name: nameRef.current.value,
     surname: surnameRef.current.value,
     title: titleRef.current.value,
+    email: emailRef.current.value,
   };
 
   try {
@@ -54,6 +58,7 @@ function StaffProfile() {
     if (response.ok) {
       setProfileData(updatedData);
       toggleChangeDetailsModal();
+      alert("Details updated successfully!");
     }
   } catch (error) {
     console.error("Update failed:", error);
@@ -117,9 +122,9 @@ return (
           <div className="clinic-card profile-details-card">
             <h3 className="clinic-type">Staff Information</h3>
             <div className="details-content">
-              <p><strong>Name:</strong> NAME</p>
-              <p><strong>Email:</strong> {user?.email}</p>
-              <p><strong>Occupation:</strong> OCCUPATION</p>
+              <p><strong>Name:</strong> {profileData.name}</p>
+              <p><strong>Email:</strong> {profileData.email}</p>
+              <p><strong>Occupation:</strong> {profileData.occupation}</p>
               <div className="clinic-assignments">
                 <p><strong>Assigned Clinic:</strong> General Medical Center</p>
                 <button className="btn-secondary">View Details</button>
@@ -162,9 +167,9 @@ return (
             <input type="text" ref={titleRef} defaultValue={profileData.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
-            <label>Email</label>
-            <input type="email" defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-          </div>
+            <label>Email</label> 
+            <input type="email" disabled ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+          </div> {/*update email is disabled currently ^^*/}
           
 
         <div className="landing-nav-btns" style={{marginTop: '20px'}}>
