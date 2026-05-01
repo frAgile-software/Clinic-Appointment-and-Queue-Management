@@ -280,25 +280,19 @@ function PatientDashboard() {
           <section className="grid-card">
             {patientQueue ? (
               <>
-                <h3>Your Queue Status</h3>
-                <p><strong>{patientQueue.queue.Clinic.practiceName}</strong></p>
+                <h3>My Queue Status</h3>
+                <p>{patientQueue.queue.Clinic.practiceName}</p>
                 <p>{patientQueue.queue.Speciality.SpecialityName}</p>
                 <p>Position: <strong>{patientQueue.position}</strong></p>
                 <button className="card-btn">LEAVE QUEUE</button>
               </>
             ) : (
               <>
-                <h3>Join Virtual Queue</h3>
-                <p>Join the queue remotely</p>
-                <button className="card-btn" onClick={handleStartSearch}>JOIN QUEUE</button>
+                <h3>My Queue Status</h3>
+                <p>Not currently in a queue.</p>
+                <button className="card-btn" onClick={handleStartSearch}>JOIN A VIRTUAL QUEUE</button>
               </>
             )}
-          </section>
-          
-          <section className="grid-card">
-            <h3>My Queue Status</h3>
-            <p>Currently not in a queue</p>
-            <button className="card-btn">CHECK STATUS</button>
           </section>
         </section>
 
@@ -508,12 +502,14 @@ function PatientDashboard() {
                       </span>
                     </section>
 
-                    <button
-                      className="clinic-modal-book-btn"
-                      onClick={handleJoinQueue}
-                    >
-                      Join Queue
-                    </button>
+                    {!patientQueue ? (
+                      <button
+                        className="clinic-modal-book-btn"
+                        onClick={handleJoinQueue}
+                      >
+                        Join Queue
+                      </button>
+                    ): null}
                     
                     <button 
                       className="clinic-modal-book-btn" 
