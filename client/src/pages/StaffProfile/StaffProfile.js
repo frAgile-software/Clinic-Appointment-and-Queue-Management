@@ -9,7 +9,7 @@ function StaffProfile() {
   const navigate = useNavigate();
   const {apiFetch} = useApiAuth();
 
-  
+  const [profileData, setProfileData] = useState(null);
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -44,7 +44,22 @@ function StaffProfile() {
     fetchClinics();
   }, [staffId, apiFetch]);
 
+  useEffect(() => {
+    if (!staffId) return;
 
+    const fetchProfileData = async () => {
+      try {
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`);
+        const data = await response.json();
+        console.log("My Backend Data:", data);
+        setProfileData(data);
+      } catch (error) {
+        console.error("Could not fetch profile data:", error);
+      }
+    };
+// . 
+    fetchProfileData();
+  }, [staffId, apiFetch]);
 
 return (
   <div className="landing"> 
@@ -103,19 +118,19 @@ return (
           
           <div className='inline-components'>
             <label>Name</label>
-            <input type="text" defaultValue={user?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="text" defaultValue={profileData.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
             <label>Surname</label>
-            <input type="text" defaultValue={user?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="text" defaultValue={profileData.surname} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
             <label>Title</label>
-            <input type="text" defaultValue={user?.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="text" defaultValue={profileData.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
             <label>Email</label>
-            <input type="email" defaultValue={user?.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="email" defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           
 
