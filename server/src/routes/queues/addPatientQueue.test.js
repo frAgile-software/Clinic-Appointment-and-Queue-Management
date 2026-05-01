@@ -70,7 +70,7 @@ describe("POST /api/queues", () => {
                     auth0ID: "auth0|1234567890",
                 });
         expect(response.status).toBe(409);
-        expect(response.body).toEqual({ message: "User is already in a queue for this clinic." });
+        expect(response.body).toEqual({ message: "User is already in a queue." });
     });
 
 
