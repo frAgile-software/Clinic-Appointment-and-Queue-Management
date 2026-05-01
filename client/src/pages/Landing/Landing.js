@@ -5,6 +5,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import './Landing.css';
 import { useApiAuth } from '../../hooks/apiAuth';
 
+
 const PAGE_LIMIT = 12; //clinics per page
 
 function Landing() {
@@ -190,12 +191,14 @@ function Landing() {
 
   return (
     <main className="landing">
-
-      {/* Navigation bar  */}
       <nav className="landing-nav" aria-label="Main navigation">
-        <span className="landing-logo">Clinics and Qs</span>
+        <span className="landing-logo">
+          {/* Use a leading slash to point to the root of the public folder */}
+          <img src="/logo.svg" alt="Clinics and Qs Logo" className="nav-logo-img" />
+          Clinics and Qs
+        </span>
         <section className="landing-nav-btns">
-          <button className="btn"             onClick={login}>Login</button>
+          <button className="btn" onClick={login}>Login</button>
           <button className="btn btn-primary" onClick={signup}>Sign Up</button>
         </section>
       </nav>

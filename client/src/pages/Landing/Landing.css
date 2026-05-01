@@ -1,5 +1,3 @@
-
-
 /* 1. Design tokens  */
 :root {
   
@@ -35,6 +33,9 @@
   min-height: 100vh;
   background: var(--color-bg);
   color: var(--color-text);
+  /* Add these two lines to push the footer to the bottom */
+  display: flex;       
+  flex-direction: column; 
 }
 
 
@@ -55,6 +56,9 @@
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 
@@ -297,4 +301,10 @@
 .btn-primary:hover {
   background: var(--color-brand-light);
   border-color: var(--color-brand-light);
+}
+
+.nav-logo-img {
+  height: 32px;  /* Adjust size as needed */
+  width: auto;
+  display: block;
 }

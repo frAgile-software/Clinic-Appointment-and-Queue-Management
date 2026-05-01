@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Clinic = require('../../database/models/Clinic');
 
-const SORT_FIELDS = ["practiceName", "province", "physicalSuburb", "physicalTown", "practiceTypeDescription"] 
+const SORT_FIELDS = ["practiceName", "province", "physicalSuburb", "physicalTown", "practiceTypeDescription"];
 
 router.get("/", async (req, res) => {
     try {
@@ -41,23 +41,17 @@ router.get("/", async (req, res) => {
             },
             {
                 $lookup: {
-                    from: "staffs",
+                    // IMPORTANT: Check your MongoDB database. If Mongoose named your collection 
+                    // "staff" instead of "staffs", you must remove the 's' here.
+                    from: "staffs", 
                     localField: "_id",
                     foreignField: "Clinic",
-                    as: "staffLinks",
-                },
-            },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "staffLinks.User",
-                    foreignField: "_id",
-                    pipeline: [{ $match: { role: "Staff" } }],
                     as: "staffUsers",
                 },
             },
             {
                 $lookup: {
+                    // IMPORTANT: Verify this collection name in your database too.
                     from: "staffspecialities",
                     localField: "staffUsers._id",
                     foreignField: "Staff",
@@ -72,9 +66,9 @@ router.get("/", async (req, res) => {
                     as: "services",
                 },
             },
-            ...(service ? [{ $match: { "services.SpecialityName": { $regex: service, $options: "i" } } }] : []),
+            ...(service ? [{ $match: { "services.SpecialityName": service } }] : []),
             {
-                $project: { //dont include joining fields
+                $project: { 
                     staffLinks: 0,
                     staffUsers: 0,
                     clinicServiceLinks: 0,
