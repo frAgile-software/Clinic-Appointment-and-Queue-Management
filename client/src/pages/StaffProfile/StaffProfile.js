@@ -95,17 +95,33 @@ return (
 
       {isChangeDetailsModalOpen && (
   <div className="modal-overlay">
-    <div className="modal-content clinic-card"> {/* Reusing your clinic-card style */}
+    <div className="modal-content clinic-card"> 
       <h3 className="clinic-name">Edit Personal Details</h3>
       
       <form className="details-content">
-        <label>Name</label>
-        <input type="text" defaultValue={user?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-        
+
+          <div className='inline-components'>
+            <label>Name</label>
+            <input type="text" defaultValue={user?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+          </div>
+          <div className='inline-components'>
+            <label>Email</label>
+            <input type="email" defaultValue={user?.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+          </div>
+          <div className='inline-components'>
+            <label>Title</label>
+            <input type="text" defaultValue={user?.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+          </div>
+          <div className='inline-components'>
+            <label>Surname</label>
+            <input type="text" defaultValue={user?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+          </div>
+
         <div className="landing-nav-btns" style={{marginTop: '20px'}}>
           <button type="button" className="btn btn-primary" onClick={toggleChangeDetailsModal}>Save Changes</button>
           <button type="button" className="btn" style={{color: 'var(--color-text)'}} onClick={toggleChangeDetailsModal}>Cancel</button>
         </div>
+        
       </form>
     </div>
   </div>
