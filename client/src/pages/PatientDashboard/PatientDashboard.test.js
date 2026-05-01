@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import PatientDashboard from "./PatientDashboard";
 
@@ -23,6 +23,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   const mockApiFetch = jest.fn();
 
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
     
     // Explicitly clear the manual prototype mock to prevent test bleed in CI
@@ -84,6 +85,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
@@ -112,6 +114,42 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     await waitFor(() => {
       expect(welcomeHeading).toHaveTextContent("Welcome Back, John Doe!");
     });
+  });
+
+  test("Given the user profile fetch fails, Then an error is logged", async () => {
+    mockApiFetch.mockImplementation(async (url) => {
+      if (url.includes('/api/users/')) {
+        return { ok: false, json: async () => ({}) };
+      }
+      if (url.includes('/api/queues/patient/')) {
+        return { ok: true, json: async () => ({ inQueue: false }) };
+      }
+      return { ok: true, json: async () => ({}) };
+    });
+
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    render(<PatientDashboard />);
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Failed to fetch user profile.");
+    });
+    consoleSpy.mockRestore();
+  });
+
+  test("Given the user profile fetch throws, Then a network error is logged", async () => {
+    mockApiFetch.mockImplementation(async (url) => {
+      if (url.includes('/api/users/')) throw new Error("Network error");
+      if (url.includes('/api/queues/patient/')) {
+        return { ok: true, json: async () => ({ inQueue: false }) };
+      }
+      return { ok: true, json: async () => ({}) };
+    });
+
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    render(<PatientDashboard />);
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Network error fetching user:", expect.any(Error));
+    });
+    consoleSpy.mockRestore();
   });
 
   test("Given the component mounts, Then it fetches the user profile using the Auth0 ID", async () => {
@@ -146,9 +184,58 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     expect(screen.getByPlaceholderText(/Clinic name/i)).toBeInTheDocument();
     expect(screen.getByText(/All provinces/i)).toBeInTheDocument();
 
+    act(() => {
+      jest.runAllTimers();
+    });
+
     await waitFor(() => {
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
-    }, { timeout: 1500 });
+    });
+  });
+
+  test("Given the clinics fetch fails, Then clinics list is empty and error is logged", async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/clinics/filters')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ provinces: [], towns: [], suburbs: [], types: [], services: [] })
+        });
+      }
+      if (url.includes('/clinics')) throw new Error("Network error");
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    await renderDashboard();
+    fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith('Could not search clinics:', expect.any(Error));
+    });
+    consoleSpy.mockRestore();
+  });
+
+  test("Given the filter options fetch fails, Then an error is logged", async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/clinics/filters')) throw new Error("Network error");
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: [], pagination: {} })
+      });
+    });
+
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    await renderDashboard();
+    fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Couldn't fetch filter options:", expect.any(Error));
+    });
+    consoleSpy.mockRestore();
   });
 
   test("Given the user clicks 'BOOK AN APPOINTMENT', Then the search bar is revealed and it scrolls", async () => {
@@ -163,18 +250,26 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       expect(window.HTMLElement.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
     });
 
+    act(() => {
+      jest.runAllTimers();
+    });
+
     await waitFor(() => {
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
-    }, { timeout: 1500 });
+    });
   });
 
   test("Given the search card is expanded, Then it fetches and displays clinics from the API", async () => {
     await renderDashboard();
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
+    act(() => {
+      jest.runAllTimers();
+    });
+
     await waitFor(() => {
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
-    }, { timeout: 1500 }); 
+    }); 
     
     expect(screen.getByText(/1 Sandton Drive, Sandton/i)).toBeInTheDocument();
     expect(screen.getByText(/Open now/i)).toBeInTheDocument();
@@ -187,9 +282,14 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
     let clinicCard;
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
     await waitFor(() => {
       clinicCard = screen.getByText(/Sandton Health Clinic/i);
-    }, { timeout: 1500 });
+    });
 
     fireEvent.click(clinicCard);
 
@@ -200,9 +300,13 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     await renderDashboard();
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
+    act(() => {
+      jest.runAllTimers();
+    });
+
     await waitFor(() => {
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
-    }, { timeout: 1500 });
+    });
 
     fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
     
@@ -218,9 +322,13 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     await renderDashboard();
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
+    act(() => {
+      jest.runAllTimers();
+    });
+
     await waitFor(() => {
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
-    }, { timeout: 1500 });
+    });
 
     fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
 
@@ -237,17 +345,21 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
     // 2. Wait for the initial clinic list to populate
+    act(() => {
+      jest.runAllTimers();
+    });
+
     await waitFor(() => {
       expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
-    }, { timeout: 1500 });
+    });
 
     // 3. Change the dropdown. This triggers the 400ms debounce timer to fetch new clinics.
     fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("service=Dentistry"));
-    }, { timeout: 1500 });
+    });
 
     // 5. Safely click the clinic and complete the navigation
     fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
@@ -256,5 +368,282 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     fireEvent.click(bookNowBtn);
 
     expect(mockNavigate).toHaveBeenCalledWith("/clinics/clinic_123?reason=Dentistry");
+  });
+
+  describe("Queue testing", () => {
+
+    test("Given the queue fetch throws, Then a network error is logged", async () => {
+      mockApiFetch.mockImplementation(async (url) => {
+        if (url.includes('/api/users/')) {
+          return { ok: true, json: async () => ({ name: "John Doe" }) };
+        }
+        if (url.includes('/api/queues/patient/')) throw new Error("Network error");
+        return { ok: true, json: async () => ({}) };
+      });
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      render(<PatientDashboard />);
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith("Network error fetching queue:", expect.any(Error));
+      });
+      consoleSpy.mockRestore();
+    });
+
+    test("Given the user is not in a queue, Then the queue card shows 'Join a Virtual Queue'", async () => {
+      mockApiFetch.mockImplementation((url) => {
+        if (url.includes('/api/queues/patient/')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ inQueue: false }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ name: "John Doe" }),
+        });
+      });
+
+      await renderDashboard();
+      expect(screen.getByText(/Not currently in a queue/i)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /JOIN A VIRTUAL QUEUE/i })).toBeInTheDocument();
+    });
+
+    test("Given the user is in a queue, Then the queue card shows their position and clinic", async () => {
+      mockApiFetch.mockImplementation((url) => {
+        if (url.includes('/api/queues/patient/')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              inQueue: true,
+              queue: {
+                queue: {
+                  Clinic: { practiceName: 'Sandton Health Clinic' },
+                  Speciality: { SpecialityName: 'General Checkup' },
+                },
+                position: 2,
+              },
+            }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ name: "John Doe" }),
+        });
+      });
+
+      await renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+        expect(screen.getByText(/General Checkup/i)).toBeInTheDocument();
+        expect(screen.getByText(/2/i)).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /LEAVE QUEUE/i })).toBeInTheDocument();
+      });
+    });
+
+    test("Given the modal is open, When the user clicks 'Join Queue', Then the queue panel is shown", async () => {
+      await renderDashboard();
+      fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
+      fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
+
+      expect(screen.getByText(/Join Queue at/i)).toBeInTheDocument();
+      expect(screen.getByText(/Select a service/i)).toBeInTheDocument();
+    });
+
+    test("Given the queue panel is open, When the user clicks 'Back', Then the clinic details are shown again", async () => {
+      await renderDashboard();
+      fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
+      fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Back/i }));
+
+      expect(screen.getByText(/Practice Number: 102846748/i)).toBeInTheDocument();
+    });
+
+    test("Given the queue panel is open, When no service is selected, Then the Confirm button is disabled", async () => {
+      await renderDashboard();
+      fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
+      fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
+
+      expect(screen.getByRole("button", { name: /Confirm/i })).toBeDisabled();
+    });
+
+    test("Given the queue panel is open with a pre-selected service, Then the dropdown is pre-filled", async () => {
+      await renderDashboard();
+      fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
+        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+      });
+
+      fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
+      
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("service=Dentistry"));
+      });
+
+      fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
+      fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
+
+      const queueServiceDropdown = screen.getAllByRole("combobox")[0];
+      expect(queueServiceDropdown.value).toBe('Dentistry');
+    });
+
+    test("Given the queue panel, When the user confirms joining, Then the queue card updates", async () => {
+      let queueJoined = false;
+
+      mockApiFetch.mockImplementation(async (url, options) => {
+        if (url.includes('/api/users/')) {
+          return { ok: true, json: async () => ({ name: "John Doe" }) };
+        }
+        if (url.includes('/api/queues/patient/')) {
+          return {
+            ok: true,
+            json: async () => queueJoined
+              ? {
+                  inQueue: true,
+                  queue: {
+                    queue: {
+                      Clinic: { practiceName: 'Sandton Health Clinic' },
+                      Speciality: { SpecialityName: 'Dentistry' },
+                    },
+                    position: 1,
+                  },
+                }
+              : { inQueue: false },
+          };
+        }
+        if (url.includes('/api/queues/') && options?.method === 'POST') {
+          queueJoined = true;
+          return { ok: true, json: async () => ({ message: "Successfully joined queue" }) };
+        }
+        return { ok: true, json: async () => ({}) };
+      });
+
+      await renderDashboard();
+      fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
+      fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
+
+      const queueServiceSelect = screen.getByDisplayValue('Select a service');
+      fireEvent.change(queueServiceSelect, { target: { value: 'Dentistry' } });
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: /Confirm/i })).not.toBeDisabled();
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /Confirm/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: /LEAVE QUEUE/i })).toBeInTheDocument();
+      });
+    });
+
+    test("Given joining queue fails, Then the modal stays open", async () => {
+      mockApiFetch.mockImplementation(async (url, options) => {
+        if (url.includes('/api/users/')) return { ok: true, json: async () => ({ name: "John Doe" }) };
+        if (url.includes('/api/queues/patient/')) return { ok: true, json: async () => ({ inQueue: false }) };
+        if (url.includes('/api/queues/') && options?.method === 'POST') return { ok: false, json: async () => ({ message: "Error" }) };
+        return { ok: true, json: async () => ({}) };
+      });
+
+      await renderDashboard();
+      fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
+      fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
+
+      const queueServiceSelect = screen.getByDisplayValue('Select a service');
+      fireEvent.change(queueServiceSelect, { target: { value: 'Dentistry' } });
+      fireEvent.click(screen.getByRole("button", { name: /Confirm/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Join Queue at/i)).toBeInTheDocument();
+      });
+    });
+
+    test("Given joining queue throws, Then an error is logged", async () => {
+      mockApiFetch.mockImplementation(async (url, options) => {
+        if (url.includes('/api/users/')) return { ok: true, json: async () => ({ name: "John Doe" }) };
+        if (url.includes('/api/queues/patient/')) return { ok: true, json: async () => ({ inQueue: false }) };
+        if (url.includes('/api/queues/') && options?.method === 'POST') throw new Error("Network error");
+        return { ok: true, json: async () => ({}) };
+      });
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      await renderDashboard();
+      fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
+      fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
+
+      const queueServiceSelect = screen.getByDisplayValue('Select a service');
+      fireEvent.change(queueServiceSelect, { target: { value: 'Dentistry' } });
+      fireEvent.click(screen.getByRole("button", { name: /Confirm/i }));
+
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith("Failed to join queue:", expect.any(Error));
+      });
+      consoleSpy.mockRestore();
+    });
   });
 });
