@@ -9,8 +9,8 @@ const getBySpecialities = async (specialityIDs, clinic) => {
     const uniqueSpecs = [...new Set(specialityIDs)];
 
     const queue = await (uniqueSpecs.length === 0 ?
-        Queue.find({ Clinic: clinic, options: { sort: { createdAt: 1 } } }) :
-        Queue.find({ Clinic: clinic, Speciality: { $in: uniqueSpecs }, options: { sort: { createdAt: 1 } } })
+        Queue.find({ Clinic: clinic, options: { sort: { updatedAt: 1 } } }) :
+        Queue.find({ Clinic: clinic, Speciality: { $in: uniqueSpecs }, options: { sort: { updatedAt: 1 } } })
     ).populate([{ path: "Speciality" }, {
         path: "User",
         select: "-auth0Id"
