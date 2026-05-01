@@ -44,7 +44,7 @@ function renderBooking(stateOverrides = {}) {
           clinicAddress: '1 Main St',
           clinicType:    'General Practice',
           specialty:     'Cardiology',
-          fromBookNow:   true,   // ← required by the guard
+          fromBookNow:   true,
           ...stateOverrides,
         },
       }]}
@@ -59,7 +59,6 @@ function renderBooking(stateOverrides = {}) {
 /* ─── Pure helper tests ───────────────────────────────────── */
 
 describe('getBookingWindow()', () => {
-  // mirrors the actual implementation — starts from TOMORROW
   function getBookingWindow() {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -103,33 +102,32 @@ describe('getMondayOf()', () => {
   }
 
   it('returns Monday when given a Wednesday', () => {
-    const wed = new Date(2025, 4, 7); // Wed 7 May 2025
+    const wed = new Date(2025, 4, 7);
     expect(getMondayOf(wed).getDay()).toBe(1);
   });
 
   it('returns previous Monday when given a Sunday', () => {
-    const sun = new Date(2025, 4, 11); // Sun 11 May 2025
+    const sun = new Date(2025, 4, 11);
     const mon = getMondayOf(sun);
     expect(mon.getDay()).toBe(1);
-    expect(mon.getDate()).toBe(5); // Mon 5 May 2025
+    expect(mon.getDate()).toBe(5);
   });
 
   it('returns same day when given a Monday', () => {
-    const mon = new Date(2025, 4, 5); // Mon 5 May 2025
+    const mon = new Date(2025, 4, 5);
     expect(getMondayOf(mon).toDateString()).toBe(mon.toDateString());
   });
 });
 
 describe('buildWeekCells()', () => {
-  // mirrors actual implementation
   function jsdayToDBday(jsDay) {
     const map = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
     return map[jsDay];
   }
 
   function buildWeekCells(weekStart, windowDates, schedule) {
-    const windowSet  = new Set(windowDates.map(d => d.toDateString()));
-    const DAY_NAMES  = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const windowSet = new Set(windowDates.map(d => d.toDateString()));
+    const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(weekStart);
@@ -153,10 +151,10 @@ describe('buildWeekCells()', () => {
     });
   }
 
-  const monday   = new Date(2025, 4, 5); // Mon 5 May 2025
+  const monday   = new Date(2025, 4, 5);
   const schedule = [
-    { DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' }, // Mon
-    { DayOfWeek: 3, StartTime: '09:00', EndTime: '15:00' }, // Wed
+    { DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' },
+    { DayOfWeek: 3, StartTime: '09:00', EndTime: '15:00' },
   ];
 
   it('returns exactly 7 cells', () => {
@@ -175,17 +173,17 @@ describe('buildWeekCells()', () => {
 
   it('marks Mon and Wed as docWorksToday', () => {
     const cells = buildWeekCells(monday, [], schedule);
-    expect(cells[0].docWorksToday).toBe(true);  // Mon
-    expect(cells[2].docWorksToday).toBe(true);  // Wed
-    expect(cells[1].docWorksToday).toBe(false); // Tue
+    expect(cells[0].docWorksToday).toBe(true);
+    expect(cells[2].docWorksToday).toBe(true);
+    expect(cells[1].docWorksToday).toBe(false);
   });
 
   it('isAvail only when inWindow AND docWorksToday', () => {
-    const window = [new Date(2025, 4, 5), new Date(2025, 4, 7)]; // Mon + Wed
+    const window = [new Date(2025, 4, 5), new Date(2025, 4, 7)];
     const cells  = buildWeekCells(monday, window, schedule);
-    expect(cells[0].isAvail).toBe(true);  // Mon in window + works
-    expect(cells[2].isAvail).toBe(true);  // Wed in window + works
-    expect(cells[4].isAvail).toBe(false); // Fri not in window
+    expect(cells[0].isAvail).toBe(true);
+    expect(cells[2].isAvail).toBe(true);
+    expect(cells[4].isAvail).toBe(false);
   });
 
   it('weekend days (Sat/Sun) are never available', () => {
@@ -195,16 +193,14 @@ describe('buildWeekCells()', () => {
       return d;
     });
     const cells = buildWeekCells(monday, allDays, [
-      { DayOfWeek: 6, StartTime: '08:00', EndTime: '17:00' }, // Sat (JS day 6 → not in map)
+      { DayOfWeek: 6, StartTime: '08:00', EndTime: '17:00' },
     ]);
-    expect(cells[5].isAvail).toBe(false); // Sat
-    expect(cells[6].isAvail).toBe(false); // Sun
+    expect(cells[5].isAvail).toBe(false);
+    expect(cells[6].isAvail).toBe(false);
   });
 });
 
 describe('availableHours derivation', () => {
-  // mirrors actual component logic — uses JS day convention for lookup
-  // BUT DB stores 1=Mon...5=Fri, so we need jsdayToDBday
   function jsdayToDBday(jsDay) {
     const map = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
     return map[jsDay];
@@ -223,13 +219,13 @@ describe('availableHours derivation', () => {
   }
 
   it('returns empty when doctor does not work that day', () => {
-    const monday   = new Date(2025, 4, 5); // Mon = JS 1 = DB 1
-    const schedule = [{ DayOfWeek: 2, StartTime: '08:00', EndTime: '17:00' }]; // Tue only
+    const monday   = new Date(2025, 4, 5);
+    const schedule = [{ DayOfWeek: 2, StartTime: '08:00', EndTime: '17:00' }];
     expect(deriveHours(schedule, monday)).toEqual([]);
   });
 
   it('returns empty for Saturday (not in DB map)', () => {
-    const saturday = new Date(2025, 4, 10); // Sat = JS 6 → not in map
+    const saturday = new Date(2025, 4, 10);
     const schedule = [{ DayOfWeek: 6, StartTime: '08:00', EndTime: '17:00' }];
     expect(deriveHours(schedule, saturday)).toEqual([]);
   });
@@ -241,7 +237,7 @@ describe('availableHours derivation', () => {
   });
 
   it('returns correct hours for Wednesday 09:00–15:00', () => {
-    const wednesday = new Date(2025, 4, 7); // Wed = JS 3 = DB 3
+    const wednesday = new Date(2025, 4, 7);
     const schedule  = [{ DayOfWeek: 3, StartTime: '09:00', EndTime: '15:00' }];
     expect(deriveHours(schedule, wednesday)).toEqual([9, 10, 11, 12, 13, 14]);
   });
@@ -315,8 +311,8 @@ describe('GET /api/users/:userId/schedule', () => {
 
   it('returns sorted schedule entries using DB day convention (1=Mon)', async () => {
     const mockSchedule = [
-      { DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' }, // Mon
-      { DayOfWeek: 3, StartTime: '09:00', EndTime: '15:00' }, // Wed
+      { DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' },
+      { DayOfWeek: 3, StartTime: '09:00', EndTime: '15:00' },
     ];
     global.fetch.mockResolvedValueOnce({
       ok: true,
@@ -327,7 +323,7 @@ describe('GET /api/users/:userId/schedule', () => {
     const json = await res.json();
 
     expect(json.schedule).toHaveLength(2);
-    expect(json.schedule[0].DayOfWeek).toBe(1); // Mon first
+    expect(json.schedule[0].DayOfWeek).toBe(1);
   });
 
   it('returns 404 when user not found', async () => {
@@ -452,15 +448,10 @@ describe('POST /api/appointments', () => {
 describe('Booking component', () => {
   beforeEach(() => {
     process.env.REACT_APP_SERVER_URL = 'http://localhost:5000';
-    // Default: apiFetch returns empty data
+    // Default: all apiFetch calls return empty — covers staff, schedule, booked slots
     mockApiFetch.mockResolvedValue({
       ok: true,
       json: async () => ({ users: [], schedule: [], bookedSlots: [] }),
-    });
-    // Default: plain fetch returns empty staff
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ users: [] }),
     });
   });
   afterEach(() => { jest.clearAllMocks(); });
@@ -499,7 +490,8 @@ describe('Booking component', () => {
   });
 
   it('renders doctor pill when staff returned', async () => {
-    global.fetch.mockResolvedValueOnce({
+    // apiFetch is used for all authenticated calls including staff
+    mockApiFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', specialization: 'Cardiology' }],
@@ -532,12 +524,14 @@ describe('Booking component', () => {
   });
 
   it('shows calendar after doctor selected', async () => {
-    global.fetch.mockResolvedValueOnce({
+    // first apiFetch → staff list
+    mockApiFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         users: [{ _id: 'u1', name: 'Alice', surname: 'Smith' }],
       }),
     });
+    // second apiFetch → schedule (triggered on doctor click)
     mockApiFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
