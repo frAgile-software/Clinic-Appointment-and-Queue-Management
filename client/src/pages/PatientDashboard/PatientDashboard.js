@@ -32,6 +32,9 @@ function PatientDashboard() {
   
   // --- Modal State ---
   const [selectedClinic, setSelectedClinic] = useState(null);
+  const [showQueuePanel, setShowQueuePanel] = useState(false);
+  const [selectedService, setSelectedService] = useState('');
+  const [patientQueue, setPatientQueue] = useState(null);
   
   const clinicsSectionRef = useRef(null);
   const debounceTimer = useRef(null);
@@ -170,6 +173,32 @@ function PatientDashboard() {
     }, 100);
   };
 
+  const handleConfirmQueue =async () => {
+    if (!selectedService) return;
+
+    try {
+      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/`, {
+        method: 'POST',
+        body: JSON.stringify({
+          clinicID: selectedClinic._id,
+          specialityName: selectedService,
+          auth0ID: user.sub,
+        })
+      });
+
+      if (response.ok) {
+        const queueResponse = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/patient/${user.sub}`);
+        const data = await queueResponse.json();
+        if (data.inQueue) setPatientQueue(data.queue);
+        
+        setShowQueuePanel(false);
+        closePopup();
+      }
+    } catch (error) {
+      console.error("Failed to join queue:", error);
+    }
+  }
+
   const updateFilter = (key, value) => {
     setPage(1);
     setFilters(f => ({ ...f, [key]: value }));
@@ -237,6 +266,27 @@ function PatientDashboard() {
         fromBookNow:  true,
       },
     });
+  };
+
+  const handleJoinQueue = () => {
+    //shows queue joining panel, and fills in service if selected
+    setSelectedService(filters.service || '');
+    setShowQueuePanel(true);
+  };
+  
+  const handleLeaveQueue = async () => {
+    try {
+      console.log("Queue:", patientQueue);
+      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${patientQueue.queue._id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setPatientQueue(null);
+      }
+    } catch (error) {
+      console.log("Error leaving queue:", error);
+    }
   };
 
   const buildPageRange = (current, total) => {
@@ -311,15 +361,21 @@ function PatientDashboard() {
           </section>
           
           <section className="grid-card">
-            <h3>Join Virtual Queue</h3>
-            <p>Join the queue remotely</p>
-            <button className="card-btn">JOIN QUEUE</button>
-          </section>
-          
-          <section className="grid-card">
-            <h3>My Queue Status</h3>
-            <p>{patientQueue ? `Currently in a queue` : 'Currently not in a queue'}</p>
-            <button className="card-btn">CHECK STATUS</button>
+            {patientQueue ? (
+              <>
+                <h3>My Queue Status</h3>
+                <p>{patientQueue.queue.Clinic.practiceName}</p>
+                <p>{patientQueue.queue.Speciality.SpecialityName}</p>
+                <p>Position: <strong>{patientQueue.position}</strong></p>
+                <button className="card-btn" onClick={handleLeaveQueue}>LEAVE QUEUE</button>
+              </>
+            ) : (
+              <>
+                <h3>My Queue Status</h3>
+                <p>Not currently in a queue.</p>
+                <button className="card-btn" onClick={handleStartSearch}>JOIN A VIRTUAL QUEUE</button>
+              </>
+            )}
           </section>
         </section>
 
@@ -474,31 +530,85 @@ function PatientDashboard() {
         <section className="clinic-modal-overlay" onClick={closePopup}>
           <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()}>
             <section className="clinic-modal-inner">
-              <section className="clinic-modal-header">
-                <h2>{selectedClinic.practiceName}</h2>
-                <button className="clinic-modal-close" onClick={closePopup}>X</button>
-              </section>
-              
-              <section className="clinic-modal-details">
-                <p>Practice Type: {selectedClinic.practiceTypeDescription || 'General Practice'}</p>
-                <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalTown}</p>
-                <p>Practice Number: {selectedClinic.practiceNumber || 'Not provided'}</p>
-              </section>
-              
-              <section className="clinic-modal-footer">
-                <section className="clinic-modal-badges">
-                  <span className={`modal-badge ${selectedClinic.isOpen ? 'status-open' : 'status-closed'}`}>
-                    {selectedClinic.isOpen ? 'Open now' : 'Closed'}
-                  </span>
-                </section>
-                
-                <button 
-                  className="clinic-modal-book-btn" 
-                  onClick={handleBookNow} 
-                >
-                  Book Now
-                </button>
-              </section>
+              {showQueuePanel ? (
+                <>
+                  <section className="clinic-modal-header">
+                    <p>Join Queue at</p>
+                    <button className="clinic-modal-close" onClick={closePopup}>X</button>
+                  </section>
+
+                  <section className="clinic-modal-details">
+                    <h3>{selectedClinic.practiceName}</h3>
+                    <p>{selectedClinic.physicalAddress}</p>
+                  </section>
+
+                  <section className="clinic-modal-details">
+                    <p>for the service  
+                      <select
+                        className=""
+                        value={selectedService}
+                        onChange={(e) => setSelectedService(e.target.value)}
+                      >
+                        <option value="">Select a service</option>
+                        {filterOptions.services?.map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </p>
+
+                    <section className="clinic-modal-footer">
+                      <button className="clinic-modal-book-btn" onClick={() => setShowQueuePanel(false)}>
+                        Back
+                      </button>
+                      {selectedService && (
+                        <button
+                          className="clinic-modal-book-btn"
+                          onClick={handleConfirmQueue}
+                        >
+                          Confirm
+                        </button>
+                      )}
+                    </section>
+                  </section>
+                </>
+              ) : (
+                <>
+                  <section className="clinic-modal-header">
+                    <h2>{selectedClinic.practiceName}</h2>
+                    <button className="clinic-modal-close" onClick={closePopup}>X</button>
+                  </section>
+                  
+                  <section className="clinic-modal-details">
+                    <p>Practice Type: {selectedClinic.practiceTypeDescription || 'General Practice'}</p>
+                    <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalTown}</p>
+                    <p>Practice Number: {selectedClinic.practiceNumber || 'Not provided'}</p>
+                  </section>
+                  
+                  <section className="clinic-modal-footer">
+                    <section className="clinic-modal-badges">
+                      <span className={`modal-badge ${selectedClinic.isOpen ? 'status-open' : 'status-closed'}`}>
+                        {selectedClinic.isOpen ? 'Open now' : 'Closed'}
+                      </span>
+                    </section>
+
+                    {!patientQueue ? (
+                      <button
+                        className="clinic-modal-book-btn"
+                        onClick={handleJoinQueue}
+                      >
+                        Join Queue
+                      </button>
+                    ): null}
+                    
+                    <button 
+                      className="clinic-modal-book-btn" 
+                      onClick={handleBookNow} 
+                    >
+                      Book Now
+                    </button>
+                  </section>
+                </>
+              )}
             </section>
           </section>
         </section>

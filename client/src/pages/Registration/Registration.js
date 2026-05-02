@@ -5,7 +5,7 @@ import { useApiAuth } from '../../hooks/apiAuth';
 
 function Registration() {
     const navigate = useNavigate();
-    const { user, isAuthenticated, loginWithRedirect } = useAuth0();
+    const { user, isAuthenticated, loginWithRedirect, isLoading } = useAuth0();
     const {apiFetch} = useApiAuth();
     
     const [formData, setFormData] = useState({
@@ -17,10 +17,41 @@ function Registration() {
 
     // Force Auth0 login if they arrive here unauthenticated
     useEffect(() => {
-        if (!isAuthenticated) {
+        if (!isLoading && !isAuthenticated) {
             loginWithRedirect({ appState: { returnTo: '/register' } });
         }
-    }, [isAuthenticated, loginWithRedirect]);
+    }, [isAuthenticated, loginWithRedirect, isLoading]);
+
+    //check if already registered (manual url change protection)
+    useEffect(() => {
+    const verifyUserRole = async () => {
+      if (!isLoading && isAuthenticated && user) {
+        try {
+          
+          console.log(`Attempting to get user from url ${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
+          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
+
+          if (response.ok) {
+            console.log("User found. Redirecting...");
+            const data = await response.json();
+            const redirectMap = {
+              Patient: '/dashboard/patient',
+              Staff:   '/dashboard/staff',
+              Admin:   '/dashboard/admin',
+            };
+            navigate(redirectMap[data.role] || '/');
+          } else if (response.status === 404) {
+            //do nothing (nothing needs to happen)
+          } else {
+            console.error('Failed to verify user profile.');
+          }
+        } catch (error) {
+          console.error('Network error during verification:', error);
+        }
+      }
+    };
+    verifyUserRole();
+  }, [isLoading, isAuthenticated, user, navigate, apiFetch]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -59,6 +90,8 @@ function Registration() {
             console.error('Network error:', error);
         }
     };
+
+    if (isLoading) return <div>Loading...</div>
 
     // Prevent rendering the form until Auth0 has verified their identity
     if (!isAuthenticated || !user) {

@@ -3,50 +3,71 @@ const router = express.Router();
 const User = require("../../database/models/User");
 const Clinic = require("../../database/models/Clinic");
 const Queue = require("../../database/models/Queue");
+const Speciality = require("../../database/models/Speciality");
+const Staff = require("../../database/models/Staff");
+const StaffSpeciality = require("../../database/models/StaffSpeciality");
 
 router.post("/", async (req, res) => {
     try {
         console.log("USER REGISTRATION");
         console.log("Incoming Payload:", req.body);
-        const { clinicID, specialityID, auth0ID, bookingDateTime } = req.body;
+        const { clinicID, specialityName, auth0ID} = req.body;
         //Find user by auth0ID
          
-        const user = await User.findOne({ auth0Id: auth0ID }); // Assuming 'auth0Id' is the field name
-        if (!user) return res.status(404).json({ message: "User profile not found." });
+        const user = await User.findOne({ auth0Id: auth0ID }); 
+        if (!user) {
+            console.log("User profile not found.");
+            return res.status(400).json({ message: "User profile not found." });
+        }
         
         // Get referenced clinic
-        const clinic = await Clinic.findOne({ $or:   { id: clinicID } });
-        if (!clinic) 
-            return res.status(404).json({ message: "Clinic not found." });
+        const clinic = await Clinic.findOne({ _id: clinicID });
+        if (!clinic) {
+            console.log("Clinic not found.");
+            return res.status(404).json({ message: "Clinic not found" });
+        }
+
+        const speciality = await Speciality.findOne({ SpecialityName: specialityName});
+        if (!speciality) {
+            console.log("Speciality not found.");
+            return res.status(404).json({ message: "Speciality not found."});
+        }
 
         //check if there's a staff member with the speciality in the clinic
-        const staffMember = await User.findOne({ role: "staff", clinic: clinic._id, speciality: specialityID });
-        if (!staffMember) 
-            return res.status(404).json({ message: "No staff member with the specified speciality found in the clinic." });
+        const staff = await Staff.find({ Clinic: clinic._id }).select('_id');
+        const staffIds = staff.map(s => s._id);
 
+        const staffSpeciality = await StaffSpeciality.findOne({
+            Staff: { $in: staffIds },
+            Speciality: speciality._id
+        });
+
+        if (!staffSpeciality) {
+            console.log("No staff member with specified speciality found in the clinic.");
+            return res.status(404).json({ message: "No staff member with specified speciality found in the clinic." });
+        }
 
         console.log("CLINIC FOUND");
         console.log("APPROPRIATE STAFF MEMBER EXISTS");
 
-        //check if user is already in a queue in this clinic
-        const existingQueueEntry = await Queue.findOne({ Patient: user._id, Clinic: clinic._id });
+        //check if user is already in a queue
+        const existingQueueEntry = await Queue.findOne({ Patient: user._id });
         if (existingQueueEntry) 
-            return res.status(409).json({ message: "User is already in a queue for this clinic." });
+            return res.status(409).json({ message: "User is already in a queue." });
 
         const newQueue = new Queue({
             Clinic: clinic._id,
-            Speciality: specialityID,
+            Speciality: speciality._id,
             Patient: user._id,
-            BookingDateTime: bookingDateTime
         });
 
         await newQueue.save()
         console.log("Success adding user to queue");
-        res.status(201).json({ message: "Successfully joined queue" });
+        res.status(200).json({ message: "Successfully joined queue" });
 
     } catch (error) {
         console.error("Queue error:", error);
-        res.status(500).json({ message: "Server error." });
+        res.status(500).json({ message: "Server error" });
     }
 });
 
