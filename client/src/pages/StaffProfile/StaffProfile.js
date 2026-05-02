@@ -122,9 +122,9 @@ return (
           <div className="clinic-card profile-details-card">
             <h3 className="clinic-type">Staff Information</h3>
             <div className="details-content">
-              <p><strong>Name:</strong> {profileData.name}</p>
-              <p><strong>Email:</strong> {profileData.email}</p>
-              <p><strong>Occupation:</strong> {profileData.occupation}</p>
+              <p><strong>Name:</strong> {profileData?.name}</p>
+              <p><strong>Email:</strong> {profileData?.email}</p>
+              <p><strong>Occupation:</strong> {profileData?.occupation}</p>
               <div className="clinic-assignments">
                 <p><strong>Assigned Clinic:</strong> General Medical Center</p>
                 <button className="btn-secondary">View Details</button>
@@ -156,15 +156,15 @@ return (
           
           <div className='inline-components'>
             <label>Name</label>
-            <input type="text" ref={nameRef} defaultValue={profileData.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="text" ref={nameRef} defaultValue={profileData?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
             <label>Surname</label>
-            <input type="text" ref={surnameRef} defaultValue={profileData.surname} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="text" ref={surnameRef} defaultValue={profileData?.surname} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
             <label>Title</label>
-            <input type="text" ref={titleRef} defaultValue={profileData.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="text" ref={titleRef} defaultValue={profileData?.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div>
           <div className='inline-components'>
             <label>Email</label> 
