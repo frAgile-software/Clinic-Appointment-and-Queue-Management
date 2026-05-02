@@ -61,7 +61,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       if (url.includes('/api/queues/patient/auth0|12345')) {
         return Promise.resolve({
           ok: true,
-          json: async () => ({ inQueue: true, queue: { _id: 'queue_1' } }),
+          json: async () => ({ inQueue: false }),
         });
       }
       if (url.includes('/api/appointments/app_1') && options?.method === 'DELETE') {
@@ -194,7 +194,8 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
   test("Given queue status loads, Then the dashboard updates the queue card", async () => {
     await renderDashboard();
-    expect(screen.getByText(/Currently in a queue/i)).toBeInTheDocument();
+    expect(screen.getByText(/Not currently in a queue/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /JOIN A VIRTUAL QUEUE/i })).toBeInTheDocument();
   });
 
   test("Given the user clicks 'VIEW DETAILS', Then the appointments modal opens showing the data", async () => {
@@ -538,6 +539,12 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
       });
 
+      fireEvent.change(
+        screen.getByRole('combobox', { name: /Filter by reason for visit/i }),
+        { target: { value: 'Dentistry' } }
+      );
+      await waitFor(() => expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument());
+
       fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
       fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
 
@@ -556,6 +563,12 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       await waitFor(() => {
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
       });
+
+      fireEvent.change(
+        screen.getByRole('combobox', { name: /Filter by reason for visit/i }),
+        { target: { value: 'Dentistry' } }
+      );
+      await waitFor(() => expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument());
 
       fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
       fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
