@@ -20,12 +20,11 @@ router.get("/", async (req, res) => {
         if (!user) return res.status(404).json({ error: "User not found" });
 
         //check if user is staff
-        const staffRecords = await Staff.find({ User: user._id });
-        if (!staffRecords || staffRecords.length === 0) {
+        if (user.role !== "staff") {
             console.log("Fail: User is not a staff member");
             return res.status(404).json({ error: "User is not a staff member" });
         }
-        
+
         //check if user has a clinic assigned
         const clinicIds = staffRecords.map(record => record.Clinic);
         const clinics = await Clinic.find({ _id: { $in: clinicIds } });
