@@ -11,7 +11,7 @@ router.get("/patient/:auth0Id", async (req, res) => {
         if (!patient)
             return res.status(404).json({ message: "Patient not found." });
 
-        const queue = await Queue.findOne({ User: patient._id })
+        const queue = await Queue.findOne({ Patient: patient._id })
             .populate('Clinic')
             .populate('Speciality');
         if (!queue)
