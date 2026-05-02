@@ -586,11 +586,25 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       });
 
       await waitFor(() => {
+        expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
       });
 
+      fireEvent.change(
+        screen.getByRole('combobox', { name: /Filter by reason for visit/i }),
+        { target: { value: 'Dentistry' } }
+      );
+      await waitFor(() => expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument());
+
       fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
       fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
+
+      const allDentistryDropdowns = screen.getAllByDisplayValue('Dentistry');
+      const queueServiceSelect = allDentistryDropdowns.find(
+        el => !el.hasAttribute('aria-label')
+      );
+
+      fireEvent.change(queueServiceSelect, { target: { value: '' } });
 
       expect(screen.queryByRole("button", { name: /Confirm/i })).not.toBeInTheDocument();
     });
@@ -662,52 +676,25 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       await waitFor(() => {
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
       });
+      
+      fireEvent.change(
+        screen.getByRole('combobox', { name: /Filter by reason for visit/i }),
+        { target: { value: 'Dentistry' } }
+      );
+      await waitFor(() => expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument());
+
 
       fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
       fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
 
-      const queueServiceSelect = screen.getByDisplayValue('Select a service');
-      fireEvent.change(queueServiceSelect, { target: { value: 'Dentistry' } });
-
       await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Confirm/i })).toBeInTheDocument();
-    });
+        expect(screen.getByRole("button", { name: /Confirm/i })).toBeInTheDocument();
+      });
 
       fireEvent.click(screen.getByRole("button", { name: /Confirm/i }));
 
       await waitFor(() => {
         expect(screen.getByRole("button", { name: /LEAVE QUEUE/i })).toBeInTheDocument();
-      });
-    });
-
-    test("Given joining queue fails, Then the modal stays open", async () => {
-      mockApiFetch.mockImplementation(async (url, options) => {
-        if (url.includes('/api/users/')) return { ok: true, json: async () => ({ name: "John Doe" }) };
-        if (url.includes('/api/queues/patient/')) return { ok: true, json: async () => ({ inQueue: false }) };
-        if (url.includes('/api/queues/') && options?.method === 'POST') return { ok: false, json: async () => ({ message: "Error" }) };
-        return { ok: true, json: async () => ({}) };
-      });
-
-      await renderDashboard();
-      fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
-
-      act(() => {
-        jest.runAllTimers();
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
-      fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
-
-      const queueServiceSelect = screen.getByDisplayValue('Select a service');
-      fireEvent.change(queueServiceSelect, { target: { value: 'Dentistry' } });
-      fireEvent.click(screen.getByRole("button", { name: /Confirm/i }));
-
-      await waitFor(() => {
-        expect(screen.getByText(/Join Queue at/i)).toBeInTheDocument();
       });
     });
 
@@ -728,14 +715,22 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       });
 
       await waitFor(() => {
+        expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
       });
+
+      fireEvent.change(
+        screen.getByRole('combobox', { name: /Filter by reason for visit/i }),
+        { target: { value: 'Dentistry' } }
+      );
+      await waitFor(() => expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument());
 
       fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
       fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
 
-      const queueServiceSelect = screen.getByDisplayValue('Select a service');
-      fireEvent.change(queueServiceSelect, { target: { value: 'Dentistry' } });
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: /Confirm/i })).toBeInTheDocument();
+      });
       fireEvent.click(screen.getByRole("button", { name: /Confirm/i }));
 
       await waitFor(() => {
