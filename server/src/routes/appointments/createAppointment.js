@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const User = require("../../database/models/User");
 const Appointment = require("../../database/models/Appointment");
 const Clinic = require("../../database/models/Clinic");
+const SpecialityModel = require("../../database/models/Speciality"); 
 
 router.post("/", async (req, res) => {
     try {
@@ -32,14 +33,27 @@ router.post("/", async (req, res) => {
             return res.status(409).json({ message: "This slot is already booked." });
         }
 
-        const appointment = new Appointment({
+        let specialityId = null;
+        if (Speciality) {
+            const specDoc = await SpecialityModel.findOne({ SpecialityName: Speciality });
+            if (specDoc) {
+                specialityId = specDoc._id;
+            }
+        }
+
+        const apptData = {
             Patient:         patient._id,
             Staff:           staff._id,
             Clinic:          clinic._id,
-            Speciality:      Speciality || null,
             BookingDateTime: new Date(BookingDateTime),
             ReasonDetails:   description || '',
-        });
+        };
+
+        if (specialityId) {
+            apptData.Speciality = specialityId;
+        }
+
+        const appointment = new Appointment(apptData);
 
         await appointment.save();
         res.status(201).json({ message: "Appointment created successfully.", appointment });

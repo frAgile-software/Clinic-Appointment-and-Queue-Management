@@ -13,6 +13,10 @@ jest.mock('../../database/models/Clinic', () => ({
     findById: jest.fn(),
 }));
 
+jest.mock('../../database/models/Speciality', () => ({
+    findOne: jest.fn(),
+}));
+
 jest.mock('../../database/models/Appointment', () => {
     const mockSave = jest.fn();
     const mockConstructor = jest.fn().mockImplementation((data) => ({
@@ -29,18 +33,19 @@ const request     = require('supertest');
 const app         = require('../../index');
 const User        = require('../../database/models/User');
 const Clinic      = require('../../database/models/Clinic');
+const Speciality  = require('../../database/models/Speciality');
 const Appointment = require('../../database/models/Appointment');
 
 /* ─── Shared test data ───────────────────────────────────── */
 const validBody = {
     Clinic:          'clinic123',
     Staff:           '69efb380a80012230d32b7a1',
-    patientAuth0Id:  'auth0|test123',
+    patientAuth0Id:  'auth0-test123',
     BookingDateTime: '2025-05-06T09:00:00.000Z',
     description:     'Chest pain follow-up',
 };
 
-const mockPatient = { _id: 'patient001', auth0Id: 'auth0|test123', role: 'Patient' };
+const mockPatient = { _id: 'patient001', auth0Id: 'auth0-test123', role: 'Patient' };
 const mockStaff   = { _id: '69efb380a80012230d32b7a1', role: 'Staff' };
 const mockClinic  = { _id: 'clinic123', practiceName: 'City Clinic' };
 
@@ -48,6 +53,14 @@ describe('POST /api/appointments', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        // Suppress console output to prevent CI pipeline failures on expected errors
+        jest.spyOn(console, 'log').mockImplementation(() => {});
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        console.log.mockRestore();
+        console.error.mockRestore();
     });
 
     /* ── Happy path ── */
@@ -55,16 +68,18 @@ describe('POST /api/appointments', () => {
         User.findOne.mockResolvedValueOnce(mockPatient);
         User.findById.mockResolvedValueOnce(mockStaff);
         Clinic.findById.mockResolvedValueOnce(mockClinic);
+        Speciality.findOne.mockResolvedValueOnce({ _id: 'spec123' });
         Appointment.findOne.mockResolvedValueOnce(null); // slot free
         Appointment.mockSave.mockResolvedValueOnce();
 
         const res = await request(app)
             .post('/api/appointments')
-            .send(validBody);
+            .send({ ...validBody, Speciality: 'Cardiology' });
 
         expect(res.status).toEqual(201);
         expect(res.body.message).toBe('Appointment created successfully.');
         expect(res.body.appointment).toBeDefined();
+        expect(Speciality.findOne).toHaveBeenCalledWith({ SpecialityName: 'Cardiology' });
     });
 
     test('calls User.findOne with patientAuth0Id', async () => {
@@ -76,7 +91,7 @@ describe('POST /api/appointments', () => {
 
         await request(app).post('/api/appointments').send(validBody);
 
-        expect(User.findOne).toHaveBeenCalledWith({ auth0Id: 'auth0|test123' });
+        expect(User.findOne).toHaveBeenCalledWith({ auth0Id: 'auth0-test123' });
     });
 
     test('calls User.findById with Staff id', async () => {
