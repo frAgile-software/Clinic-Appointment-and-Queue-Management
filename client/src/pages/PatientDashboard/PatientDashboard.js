@@ -14,6 +14,11 @@ function PatientDashboard() {
   const navigate = useNavigate();
   
   const [patientName, setPatientName] = useState("");
+  const [appointments, setAppointments] = useState([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(true);
+  const [showAppointmentsModal, setShowAppointmentsModal] = useState(false);
+  const [cancelAppId, setCancelAppId] = useState(null);
+  const [patientQueue, setPatientQueue] = useState(null);
 
   // --- Search & Filter State ---
   const [showSearch, setShowSearch] = useState(false); 
@@ -23,12 +28,12 @@ function PatientDashboard() {
   const [hasSearched, setHasSearched] = useState(false);
   const [pagination, setPagination] = useState({page:1, totalPages:1, total:0});
   const [page, setPage] = useState(1);
+  const [selectionError, setSelectionError] = useState("");
   
   // --- Modal State ---
   const [selectedClinic, setSelectedClinic] = useState(null);
   const [showQueuePanel, setShowQueuePanel] = useState(false);
   const [selectedService, setSelectedService] = useState('');
-  const [patientQueue, setPatientQueue] = useState(null);
   
   const clinicsSectionRef = useRef(null);
   const debounceTimer = useRef(null);
@@ -66,15 +71,31 @@ function PatientDashboard() {
   }, [user, apiFetch]);
 
   useEffect(() => {
+    const fetchAppointments = async () => {
+      if (user?.sub) {
+        try {
+          const res = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${user.sub}`);
+          if (res.ok) {
+            const data = await res.json();
+            setAppointments(data);
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setLoadingAppointments(false);
+        }
+      }
+    };
+    fetchAppointments();
+  }, [user, apiFetch]);
+
+  useEffect(() => {
     const fetchPatientQueue = async () => {
-      console.log("user:", user);
       if (user?.sub) {
         try {
           const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/patient/${user.sub}`);
-          console.log("Queue response status:", response.status);
           if (response.ok) {
             const data = await response.json();
-            console.log("Queue data:", data.queue);
             if (data.inQueue) setPatientQueue(data.queue);
           }
         } catch (error) {
@@ -83,7 +104,7 @@ function PatientDashboard() {
       }
     };
     fetchPatientQueue();
-  }, [user , apiFetch]);
+  }, [user, apiFetch]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -96,7 +117,6 @@ function PatientDashboard() {
       try {
         const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
         const json = await res.json();
-        // Ensure services defaults to an array
         setFilterOptions({ ...json, services: json.services || [] });
       } catch (error) {
         console.error("Couldn't fetch filter options:", error);
@@ -119,7 +139,7 @@ function PatientDashboard() {
         if (filters.town) params.set('town', filters.town);
         if (filters.suburb) params.set('suburb', filters.suburb);
         if (filters.type) params.set('type', filters.type);
-        if (filters.service) params.set('service', filters.service); // Passing the reason to backend
+        if (filters.service) params.set('service', filters.service); 
         params.set('_orderby', filters._orderby);
         params.set('_order', filters._order);
         params.set("_page", page);
@@ -181,11 +201,22 @@ function PatientDashboard() {
   const updateFilter = (key, value) => {
     setPage(1);
     setFilters(f => ({ ...f, [key]: value }));
+    if (key === 'service' && value !== '') {
+      setSelectionError("");
+    }
   };
 
   const handleSearch = (e) => e.preventDefault();
   
-  const handleClinicClick = (clinic) => setSelectedClinic(clinic);
+  const handleClinicClick = (clinic) => {
+    if (!filters.service) {
+      setSelectionError("Please select a reason for your visit before selecting a clinic.");
+      return;
+    }
+    setSelectionError("");
+    setSelectedClinic(clinic);
+  };
+  
   const closePopup = () => setSelectedClinic(null);
   
   const handlePageChange = (newPage) => {
@@ -193,11 +224,47 @@ function PatientDashboard() {
     clinicsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const handleConfirmCancel = async () => {
+    if (!cancelAppId) return;
+    try {
+      const res = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${cancelAppId}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        setAppointments(prev => prev.filter(a => a._id !== cancelAppId));
+        setCancelAppId(null);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleReschedule = (app) => {
+    navigate('/book', {
+      state: {
+        clinicId:     app.Clinic?._id,
+        clinicName:   app.Clinic?.practiceName,
+        clinicAddress: `${app.Clinic?.physicalAddress}, ${app.Clinic?.physicalTown}`,
+        clinicType:   app.Clinic?.practiceTypeDescription,
+        specialty:    app.Speciality?.SpecialityName || app.Speciality?.name || (typeof app.Speciality === 'string' ? app.Speciality : null),
+        fromBookNow:  true,
+        rescheduleAppointmentId: app._id,
+      },
+    });
+  };
+
   // --- Navigates to booking page, passing the reason as a URL parameter ---
   const handleBookNow = () => {
-    const baseUrl = `/clinics/${selectedClinic._id}`;
-    const targetUrl = filters.service ? `${baseUrl}?reason=${encodeURIComponent(filters.service)}` : baseUrl;
-    navigate(targetUrl);
+    navigate('/book', {
+      state: {
+        clinicId:     selectedClinic._id,
+        clinicName:   selectedClinic.practiceName,
+        clinicAddress: `${selectedClinic.physicalAddress}, ${selectedClinic.physicalTown}`,
+        clinicType:   selectedClinic.practiceTypeDescription,
+        specialty:    filters.service || null,
+        fromBookNow:  true,
+      },
+    });
   };
 
   const handleJoinQueue = () => {
@@ -288,8 +355,8 @@ function PatientDashboard() {
         <section className="action-grid" aria-label="Quick Actions">
           <section className="grid-card">
             <h3>Upcoming Appointments</h3>
-            <p>You have 1 appointment upcoming</p>
-            <button className="card-btn">VIEW DETAILS</button>
+            <p>{loadingAppointments ? 'Loading appointments...' : `You have ${appointments.length} appointment(s) upcoming`}</p>
+            <button className="card-btn" onClick={() => setShowAppointmentsModal(true)}>VIEW DETAILS</button>
           </section>
           
           <section className="grid-card">
@@ -372,6 +439,11 @@ function PatientDashboard() {
               </form>
 
               <section className="clinics-section">
+                {selectionError && (
+                  <p style={{ color: '#b91c1c', backgroundColor: '#fee2e2', padding: '10px 14px', borderRadius: '6px', marginBottom: '16px', fontWeight: '500', fontSize: '14px' }} role="alert">
+                    {selectionError}
+                  </p>
+                )}
                 {loadingList && (
                   <ul className="clinics-grid" aria-busy="true">
                     {[...Array(4)].map((_, i) => (
@@ -536,6 +608,55 @@ function PatientDashboard() {
                   </section>
                 </>
               )}
+            </section>
+          </section>
+        </section>
+      )}
+
+      {showAppointmentsModal && (
+        <section className="clinic-modal-overlay" onClick={() => setShowAppointmentsModal(false)}>
+          <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+            <section className="clinic-modal-inner" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+              <section className="clinic-modal-header">
+                <h2>Your Appointments</h2>
+                <button className="clinic-modal-close" onClick={() => setShowAppointmentsModal(false)}>X</button>
+              </section>
+              
+              <section className="clinic-modal-details" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {loadingAppointments ? (
+                  <p>Loading appointments...</p>
+                ) : appointments.length === 0 ? (
+                  <p>You have no upcoming appointments.</p>
+                ) : (
+                  appointments.map((app) => (
+                    <article key={app._id} style={{ border: '1px solid #e2e4e9', padding: '1rem', borderRadius: '8px', background: '#fff' }}>
+                      <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{app.Clinic?.practiceName || 'Unknown Clinic'}</p>
+                      <p>Doctor: {app.Staff?.name} {app.Staff?.surname}</p>
+                      <p>Date: {new Date(app.BookingDateTime).toLocaleString('en-ZA')}</p>
+                      
+                      <section style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                        <button className="clinic-modal-book-btn" onClick={() => handleReschedule(app)}>Reschedule</button>
+                        <button className="btn pagination__btn" style={{ color: '#b91c1c', borderColor: '#b91c1c' }} onClick={() => setCancelAppId(app._id)}>Cancel Appointment</button>
+                      </section>
+                    </article>
+                  ))
+                )}
+              </section>
+            </section>
+          </section>
+        </section>
+      )}
+
+      {cancelAppId && (
+        <section className="clinic-modal-overlay" onClick={() => setCancelAppId(null)}>
+          <section className="clinic-modal-outer" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <section className="clinic-modal-inner">
+              <h3 style={{ marginTop: 0 }}>Confirm Cancellation</h3>
+              <p>Are you sure you want to cancel this appointment? This action cannot be undone.</p>
+              <section style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                <button className="btn pagination__btn" onClick={() => setCancelAppId(null)}>No, Keep it</button>
+                <button className="clinic-modal-book-btn" style={{ backgroundColor: '#b91c1c' }} onClick={() => handleConfirmCancel()}>Yes, Cancel</button>
+              </section>
             </section>
           </section>
         </section>
