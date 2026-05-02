@@ -34,7 +34,6 @@ function PatientDashboard() {
   const [selectedClinic, setSelectedClinic] = useState(null);
   const [showQueuePanel, setShowQueuePanel] = useState(false);
   const [selectedService, setSelectedService] = useState('');
-  const [patientQueue, setPatientQueue] = useState(null);
   
   const clinicsSectionRef = useRef(null);
   const debounceTimer = useRef(null);
