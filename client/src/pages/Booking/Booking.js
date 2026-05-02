@@ -31,14 +31,13 @@ function getMondayOf(date) {
 
 /**
  * Builds 7 day cells Mon–Sun for the given weekStart.
- * DB convention: 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri (no weekends)
+ * DB convention: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
  */
 function buildWeekCells(weekStart, windowDates, schedule) {
   const windowSet = new Set(windowDates.map(d => d.toDateString()));
 
   function jsdayToDBday(jsDay) {
-    const map = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
-    return map[jsDay];
+    return jsDay;
   }
 
   const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -145,7 +144,7 @@ export default function Booking() {
   /* ── Available hours derived from schedule entry for selected day ── */
   const availableHours = (() => {
     if (!selectedDate || !schedule.length) return [];
-    const dbDay    = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }[selectedDate.getDay()];
+    const dbDay    = selectedDate.getDay();
     const dayEntry = schedule.find(s => Number(s.DayOfWeek) === dbDay);
     if (!dayEntry) return [];
     const parseHour = t => parseInt(String(t).split(':')[0], 10);
@@ -187,7 +186,7 @@ export default function Booking() {
     setSelectedSlot(null);
     setBookedSlots([]);
     try {
-      const res  = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${doctor._id}/schedule`);
+      const res  = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/schedules/${doctor._id}`);
       const json = await res.json();
       setSchedule(json.schedule || []);
     } catch {
@@ -239,6 +238,7 @@ export default function Booking() {
         patientAuth0Id:  user?.sub,
         BookingDateTime: bookingDate.toISOString(),
         description:     visitDescription,
+        Speciality:      specialty,
       };
 
       const res = await apiFetch(

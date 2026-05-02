@@ -7,7 +7,7 @@ const Clinic = require("../../database/models/Clinic");
 
 router.post("/", async (req, res) => {
     try {
-        const { Clinic: clinicId, Staff, patientAuth0Id, BookingDateTime, description } = req.body;
+        const { Clinic: clinicId, Staff, patientAuth0Id, BookingDateTime, description, Speciality } = req.body;
 
         const patient = await User.findOne({ auth0Id: patientAuth0Id });
         if (!patient) {
@@ -36,7 +36,7 @@ router.post("/", async (req, res) => {
             Patient:         patient._id,
             Staff:           staff._id,
             Clinic:          clinic._id,
-            Speciality:      new mongoose.Types.ObjectId('69efb380a80012230d32b79a'), // hardcoded for now
+            Speciality:      Speciality || null,
             BookingDateTime: new Date(BookingDateTime),
             ReasonDetails:   description || '',
         });

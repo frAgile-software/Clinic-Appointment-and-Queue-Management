@@ -4,7 +4,7 @@
  * Tests cover:
  *  1. Helper utilities (getBookingWindow, buildWeekCells, availableHours derivation)
  *  2. Route: GET /api/clinics/:clinicId/staff
- *  3. Route: GET /api/users/:userId/schedule
+ *  3. Route: GET /api/schedules/:userId
  *  4. Route: GET /appointments/booked
  *  5. Route: POST /api/appointments
  *  6. React component rendering & interactions
@@ -121,8 +121,7 @@ describe('getMondayOf()', () => {
 
 describe('buildWeekCells()', () => {
   function jsdayToDBday(jsDay) {
-    const map = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
-    return map[jsDay];
+    return jsDay;
   }
 
   function buildWeekCells(weekStart, windowDates, schedule) {
@@ -186,7 +185,7 @@ describe('buildWeekCells()', () => {
     expect(cells[4].isAvail).toBe(false);
   });
 
-  it('weekend days (Sat/Sun) are never available', () => {
+  it('allows weekend days (Sat/Sun) if doctor works them', () => {
     const allDays = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
@@ -195,15 +194,14 @@ describe('buildWeekCells()', () => {
     const cells = buildWeekCells(monday, allDays, [
       { DayOfWeek: 6, StartTime: '08:00', EndTime: '17:00' },
     ]);
-    expect(cells[5].isAvail).toBe(false);
+    expect(cells[5].isAvail).toBe(true);
     expect(cells[6].isAvail).toBe(false);
   });
 });
 
 describe('availableHours derivation', () => {
   function jsdayToDBday(jsDay) {
-    const map = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
-    return map[jsDay];
+    return jsDay;
   }
 
   function deriveHours(schedule, date) {
@@ -224,10 +222,10 @@ describe('availableHours derivation', () => {
     expect(deriveHours(schedule, monday)).toEqual([]);
   });
 
-  it('returns empty for Saturday (not in DB map)', () => {
+  it('returns hours for Saturday if in schedule', () => {
     const saturday = new Date(2025, 4, 10);
     const schedule = [{ DayOfWeek: 6, StartTime: '08:00', EndTime: '17:00' }];
-    expect(deriveHours(schedule, saturday)).toEqual([]);
+    expect(deriveHours(schedule, saturday)).toEqual([8, 9, 10, 11, 12, 13, 14, 15, 16]);
   });
 
   it('returns correct hours for Monday 08:00–17:00', () => {
@@ -303,7 +301,7 @@ describe('GET /api/clinics/:clinicId/staff', () => {
   });
 });
 
-describe('GET /api/users/:userId/schedule', () => {
+describe('GET /api/schedules/:userId', () => {
   const BASE = 'http://localhost:5000';
 
   beforeEach(() => { global.fetch = jest.fn(); });
@@ -319,7 +317,7 @@ describe('GET /api/users/:userId/schedule', () => {
       json: async () => ({ schedule: mockSchedule }),
     });
 
-    const res  = await fetch(`${BASE}/api/users/u1/schedule`);
+    const res  = await fetch(`${BASE}/api/schedules/u1`);
     const json = await res.json();
 
     expect(json.schedule).toHaveLength(2);
@@ -333,7 +331,7 @@ describe('GET /api/users/:userId/schedule', () => {
       json: async () => ({ message: 'User not found.' }),
     });
 
-    const res = await fetch(`${BASE}/api/users/bad-id/schedule`);
+    const res = await fetch(`${BASE}/api/schedules/bad-id`);
     expect(res.status).toBe(404);
   });
 
@@ -343,7 +341,7 @@ describe('GET /api/users/:userId/schedule', () => {
       json: async () => ({ schedule: [] }),
     });
 
-    const res  = await fetch(`${BASE}/api/users/u2/schedule`);
+    const res  = await fetch(`${BASE}/api/schedules/u2`);
     const json = await res.json();
     expect(json.schedule).toEqual([]);
   });

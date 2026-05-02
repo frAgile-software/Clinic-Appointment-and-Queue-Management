@@ -41,7 +41,6 @@ router.get("/", async (req, res) => {
             },
             {
                 $lookup: {
-                    // "staff" instead of "staffs", you must remove the 's' here.
                     from: "staffs", 
                     localField: "_id",
                     foreignField: "Clinic",
