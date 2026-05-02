@@ -2,23 +2,102 @@ import './StaffDashboard.css'; // Ensure this filename matches exactly (case-sen
 import { LuBell } from "react-icons/lu";
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
-
-const patientQueue = [
-  { id: "p1", name: "Jane Smith", time: "08:15 AM", reason: "Flu Shot", status: "In Progress" },
-  { id: "p2", name: "John Doe", time: "09:00 AM", reason: "Check-up", status: "Waiting" }
-
-];
+import { useState, useEffect } from "react";
+import { useApiAuth } from '../../hooks/apiAuth';
 
 function StaffDashboard() {
-  const {
-    //user,
-    logout: auth0Logout,
-  } = useAuth0();
-  const navigate = useNavigate();
+    const {
+        user,
+        logout: auth0Logout,
+    } = useAuth0();
+    const navigate = useNavigate();
 
-  const logout = () => {
+    const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
-  };
+    };
+    const { apiFetch } = useApiAuth();
+
+    const staffId = user?.sub;
+    const [clinics, setClinics] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [patientQueue, setPatientQueue] = useState([]);
+
+    useEffect(() => {
+        if (!staffId) return;
+        async function fetchClinics() {
+            try {
+                setLoading(true);
+                const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        auth0ID: staffId,
+                    })
+                });
+
+                const data = await response.json();
+                setClinics(data);
+            } catch (error) {
+                console.error("Could not fetch clinics:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchClinics();
+    }, [staffId, apiFetch]);
+
+    useEffect(() => {
+        if (!staffId || !clinics) return;
+        async function fetchQueue() {
+            try {
+                const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${clinics[0]}`);
+                const data = await response.json();
+                setPatientQueue(data);
+            } catch (error) {
+                console.error("Could not fetch clinics:", error);
+            }
+        }
+        fetchQueue();
+    }, [staffId, clinics, apiFetch]);
+
+    /*
+    queueItem {
+    Clinic,
+    Speciality: { SpecialityName: string },
+    Patient: {
+      name,
+      surname,
+      title,
+      email,
+      role: ["Patient", "Admin", "Staff"] 
+    },
+    createdAt, updatedAt, id, ...
+    }
+     */
+
+    const toCard = (queueItem) => {
+        queueItem.status = "Waiting";
+        const date = new Date(queueItem.updatedAt);
+        return (
+            <article key={queueItem.id} className="patient-card">
+                <p className="patient-name">{queueItem.Patient.name} {queueItem.Patient.surname}</p>
+                <p>{date.toLocaleTimeString()}</p>
+                <p>{date.toLocaleDateString()}</p>
+                <p>{queueItem.Speciality.SpecialityName}</p>
+                <p className={`status-text ${queueItem.status.toLowerCase().replace(' ', '-')}`}>
+                    {queueItem.status}
+                </p>
+            </article>
+        );
+    };
+
+
+    if (loading)
+        return (
+            <main className="landing landing--loading">
+                <p>Loading dashboard...</p>
+            </main>
+        );
+
 
   return (
     <>
@@ -39,16 +118,7 @@ function StaffDashboard() {
       <section className="patient-queue-section">
         <h2>Patient Queue</h2>
         <div className="queue-container">
-          {patientQueue.map(patient => (
-            <article key={patient.id} className="patient-card">
-              <p className="patient-name">{patient.name}</p>
-              <p>{patient.time}</p>
-              <p>{patient.reason}</p>
-              <p className={`status-text ${patient.status.toLowerCase().replace(' ', '-')}`}>
-                {patient.status}
-              </p>
-            </article>
-          ))}
+          {patientQueue.length > 0 ? patientQueue.map(patient => toCard(patient)) : <></>}
         </div>
       </section>
 

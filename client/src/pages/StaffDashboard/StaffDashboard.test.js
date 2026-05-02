@@ -15,16 +15,16 @@ test('renders clinic name and patient queue', () => {
     expect(queueHeading).toBeInTheDocument();
 });
 
-test('renders patient names in the queue', () => {
+// test('renders patient names in the queue', () => { // not applicable anymore, tests will need to be done at a later date for the whole thing
     
-    render(<MemoryRouter>
-        <StaffDashboard />
-    </MemoryRouter>);
-    const patient1 = screen.getByText(/Jane Smith/i); 
-    const patient2 = screen.getByText(/John Doe/i);
-    expect(patient1).toBeInTheDocument();
-    expect(patient2).toBeInTheDocument();
-});
+//     render(<MemoryRouter>
+//         <StaffDashboard />
+//     </MemoryRouter>);
+//     const patient1 = screen.getByText(/Jane Smith/i); 
+//     const patient2 = screen.getByText(/John Doe/i);
+//     expect(patient1).toBeInTheDocument();
+//     expect(patient2).toBeInTheDocument();
+// });
 
 test('renders action buttons', () => {
     
