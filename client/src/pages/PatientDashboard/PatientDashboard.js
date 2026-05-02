@@ -18,6 +18,7 @@ function PatientDashboard() {
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [showAppointmentsModal, setShowAppointmentsModal] = useState(false);
   const [cancelAppId, setCancelAppId] = useState(null);
+  const [patientQueue, setPatientQueue] = useState(null);
 
   // --- Search & Filter State ---
   const [showSearch, setShowSearch] = useState(false); 
@@ -84,6 +85,23 @@ function PatientDashboard() {
       }
     };
     fetchAppointments();
+  }, [user, apiFetch]);
+
+  useEffect(() => {
+    const fetchPatientQueue = async () => {
+      if (user?.sub) {
+        try {
+          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/patient/${user.sub}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.inQueue) setPatientQueue(data.queue);
+          }
+        } catch (error) {
+          console.error("Network error fetching queue:", error);
+        }
+      }
+    };
+    fetchPatientQueue();
   }, [user, apiFetch]);
 
   useEffect(() => {
@@ -300,7 +318,7 @@ function PatientDashboard() {
           
           <section className="grid-card">
             <h3>My Queue Status</h3>
-            <p>Currently not in a queue</p>
+            <p>{patientQueue ? `Currently in a queue` : 'Currently not in a queue'}</p>
             <button className="card-btn">CHECK STATUS</button>
           </section>
         </section>

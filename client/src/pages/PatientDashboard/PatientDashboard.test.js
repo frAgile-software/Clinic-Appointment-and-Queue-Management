@@ -57,6 +57,12 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
           ]),
         });
       }
+      if (url.includes('/api/queues/patient/auth0|12345')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ inQueue: true, queue: { _id: 'queue_1' } }),
+        });
+      }
       if (url.includes('/api/appointments/app_1') && options?.method === 'DELETE') {
         return Promise.resolve({ ok: true });
       }
@@ -146,6 +152,11 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   test("Given appointments load, Then the dashboard shows the correct appointment count", async () => {
     await renderDashboard();
     expect(screen.getByText(/You have 1 appointment\(s\) upcoming/i)).toBeInTheDocument();
+  });
+
+  test("Given queue status loads, Then the dashboard updates the queue card", async () => {
+    await renderDashboard();
+    expect(screen.getByText(/Currently in a queue/i)).toBeInTheDocument();
   });
 
   test("Given the user clicks 'VIEW DETAILS', Then the appointments modal opens showing the data", async () => {
