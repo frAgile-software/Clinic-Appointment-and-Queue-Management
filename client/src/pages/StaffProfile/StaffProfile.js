@@ -19,9 +19,9 @@ function StaffProfile() {
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [occupations, setOccupations] = useState([]);
+  
   void clinics; // To avoid unused variable warning
-  void occupations; // To avoid unused variable warning
+  
 
   
 
