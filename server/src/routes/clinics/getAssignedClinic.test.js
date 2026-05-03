@@ -109,4 +109,18 @@ it('should return 404 if user is not found or not staff', async () => {
 
     expect(User.findOne).toHaveBeenCalledWith({ auth0Id: 'auth0|123' });
 });
+it('should return 500 if the database throws an error', async () => {
+    
+    User.findOne.mockRejectedValue(new Error("Database connection failed"));
+
+    const response = await request(app)
+      .get('/?auth0Id=auth0|123');
+
+    expect(response.status).toBe(500);
+
+
+    expect(response.body).toEqual({ message: "Server error" });
+
+    expect(console.error).toHaveBeenCalled();
+});
 });
