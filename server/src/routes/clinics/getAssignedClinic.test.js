@@ -23,10 +23,9 @@ describe('getAssignedClinic API', () => {
     });
 
 it('should return clinic successfully', async () => {
-    const mockUser = { _id: 'userId', auth0Id: 'auth0|123' };
+    const mockUser = { _id: 'userId', auth0Id: 'auth0|123', role: 'staff' };
     const mockStaffRecord = { Clinic: 'clinicId1' };
-    const mockClinic = 
-      { _id: 'clinicId1', practiceName: 'Clinic 1' };
+    const mockClinic = { _id: 'clinicId1', practiceName: 'Clinic 1' };
 
     User.findOne.mockResolvedValue(mockUser);
     Staff.find.mockResolvedValue(mockStaffRecord);
