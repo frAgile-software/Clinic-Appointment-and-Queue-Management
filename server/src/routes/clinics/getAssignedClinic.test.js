@@ -27,18 +27,25 @@ it('should return clinic successfully', async () => {
     const mockStaffRecord = { Clinic: 'clinicId1' };
     const mockClinic = { _id: 'clinicId1', practiceName: 'Clinic 1' };
 
+
     User.findOne.mockResolvedValue(mockUser);
-    Staff.find.mockResolvedValue(mockStaffRecord);
-    Clinic.find.mockResolvedValue(mockClinic);
+
+ 
+    Staff.findOne.mockResolvedValue(mockStaffRecord);
+
+   
+    Clinic.findById.mockResolvedValue(mockClinic);
 
     const response = await request(app)
       .get('/?auth0Id=auth0|123');
 
+ 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(mockClinic);
-    expect(User.findOne).toHaveBeenCalledWith({ auth0Id: 'auth0|123' });
-    expect(Staff.find).toHaveBeenCalledWith({ User: 'userId' });
-    expect(Clinic.find).toHaveBeenCalledWith({ _id:  'clinicId1' });
-  });
-});
+    
 
+    expect(User.findOne).toHaveBeenCalledWith({ auth0Id: 'auth0|123' });
+    expect(Staff.findOne).toHaveBeenCalledWith({ User: 'userId' });
+    expect(Clinic.findById).toHaveBeenCalledWith('clinicId1');
+});
+});
