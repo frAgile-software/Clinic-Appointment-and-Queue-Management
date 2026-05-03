@@ -126,7 +126,7 @@ return (
               <p><strong>Email:</strong> {profileData?.email}</p>
               <p><strong>Occupation:</strong> {profileData?.occupation}</p>
               <div className="clinic-assignments">
-                <p><strong>Assigned Clinic:</strong> General Medical Center</p>
+                <p><strong>Assigned Clinic:</strong> {clinic ? clinic.practiceName : 'No assigned clinic'}</p>
                 <button className="btn-secondary">View Details</button>
               </div>
               <span className="clinic-badge clinic-badge--open">Active Staff</span>
