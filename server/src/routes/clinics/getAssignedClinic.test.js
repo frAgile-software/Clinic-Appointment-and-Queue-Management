@@ -23,7 +23,7 @@ describe('getAssignedClinic API', () => {
     });
 
 it('should return clinic successfully', async () => {
-    const mockUser = { _id: 'userId', auth0Id: 'auth0|123', role: 'staff' };
+    const mockUser = { _id: 'userId', auth0Id: 'auth0|123', role: 'Staff' };
     const mockStaffRecord = { Clinic: 'clinicId1' };
     const mockClinic = { _id: 'clinicId1', practiceName: 'Clinic 1' };
 
@@ -50,31 +50,16 @@ it('should return clinic successfully', async () => {
 });
 
 
-it('should return error if auth0Id is missing', async () => {
-   const mockUser = { _id: 'userId', auth0Id: 'auth0|123', role: 'staff' };
-    const mockStaffRecord = { Clinic: 'clinicId1' };
-    const mockClinic = { _id: 'clinicId1', practiceName: 'Clinic 1' };
-
-
-    User.findOne.mockResolvedValue(mockUser);
-
- 
-    Staff.findOne.mockResolvedValue(mockStaffRecord);
-
+it('should return 404 if user does not exist in database', async () => {
    
-    Clinic.findById.mockResolvedValue(mockClinic);
+    User.findOne.mockResolvedValue(null);
 
-    const response = await request(app)
-      .get('/?auth0Id=auth0|123');
+    const response = await request(app).get('/?auth0Id=auth0|999');
 
- 
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual(mockClinic);
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({ error: "Staff user not found" });
     
-
-    expect(User.findOne).toHaveBeenCalledWith({ auth0Id: 'auth0|123' });
-    expect(Staff.findOne).toHaveBeenCalledWith({ User: 'userId' });
-    expect(Clinic.findById).toHaveBeenCalledWith('clinicId1');
+    expect(Staff.findOne).not.toHaveBeenCalled();
 });
 it('should return 400 if auth0Id is missing from the query', async () => {
 
