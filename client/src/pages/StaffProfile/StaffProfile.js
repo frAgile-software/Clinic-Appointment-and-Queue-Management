@@ -17,14 +17,10 @@ function StaffProfile() {
 
   const [profileData, setProfileData] = useState(null);
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
-  const [clinic, setClinic] = useState(null);
+  const [clinics, setClinics] = useState(null);
+  console.log("Current state of clinics:", clinics?.practiceName);
   const [loading, setLoading] = useState(false);
-  
-
-  
-
-  
-
+  void clinics;
   const staffId = user?.sub;
 
   const logout = () => {
@@ -48,38 +44,42 @@ function StaffProfile() {
   };
 
   try {
-    console.log("Updating with data:", updatedData);    
-    const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedData),
-    });
+      console.log("Updating with data:", updatedData);    
+      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData),
+      });
 
-    if (response.ok) {
-      setProfileData(updatedData);
-      toggleChangeDetailsModal();
-      alert("Details updated successfully!");
+      if (response.ok) {
+        setProfileData(updatedData);
+        toggleChangeDetailsModal();
+        alert("Details updated successfully!");
+      }
+    } catch (error) {
+      console.error("Update failed:", error);
     }
-  } catch (error) {
-    console.error("Update failed:", error);
-  }
   };
 
-  useEffect(() => {
+    useEffect(() => {
     if (!staffId) return;
-    async function fetchClinic() {
+    async function fetchClinics() {
       try {
+        console.log("Fetching clinics for staffId:", staffId);
         setLoading(true);
         const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`);
         const data = await response.json();
-        setClinic(data);
+        console.log("Fetched clinics:", data);
+        setClinics(data);
+        
       } catch (error) {
-        console.error("Could not fetch clinic:", error);
+        console.error("Could not fetch clinics:", error);
       } finally {
         setLoading(false);
       }
     }
-    fetchClinic();
+    fetchClinics();
+
   }, [staffId, apiFetch]);
 
   useEffect(() => {
@@ -126,7 +126,7 @@ return (
               <p><strong>Email:</strong> {profileData?.email}</p>
               <p><strong>Occupation:</strong> {profileData?.occupation}</p>
               <div className="clinic-assignments">
-                <p><strong>Assigned Clinic:</strong> {clinic ? clinic.practiceName : 'No assigned clinic'}</p>
+                <p><strong>Assigned Clinic:</strong> {clinics ? clinics.practiceName : 'No assigned clinic'}</p>
                 <button className="btn-secondary">View Details</button>
               </div>
               <span className="clinic-badge clinic-badge--open">Active Staff</span>

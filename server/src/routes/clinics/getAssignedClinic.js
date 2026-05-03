@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
         }
 
         const user = await User.findOne({ auth0Id });
-        if (!user || user.role !== "staff") {
+        if (!user || user.role !== "Staff") {
             return res.status(404).json({ error: "Staff user not found" });
         }
 
