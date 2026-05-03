@@ -17,6 +17,7 @@ function StaffProfile() {
 
   const [profileData, setProfileData] = useState(null);
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
+  const [isClinicDetailsModalOpen, setIsClinicDetailsModalOpen] = useState(false);
   const [clinics, setClinics] = useState(null);
   console.log("Current state of clinics:", clinics?.practiceName);
   const [loading, setLoading] = useState(false);
@@ -30,6 +31,12 @@ function StaffProfile() {
   const toggleChangeDetailsModal = () => {
     setIsChangeDetailsModalOpen(!isChangeDetailsModalOpen);
   };
+
+  const toggleClinicDetailsModal = () => {
+    setIsClinicDetailsModalOpen(!isClinicDetailsModalOpen);
+  };
+
+
 
   const handleUpdate = async () => {
   if (!staffId){
@@ -124,10 +131,12 @@ return (
             <div className="details-content">
               <p><strong>Name:</strong> {profileData?.name}</p>
               <p><strong>Email:</strong> {profileData?.email}</p>
-              <p><strong>Occupation:</strong> {profileData?.occupation}</p>
+              <p><strong>Speciality:</strong> {clinics?.practiceTypeDescription}</p>
               <div className="clinic-assignments">
                 <p><strong>Assigned Clinic:</strong> {clinics ? clinics.practiceName : 'No assigned clinic'}</p>
-                <button className="btn-secondary">View Details</button>
+                <button className="btn-secondary" onClick={toggleClinicDetailsModal}>
+                  View Details
+                </button>
               </div>
               <span className="clinic-badge clinic-badge--open">Active Staff</span>
             </div>
@@ -178,6 +187,28 @@ return (
         </div>
         
       </form>
+    </div>
+  </div>
+)}
+{isClinicDetailsModalOpen && (
+  <div className="modal-overlay">
+    <div className="modal-content clinic-card"> 
+      <h3 className="clinic-name">Your Clinic Details</h3>
+      
+      {clinics ? (
+        <>
+          <p><strong>Clinic Name:</strong> {clinics.practiceName}</p>
+          <p><strong>Address:</strong> {clinics.physicalAddress}</p>
+          <p><strong>Phone:</strong> {clinics.contactNumber}</p>
+        </>
+      ) : (
+        <div className="no-clinic-message">
+          <p><strong>NO CLINIC ASSIGNED</strong></p>
+          <p>Please contact your administrator to have a clinic assigned.</p>
+        </div>
+      )}
+      
+      <button className="btn btn-primary" onClick={toggleClinicDetailsModal}>Close</button>
     </div>
   </div>
 )}
