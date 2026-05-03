@@ -48,4 +48,40 @@ it('should return clinic successfully', async () => {
     expect(Staff.findOne).toHaveBeenCalledWith({ User: 'userId' });
     expect(Clinic.findById).toHaveBeenCalledWith('clinicId1');
 });
+
+
+it('should return error if auth0Id is missing', async () => {
+   const mockUser = { _id: 'userId', auth0Id: 'auth0|123', role: 'staff' };
+    const mockStaffRecord = { Clinic: 'clinicId1' };
+    const mockClinic = { _id: 'clinicId1', practiceName: 'Clinic 1' };
+
+
+    User.findOne.mockResolvedValue(mockUser);
+
+ 
+    Staff.findOne.mockResolvedValue(mockStaffRecord);
+
+   
+    Clinic.findById.mockResolvedValue(mockClinic);
+
+    const response = await request(app)
+      .get('/?auth0Id=auth0|123');
+
+ 
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(mockClinic);
+    
+
+    expect(User.findOne).toHaveBeenCalledWith({ auth0Id: 'auth0|123' });
+    expect(Staff.findOne).toHaveBeenCalledWith({ User: 'userId' });
+    expect(Clinic.findById).toHaveBeenCalledWith('clinicId1');
+});
+it('should return 400 if auth0Id is missing from the query', async () => {
+
+    const response = await request(app)
+      .get('/'); // No ?auth0Id
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Missing auth0Id" });
+});
 });
