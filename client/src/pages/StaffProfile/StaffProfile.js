@@ -17,10 +17,10 @@ function StaffProfile() {
 
   const [profileData, setProfileData] = useState(null);
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
-  const [clinics, setClinics] = useState([]);
+  const [clinic, setClinic] = useState(null);
   const [loading, setLoading] = useState(false);
   
-  void clinics; // To avoid unused variable warning
+
   
 
   
@@ -40,7 +40,7 @@ function StaffProfile() {
     console.error("No staffId found, cannot update.");
     return;
   };
-  const updatedData = {
+    const updatedData = {
     name: nameRef.current.value,
     surname: surnameRef.current.value,
     title: titleRef.current.value,
@@ -67,19 +67,19 @@ function StaffProfile() {
 
   useEffect(() => {
     if (!staffId) return;
-    async function fetchClinics() {
+    async function fetchClinic() {
       try {
         setLoading(true);
         const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`);
         const data = await response.json();
-        setClinics(data);
+        setClinic(data);
       } catch (error) {
-        console.error("Could not fetch clinics:", error);
+        console.error("Could not fetch clinic:", error);
       } finally {
         setLoading(false);
       }
     }
-    fetchClinics();
+    fetchClinic();
   }, [staffId, apiFetch]);
 
   useEffect(() => {
