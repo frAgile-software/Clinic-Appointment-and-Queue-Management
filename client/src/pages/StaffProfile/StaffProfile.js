@@ -95,7 +95,6 @@ function StaffProfile() {
         console.log("Fetched specialities response:", data);
         setSpecialities(data.Specialities || []);
         console.log("Fetched specialities:", data);
-        setSpecialities(data);
       } catch (error) {
         console.error("Could not fetch specialities:", error);
       };
