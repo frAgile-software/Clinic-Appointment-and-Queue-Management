@@ -18,7 +18,6 @@ function StaffProfile() {
   const [profileData, setProfileData] = useState(null);
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [isClinicDetailsModalOpen, setIsClinicDetailsModalOpen] = useState(false);
-  const [userID, setUserID] = useState(null);
   const [clinics, setClinics] = useState(null);
   const [specialities, setSpecialities] = useState([]);
   console.log("Current state of clinics:", clinics?.practiceName);
@@ -93,6 +92,7 @@ function StaffProfile() {
         console.log("Fetching specialities...");
         const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/${profileData._id}/specialities`);
         const data = await response.json();
+        console.log("Fetched specialities response:", data);
         setSpecialities(data.Specialities || []);
         console.log("Fetched specialities:", data);
         setSpecialities(data);
