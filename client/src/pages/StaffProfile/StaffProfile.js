@@ -19,6 +19,7 @@ function StaffProfile() {
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [isClinicDetailsModalOpen, setIsClinicDetailsModalOpen] = useState(false);
   const [clinics, setClinics] = useState(null);
+  const [specialities, setSpecialities] = useState([]);
   console.log("Current state of clinics:", clinics?.practiceName);
   const [loading, setLoading] = useState(false);
   void clinics;
@@ -67,6 +68,22 @@ function StaffProfile() {
       console.error("Update failed:", error);
     }
   };
+
+  useEffect(() => {
+    async function fetchSpecialities() {
+      try { 
+        console.log("Fetching specialities...");
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/${staffId}/specialities`);
+        const data = await response.json();
+        setSpecialities(data.Specialities || []);
+        console.log("Fetched specialities:", data);
+        setSpecialities(data);
+      } catch (error) {
+        console.error("Could not fetch specialities:", error);
+      };
+    }
+    fetchSpecialities();
+  }, [apiFetch, staffId]);
 
     useEffect(() => {
     if (!staffId) return;
@@ -131,7 +148,16 @@ return (
             <div className="details-content">
               <p><strong>Name:</strong> {profileData?.name}</p>
               <p><strong>Email:</strong> {profileData?.email}</p>
-              <p><strong>Speciality:</strong> {clinics?.practiceTypeDescription}</p>
+                <div><strong>Specialities:</strong>
+                    <div className="speciality-list">
+                        {specialities.length > 0 ? (
+                            specialities.map((spec, index) => (
+                                <span key={index} className="speciality-item">{spec}</span>
+                            ))
+                        ) : (
+                            <p>No specialities found.</p>
+                        )}
+                    </div></div>
               <div className="clinic-assignments">
                 <p><strong>Assigned Clinic:</strong> {clinics ? clinics.practiceName : 'No assigned clinic'}</p>
                 <button className="btn-secondary" onClick={toggleClinicDetailsModal}>
