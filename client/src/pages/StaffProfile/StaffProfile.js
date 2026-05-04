@@ -101,7 +101,7 @@ function StaffProfile() {
       };
     }
     fetchSpecialities();
-  }, [apiFetch, staffId]);
+  }, [apiFetch, staffId, profileData]);
 
     useEffect(() => {
     if (!staffId) return;
