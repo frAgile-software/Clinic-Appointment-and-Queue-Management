@@ -1,7 +1,7 @@
 const request = require("supertest");
 const express = require("express");
 
-const getUserScheduleRouter = require("../schedules/getUserSchedule");
+const getUserScheduleRouter = require("./getUserSchedule");
 const User = require("../../database/models/User");
 const Schedule = require("../../database/models/Schedule");
 
@@ -13,8 +13,16 @@ app.use(express.json());
 app.use("/api/schedules", getUserScheduleRouter);
 
 describe("GET /api/schedules/:userId", () => {
-    afterEach(() => {
+    beforeEach(() => {
         jest.clearAllMocks();
+        // Suppress console output to prevent CI pipeline failures on expected errors
+        jest.spyOn(console, 'log').mockImplementation(() => {});
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        console.log.mockRestore();
+        console.error.mockRestore();
     });
 
     test("should return 404 if user does not exist", async () => {
