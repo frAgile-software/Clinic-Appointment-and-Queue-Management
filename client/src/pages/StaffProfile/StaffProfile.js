@@ -9,7 +9,7 @@ function StaffProfile() {
   const surnameRef = useRef();
   const titleRef = useRef();
   const emailRef = useRef();
-
+  
 
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ function StaffProfile() {
   const [profileData, setProfileData] = useState(null);
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [isClinicDetailsModalOpen, setIsClinicDetailsModalOpen] = useState(false);
+  const [userID, setUserID] = useState(null);
   const [clinics, setClinics] = useState(null);
   const [specialities, setSpecialities] = useState([]);
   console.log("Current state of clinics:", clinics?.practiceName);
@@ -69,11 +70,26 @@ function StaffProfile() {
     }
   };
 
+
+  useEffect(() => {
+    async function fetchUserId() {
+      try {
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
+        const data = await response.json();
+        setUserID(data._id);
+        console.log("Fetched user ID:", data._id);
+      } catch (error) {
+        console.error("Could not fetch user ID:", error);
+      }
+    }
+    fetchUserId();
+  }, [staffId, apiFetch]);
+
   useEffect(() => {
     async function fetchSpecialities() {
       try { 
         console.log("Fetching specialities...");
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/${staffId}/specialities`);
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/auth0Id=${staffId}/specialities`);
         const data = await response.json();
         setSpecialities(data.Specialities || []);
         console.log("Fetched specialities:", data);
