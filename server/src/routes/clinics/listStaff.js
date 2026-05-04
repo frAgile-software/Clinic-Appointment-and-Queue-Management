@@ -4,38 +4,40 @@ const User = require("../../database/models/User");
 const Clinic = require("../../database/models/Clinic");
 const Staff = require("../../database/models/Staff");
 
+// GET /clinics/:clinicID/staff - Public route
 router.get("/:clinicID/staff", async (req, res) => {
     try {
         const { clinicID } = req.params;
-        const { auth0Id } = req.query;
-        
+
         // Get referenced clinic
         const clinic = await Clinic.exists({ _id: clinicID });
         if (!clinic) 
             return res.status(404).json({ message: "Clinic not found." });
 
+        // Find all staff linked to this clinic, and populate the User reference
+        const linkedStaff = await Staff.find({ Clinic: clinicID })
+            .populate('User', 'name surname email role title');
 
-        // Check if allowed
-        const sender = await User.findOne({ auth0Id });
-        if (!sender) 
-            return res.status(403).json({ message: "Unauthorized." });
+        if (!linkedStaff || linkedStaff.length === 0) {
+            return res.status(200).json({ 
+                message: "No staff found for this clinic.", 
+                users: [] 
+            });
+        }
 
-        const senderStaff = await Staff.exists({ Clinic: clinic._id, User: sender._id });
-        if (!senderStaff) 
-            return res.status(403).json({ message: "Unauthorized." });
+        // Extract populated user objects, keep Staff role only (exclude Admins)
+        const staffUsers = linkedStaff
+            .map(s => s.User)
+            .filter(u => u && u.role === 'Staff');
 
-
-        // Get and return linked staff
-        const linkedStaff = await Staff.find({ Clinic: clinicID }).populate({
-          path: "User",
-          select: "-auth0Id"
-        });
-        const linkedUsers = linkedStaff.map(staff => staff.User);
         
-        res.status(200).json({ message: "Retrieved linked staff successfully.", users: linkedUsers });
+        res.status(200).json({ 
+            message: "Retrieved linked staff successfully.", 
+            users: staffUsers
+        });
 
     } catch (error) {
-        console.error("User lookup error:", error);
+        console.error("Error in listStaff:", error);
         res.status(500).json({ message: "Server error." });
     }
 });
