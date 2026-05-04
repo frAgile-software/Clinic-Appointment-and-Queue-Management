@@ -38,8 +38,6 @@ function StaffProfile() {
     setIsClinicDetailsModalOpen(!isClinicDetailsModalOpen);
   };
 
-
-
   const handleUpdate = async () => {
   if (!staffId){
     console.error("No staffId found, cannot update.");
@@ -51,7 +49,6 @@ function StaffProfile() {
     title: titleRef.current.value,
     email: emailRef.current.value,
   };
-
   try {
       console.log("Updating with data:", updatedData);    
       const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`, {
@@ -70,26 +67,31 @@ function StaffProfile() {
     }
   };
 
-
+  //fetch profile data
   useEffect(() => {
-    async function fetchUserId() {
+    if (!staffId) return;
+
+    const fetchProfileData = async () => {
       try {
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`);
         const data = await response.json();
-        setUserID(data._id);
-        console.log("Fetched user ID:", data._id);
+        console.log("User data", data);
+        setProfileData(data);
       } catch (error) {
-        console.error("Could not fetch user ID:", error);
+        console.error("Could not fetch profile data:", error);
       }
-    }
-    fetchUserId();
+    };
+
+    fetchProfileData();
   }, [staffId, apiFetch]);
 
+  //fetch specialities
   useEffect(() => {
+    if (!profileData) return;
     async function fetchSpecialities() {
       try { 
         console.log("Fetching specialities...");
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/auth0Id=${staffId}/specialities`);
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/${profileData._id}/specialities`);
         const data = await response.json();
         setSpecialities(data.Specialities || []);
         console.log("Fetched specialities:", data);
@@ -122,22 +124,7 @@ function StaffProfile() {
 
   }, [staffId, apiFetch]);
 
-  useEffect(() => {
-    if (!staffId) return;
-
-    const fetchProfileData = async () => {
-      try {
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`);
-        const data = await response.json();
-        console.log("My Backend Data:", data);
-        setProfileData(data);
-      } catch (error) {
-        console.error("Could not fetch profile data:", error);
-      }
-    };
-
-    fetchProfileData();
-  }, [staffId, apiFetch]);
+  
 
 return (
   <div className="landing"> 
