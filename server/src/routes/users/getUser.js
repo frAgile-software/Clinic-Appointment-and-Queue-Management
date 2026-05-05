@@ -11,7 +11,7 @@ router.get("/:auth0Id", async (req, res) => {
             return res.status(404).json({ message: "User profile incomplete." });
         }
 
-        res.status(200).json({ role: user.role, name: user.name });
+        res.status(200).json(user);
 
     } catch (error) {
         console.error("User lookup error:", error);
