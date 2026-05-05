@@ -14,12 +14,17 @@ function PatientProfile() {
     const navigate = useNavigate();
     const {apiFetch} = useApiAuth();
  
+    const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(false);
     const patientId = user?.sub;
 
     const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+    };
+
+    const toggleChangeDetailsModal = () => {
+        setIsChangeDetailsModalOpen(!isChangeDetailsModalOpen);
     };
 
     const handleUpdate = async () => {
