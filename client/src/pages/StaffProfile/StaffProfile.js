@@ -58,11 +58,17 @@ function StaffProfile() {
       return;
   };
   try {
-      console.log("Updating with data:", updatedData);    
-      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData),
+    if (emailRef.current.value !== profileData.email && (staffId?.startsWith("auth0|") || staffId?.startsWith("auth0|"))) {
+      alert("auth0 Email change is not allowed. Please contact support.");
+      emailRef.current.value = profileData.email;
+      return;
+    }
+
+    console.log("Updating with data:", updatedData);    
+    const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updatedData),
       });
 
       if (response.ok) {
@@ -214,8 +220,8 @@ return (
           </div>
           <div className='inline-components'>
             <label>Email</label> 
-            <input type="email" disabled ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-          </div> {/*update email is disabled currently ^^*/}
+            <input type="email" ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+          </div> 
           
 
         <div className="landing-nav-btns" style={{marginTop: '20px'}}>
