@@ -120,6 +120,16 @@ describe('PATCH /api/users/:auth0Id', () => {
         expect(res.statusCode).toEqual(500);
     });
 
+    test('Returns 400 when trying to update social email', async () => {
+        User.findOne.mockResolvedValueOnce(validUser);
+
+        const res = await request(app)
+            .patch('/api/users/google-oauth2|mockUserId123')
+            .send({ email: 'new@example.com' });
+
+        expect(res.statusCode).toEqual(400);
+    });
+
     test('Returns 500 for server failure', async () => {
         User.findOne.mockRejectedValueOnce(new Error('Server error.'));
 
