@@ -32,19 +32,11 @@ router.patch("/:auth0Id", async (req,res) => {
         const { auth0Id } = req.params;
         const user = await User.findOne({auth0Id});
 
-        const {name, surname, title, email, role} = req.body;
-        const updates = {};
-        if (name) updates.name = name;
-        if (surname) updates.surname = surname;
-        if (title) updates.title = title;
-        if (email) updates.email = email;
-        if (role) updates.role = role;
-
         if (!user) {
             return res.status(404).json({ message: "User does not exist."});
         }
 
-        if (email) {
+        if (req.body.email) {
             if (!auth0Id.startsWith("auth0|")) {
                 return res.status(400).json({
                     message: "Email cannot change with social login accounts."
@@ -55,7 +47,7 @@ router.patch("/:auth0Id", async (req,res) => {
 
         const updatedUser = await User.findOneAndUpdate(
             { auth0Id: auth0Id },
-            { $set: updates },
+            { $set: req.body },
             { new: true, runValidators: true }
         );
 
