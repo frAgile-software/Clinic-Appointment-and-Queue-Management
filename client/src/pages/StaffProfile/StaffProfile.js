@@ -39,14 +39,23 @@ function StaffProfile() {
 
   const handleUpdate = async () => {
   if (!staffId){
-    console.error("No staffId found, cannot update.");
+    console.error("No user found, cannot update.");
     return;
   };
-    const updatedData = {
-    name: nameRef.current.value,
-    surname: surnameRef.current.value,
-    title: titleRef.current.value,
-    email: emailRef.current.value,
+    const changes = {
+            name: nameRef.current.value,
+            surname: surnameRef.current.value,
+            title: titleRef.current.value,
+            email: emailRef.current.value,
+        };
+     const updatedData = Object.fromEntries(
+      Object.entries(changes).filter(([key, value]) => value !== profileData?.[key])
+    );
+    
+    if (Object.keys(updatedData).length === 0) {
+      alert("No changes detected.");
+      toggleChangeDetailsModal();
+      return;
   };
   try {
       console.log("Updating with data:", updatedData);    
@@ -57,7 +66,7 @@ function StaffProfile() {
       });
 
       if (response.ok) {
-        setProfileData(updatedData);
+        setProfileData(prev=> ({ ...prev, ...updatedData }));
         toggleChangeDetailsModal();
         alert("Details updated successfully!");
       }
