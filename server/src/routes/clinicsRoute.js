@@ -4,6 +4,7 @@ const { requireAuth } = require('../middleware/auth');
 
 const clinicInfo = require("./clinics/clinicInfo");
 const listAssignedClinics = require("./clinics/listAssignedClinics");
+const getAssignedClinic = require("./clinics/getAssignedClinic");
 const getClinic = require("./clinics/getClinic");
 const createClinic = require("./clinics/createClinic");
 const updateClinic = require("./clinics/updateClinic");
@@ -19,6 +20,7 @@ router.use("/clinics", getClinic);
 router.use("/clinics", getStaffSpecialities);
 
 // API routes - specific routes first
+router.use("/api/clinics/assigned", requireAuth, getAssignedClinic);
 router.use("/api/clinics/assigned", requireAuth, listAssignedClinics);
 
 // Other API clinic routes
