@@ -8,8 +8,9 @@ const patientLogSchema = new Schema({
     VisitType: {type: String, required: true},
     TimeIn: {type: Date, required: true, default: Date.now},
     TimeOut: {type: Date, required: true, default: Date.now},
-    TimeQStart: {type: Date, required: true, default: Date.now}
-});
+    TimeQStart: {type: Date, required: true, default: Date.now},
+    Status: {type: String, required: true},
+}, {timestamps: true});
 
 const PatientLog = mongoose.model('PatientLog', patientLogSchema);
 module.exports = PatientLog;
