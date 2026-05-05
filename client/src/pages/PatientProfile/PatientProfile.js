@@ -68,12 +68,15 @@ function PatientProfile() {
 
         const fetchProfileData = async () => {
             try {
+                setLoading(true);
                 const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${patientId}`);
                 const data = await response.json();
                 console.log("User data", data);
                 setProfileData(data);
             } catch (error) {
                 console.error("Could not fetch profile data:", error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -93,27 +96,45 @@ function PatientProfile() {
             <main className="profile-container">
                 <header className="profile-header">
                     <h1 className="profile-title">My Profile</h1>
-                    <p className="profile-subtitle">Manage your account</p>
                 </header>
 
                 {loading ? (
                     <div className="landing--loading">Loading profile details...</div>
                 ) : (
                     <section className="profile-grid">
-                    <div className="profile-actions-card">
-                        <span>Account Actions</span>
-                        <h3 className='sub-heading'>Management Requests</h3>
-                        <div className="action-button-list">
-                        <button className="action-item-btn" onClick={toggleChangeDetailsModal}>Update personal details</button>
+                        <div className="profile-actions-card">
+                            <h3 className='profile-subtitle'>Account Details</h3>
+                            {profileData && (
+                                <section className='profile-display'>
+                                    <div className='inline-components'>
+                                        <label>Title</label>
+                                        <p>{profileData?.title}</p>
+                                    </div>
+                                    <div className='inline-components'>
+                                        <label>Name</label>
+                                        <p>{profileData?.name}</p>
+                                    </div>
+                                    <div className='inline-components'>
+                                        <label>Surname</label>
+                                        <p>{profileData?.surname}</p>
+                                    </div>
+                                    <div className='inline-components'>
+                                        <label>Email</label> 
+                                        <p>{profileData?.email}</p>
+                                    </div>
+                                </section>
+                            )}
+                            <div className="action-button-list">
+                                <button className="action-item-btn" onClick={toggleChangeDetailsModal}>Update account details</button>
+                            </div>
                         </div>
-                    </div>
                     </section>
                 )}
 
                 {isChangeDetailsModalOpen && (
                     <div className="modal-overlay">
                         <div className="modal-content details-card"> 
-                            <h3 className="sub-heading">Edit Personal Details</h3>
+                            <h3 className="sub-heading">Edit Account Details</h3>
                             
                             <form className="details-content">
                                 
