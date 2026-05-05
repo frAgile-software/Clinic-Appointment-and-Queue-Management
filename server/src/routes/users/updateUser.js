@@ -1,6 +1,7 @@
 const express = require("express");
 const User = require("../../database/models/User");
 const router = express.Router();
+const {getAuth0ManagementToken} = require("../../middleware/auth");
 
 async function updateAuth0Email(auth0Id, newEmail) {
     const token = await getAuth0ManagementToken();
