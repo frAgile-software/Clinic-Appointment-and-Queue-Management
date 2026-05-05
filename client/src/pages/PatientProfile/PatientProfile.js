@@ -33,12 +33,22 @@ function PatientProfile() {
             return;
         };
 
-        const updatedData = {
+        const changes = {
             name: nameRef.current.value,
             surname: surnameRef.current.value,
             title: titleRef.current.value,
             email: emailRef.current.value,
         };
+
+        const updatedData = Object.fromEntries(
+            Object.entries(changes).filter(([key, value]) => value !== profileData?.[key])
+        );
+
+        if (Object.keys(updatedData).length === 0) {
+            alert('No changes made.');
+            toggleChangeDetailsModal();
+            return;
+        }
 
         try {
             console.log("Updating with data:", updatedData);    
@@ -49,7 +59,7 @@ function PatientProfile() {
             });
 
             if (response.ok) {
-                setProfileData(updatedData);
+                setProfileData(prev => ({ ...prev, ...updatedData }));
                 toggleChangeDetailsModal();
                 alert("Details updated successfully!");
             };
@@ -152,8 +162,8 @@ function PatientProfile() {
                                 </div>
                                 <div className='inline-components'>
                                     <label>Email</label> 
-                                    <input type="email" disabled ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-                                </div> {/*update email is disabled currently ^^*/}
+                                    <input type="email" disabled={!patientId || !patientId?.startsWith("auth0|")} ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+                                </div>
                                 
 
                                 <div className="landing-nav-btns" style={{marginTop: '20px'}}>
