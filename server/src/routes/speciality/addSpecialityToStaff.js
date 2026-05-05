@@ -5,9 +5,9 @@ const Staff = require("../../database/models/Staff");
 const Speciality = require("../../database/models/Speciality");
 const StaffSpeciality = require("../../database/models/StaffSpeciality");
 
-router.post("/staff", async (req,res) => {
+router.post("/staff/:staffId/:specialityId", async (req,res) => {
     try {
-        const { Staff: staffId, Speciality: specialityId } = req.body;
+        const { staffId, specialityId } = req.params;
         if (!mongoose.Types.ObjectId.isValid(staffId)) {
             return res.status(400).json({ message: "Invalid staff ID." });
         }

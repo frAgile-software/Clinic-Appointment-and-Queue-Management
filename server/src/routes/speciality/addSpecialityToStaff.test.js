@@ -14,18 +14,14 @@ const app = express();
 app.use(express.json());
 app.use("/api/specialities", addSpecialityToStaffRouter);
 
-describe("POST /api/specialities/staff", () => {
+describe("POST /api/specialities/staff/:staffId/:specialityId", () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
 
     test("should return 400 if staff ID is invalid", async () => {
         const response = await request(app)
-            .post("/api/specialities/staff")
-            .send({
-                Staff: "bad-id",
-                Speciality: "222222222222222222222222"
-            });
+            .post("/api/specialities/staff/bad-id/222222222222222222222222");
 
         expect(response.status).toBe(400);
         expect(response.body).toEqual({ message: "Invalid staff ID." });
@@ -33,11 +29,7 @@ describe("POST /api/specialities/staff", () => {
 
     test("should return 400 if speciality ID is invalid", async () => {
         const response = await request(app)
-            .post("/api/specialities/staff")
-            .send({
-                Staff: "111111111111111111111111",
-                Speciality: "bad-id"
-            });
+            .post("/api/specialities/staff/111111111111111111111111/bad-id");
 
         expect(response.status).toBe(400);
         expect(response.body).toEqual({ message: "Invalid speciality ID." });
@@ -47,14 +39,11 @@ describe("POST /api/specialities/staff", () => {
         Staff.findById.mockResolvedValue(null);
 
         const response = await request(app)
-            .post("/api/specialities/staff")
-            .send({
-                Staff: "111111111111111111111111",
-                Speciality: "222222222222222222222222"
-            });
+            .post("/api/specialities/staff/111111111111111111111111/222222222222222222222222");
 
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ message: "Staff not found." });
+        expect(Staff.findById).toHaveBeenCalledWith("111111111111111111111111");
     });
 
     test("should return 404 if speciality does not exist", async () => {
@@ -62,14 +51,11 @@ describe("POST /api/specialities/staff", () => {
         Speciality.findById.mockResolvedValue(null);
 
         const response = await request(app)
-            .post("/api/specialities/staff")
-            .send({
-                Staff: "111111111111111111111111",
-                Speciality: "222222222222222222222222"
-            });
+            .post("/api/specialities/staff/111111111111111111111111/222222222222222222222222");
 
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ message: "Speciality not found." });
+        expect(Speciality.findById).toHaveBeenCalledWith("222222222222222222222222");
     });
 
     test("should return 409 if staff already has this speciality", async () => {
@@ -81,11 +67,7 @@ describe("POST /api/specialities/staff", () => {
         });
 
         const response = await request(app)
-            .post("/api/specialities/staff")
-            .send({
-                Staff: "111111111111111111111111",
-                Speciality: "222222222222222222222222"
-            });
+            .post("/api/specialities/staff/111111111111111111111111/222222222222222222222222");
 
         expect(response.status).toBe(409);
         expect(response.body).toEqual({ message: "Staff already has this speciality." });
@@ -104,11 +86,7 @@ describe("POST /api/specialities/staff", () => {
         StaffSpeciality.create.mockResolvedValue(mockCreatedLink);
 
         const response = await request(app)
-            .post("/api/specialities/staff")
-            .send({
-                Staff: "111111111111111111111111",
-                Speciality: "222222222222222222222222"
-            });
+            .post("/api/specialities/staff/111111111111111111111111/222222222222222222222222");
 
         expect(response.status).toBe(201);
         expect(response.body).toEqual({
@@ -126,11 +104,7 @@ describe("POST /api/specialities/staff", () => {
         Staff.findById.mockRejectedValue(new Error("Database failure"));
 
         const response = await request(app)
-            .post("/api/specialities/staff")
-            .send({
-                Staff: "111111111111111111111111",
-                Speciality: "222222222222222222222222"
-            });
+            .post("/api/specialities/staff/111111111111111111111111/222222222222222222222222");
 
         expect(response.status).toBe(500);
         expect(response.body).toEqual({ message: "Server error." });
