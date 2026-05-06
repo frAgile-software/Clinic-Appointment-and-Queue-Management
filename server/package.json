@@ -22,5 +22,10 @@
     "express-oauth2-jwt-bearer": "^1.8.0",
     "mongoose": "^9.3.3",
     "path": "^0.12.7"
+  },
+  "jest": {
+    "coveragePathIgnorePatterns": [
+        "src/middleware/"
+    ]
   }
 }

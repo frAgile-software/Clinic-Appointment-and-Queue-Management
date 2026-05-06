@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PatientProfile from './PatientProfile';
 import { MemoryRouter } from 'react-router';
+import { act } from 'react';
 
 const mockApiFetch = jest.fn();
 
@@ -105,16 +106,106 @@ describe('Modal tests', () => {
         expect(screen.queryByText(/edit account details/i)).not.toBeInTheDocument();
     });
 
-    test('calls apiFetch with PATCH on save', async () => {
+    describe('Only changed fields are sent on save', () => {
+
+        test('sends only the changed field in PATCH body', async () => {
+            renderComponent();
+            fireEvent.click(await screen.findByRole('button', { name: /update account details/i }));
+
+            fireEvent.change(screen.getByDisplayValue('Jane'), { target: { value: 'Janet' } });
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => {
+                expect(mockApiFetch).toHaveBeenCalledWith(
+                    expect.stringContaining('/api/users/auth0|test-patient-123'),
+                    expect.objectContaining({
+                        method: 'PATCH',
+                        body: JSON.stringify({ name: 'Janet' }),
+                    })
+                );
+            });
+        });
+
+        test('sends multiple changed fields when more than one is updated', async () => {
+            renderComponent();
+            fireEvent.click(await screen.findByRole('button', { name: /update account details/i }));
+
+            fireEvent.change(screen.getByDisplayValue('Jane'), { target: { value: 'Janet' } });
+            fireEvent.change(screen.getByDisplayValue('Ms'), { target: { value: 'Dr' } });
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => {
+                expect(mockApiFetch).toHaveBeenCalledWith(
+                    expect.stringContaining('/api/users/auth0|test-patient-123'),
+                    expect.objectContaining({
+                        method: 'PATCH',
+                        body: JSON.stringify({ name: 'Janet', title: 'Dr' }),
+                    })
+                );
+            });
+        });
+
+        test('does not call apiFetch when no fields are changed', async () => {
+            renderComponent();
+            await screen.findByRole('button', { name: /update account details/i });
+            mockApiFetch.mockClear();
+
+            fireEvent.click(screen.getByRole('button', { name: /update account details/i }));
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => {
+                expect(mockApiFetch).not.toHaveBeenCalled();
+            });
+        });
+
+        test('closes modal and shows alert when no fields are changed', async () => {
+            jest.spyOn(window, 'alert').mockImplementation(() => {});
+            renderComponent();
+            fireEvent.click(await screen.findByRole('button', { name: /update account details/i }));
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => {
+                expect(window.alert).toHaveBeenCalledWith('No changes made.');
+                expect(screen.queryByText(/edit account details/i)).not.toBeInTheDocument();
+            });
+
+            window.alert.mockRestore();
+        });
+
+        test('updates local profile state with only changed fields after save', async () => {
+            renderComponent();
+            fireEvent.click(await screen.findByRole('button', { name: /update account details/i }));
+
+            fireEvent.change(screen.getByDisplayValue('Jane'), { target: { value: 'Janet' } });
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => {
+                expect(screen.queryByText(/edit account details/i)).not.toBeInTheDocument();
+            });
+            expect(screen.getByText('Janet')).toBeInTheDocument();
+            expect(screen.getByText('Doe')).toBeInTheDocument();
+        });
+    });
+});
+
+describe('Email field disable logic', () => {
+    test('email is enabled for auth0 users (auth0| prefix)', async () => {
         renderComponent();
         fireEvent.click(await screen.findByRole('button', { name: /update account details/i }));
-        fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+        expect(screen.getByDisplayValue('jane.doe@example.com')).not.toBeDisabled();
+    });
 
-        await waitFor(() => {
-            expect(mockApiFetch).toHaveBeenCalledWith(
-                expect.stringContaining('/api/users/auth0|test-patient-123'),
-                expect.objectContaining({ method: 'PATCH' })
-            );
+    test('email is disabled for non-auth0 users', async () => {
+        const auth0 = require('@auth0/auth0-react');
+        jest.spyOn(auth0, 'useAuth0').mockReturnValue({
+            user: { sub: 'google-oauth2|test-patient-456' },
+            logout: jest.fn(),
         });
+
+        renderComponent();
+        fireEvent.click(await screen.findByRole('button', { name: /update account details/i }));
+        expect(screen.getByDisplayValue('jane.doe@example.com')).toBeDisabled();
+
+        jest.restoreAllMocks();
     });
 });
