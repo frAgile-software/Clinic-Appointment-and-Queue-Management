@@ -32,9 +32,9 @@ const getByStaff = async (targetUserID, clinic) => {
 };
 
 
-router.get("/:clinicID", async (req, res) => {
+router.post("/:clinicID", async (req, res) => {
     try {
-        const { specialityIDs = [], auth0Id } = req.body;
+        const { specialityIDs, auth0Id } = req.body;
         const { clinicID } = req.params;
         const { userID } = req.query;
 
