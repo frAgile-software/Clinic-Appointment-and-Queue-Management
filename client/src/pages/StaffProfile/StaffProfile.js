@@ -58,7 +58,7 @@ function StaffProfile() {
       return;
   };
   try {
-    if (emailRef.current.value !== profileData.email && (staffId?.startsWith("auth0|") || staffId?.startsWith("auth0|"))) {
+    if (emailRef.current.value !== profileData.email && !staffId?.startsWith("auth0|")) {
       alert("auth0 Email change is not allowed. Please contact support.");
       emailRef.current.value = profileData.email;
       return;
@@ -220,7 +220,7 @@ return (
           </div>
           <div className='inline-components'>
             <label>Email</label> 
-            <input type="email" ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+            <input type="email" ref={emailRef} disabled={!staffId?.startsWith("auth0|")} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
           </div> 
           
 
