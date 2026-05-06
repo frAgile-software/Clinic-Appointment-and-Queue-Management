@@ -39,25 +39,40 @@ function StaffProfile() {
 
   const handleUpdate = async () => {
   if (!staffId){
-    console.error("No staffId found, cannot update.");
+    console.error("No user found, cannot update.");
     return;
   };
-    const updatedData = {
-    name: nameRef.current.value,
-    surname: surnameRef.current.value,
-    title: titleRef.current.value,
-    email: emailRef.current.value,
+    const changes = {
+            name: nameRef.current.value,
+            surname: surnameRef.current.value,
+            title: titleRef.current.value,
+            email: emailRef.current.value,
+        };
+     const updatedData = Object.fromEntries(
+      Object.entries(changes).filter(([key, value]) => value !== profileData?.[key])
+    );
+    
+    if (Object.keys(updatedData).length === 0) {
+      alert("No changes detected.");
+      toggleChangeDetailsModal();
+      return;
   };
   try {
-      console.log("Updating with data:", updatedData);    
-      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData),
+    if (emailRef.current.value !== profileData.email && !staffId?.startsWith("auth0|")) {
+      alert("auth0 Email change is not allowed. Please contact support.");
+      emailRef.current.value = profileData.email;
+      return;
+    }
+
+    console.log("Updating with data:", updatedData);    
+    const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updatedData),
       });
 
       if (response.ok) {
-        setProfileData(updatedData);
+        setProfileData(prev=> ({ ...prev, ...updatedData }));
         toggleChangeDetailsModal();
         alert("Details updated successfully!");
       }
@@ -205,8 +220,8 @@ return (
           </div>
           <div className='inline-components'>
             <label>Email</label> 
-            <input type="email" disabled ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-          </div> {/*update email is disabled currently ^^*/}
+            <input type="email" ref={emailRef} disabled={!staffId?.startsWith("auth0|")} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+          </div> 
           
 
         <div className="landing-nav-btns" style={{marginTop: '20px'}}>
