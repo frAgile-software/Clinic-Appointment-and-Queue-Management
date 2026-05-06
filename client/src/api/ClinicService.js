@@ -27,8 +27,8 @@ class ClinicService extends ResourceService {
     }
 
     // TODO: should be patch, not put (since can update individual fields)
-    updateClinic(clinicId, body) {
-        return this.priv.put(`${this.basePath}/${clinicId}`, body, null);
+    updateClinic(clinicId, updates) {
+        return this.priv.put(`${this.basePath}/${clinicId}`, updates, null);
     }
 
     removeStaff(clinicId, staffId) {
