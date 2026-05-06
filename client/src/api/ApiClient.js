@@ -38,11 +38,11 @@ class ApiClient {
         return res.json();
     }
 
-    get(path, params) { return this.#request('GET', path, { params }); }
-    post(path, body) { return this.#request('POST', path, { body }); }
+    get(path, params) { return this.#request('GET', path, { params }); } // get shouldnt have body
+    post(path, body, params) { return this.#request('POST', path, { body, params }); }
     put(path, body, params) { return this.#request('PUT', path, { body, params }); }
     patch(path, body, params) { return this.#request('PATCH', path, { body, params }); }
-    delete(path) { return this.#request('DELETE', path); }
+    delete(path, body, params) { return this.#request('DELETE', path, { body, params }); }
 }
 
 class ApiError extends Error {
