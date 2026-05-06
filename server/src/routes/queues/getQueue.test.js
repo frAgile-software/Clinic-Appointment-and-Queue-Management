@@ -15,7 +15,7 @@ jest.mock('../../database/models/Queue');
 jest.mock('../../database/models/Staff');
 jest.mock('../../database/models/StaffSpeciality');
 
-describe('GET /api/queue/:clinicID', () => {
+describe('POST /api/queue/:clinicID', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, 'log').mockImplementation(() => { });
@@ -43,7 +43,7 @@ describe('GET /api/queue/:clinicID', () => {
     });
 
     const res = await request(app)
-      .get('/api/queue/clinicId')
+      .post('/api/queue/clinicId')
       .send({ auth0Id: 'auth0|doctor' });
 
     expect(res.status).toBe(200);
@@ -56,7 +56,7 @@ describe('GET /api/queue/:clinicID', () => {
     User.findOne.mockResolvedValue(null);
 
     const res = await request(app)
-      .get('/api/queue/clinicId')
+      .post('/api/queue/clinicId')
       .send({ auth0Id: 'invalid_auth0' });
 
     expect(res.status).toBe(403);
@@ -69,7 +69,7 @@ describe('GET /api/queue/:clinicID', () => {
     Staff.findOne.mockResolvedValue(null);
 
     const res = await request(app)
-      .get('/api/queue/clinicId')
+      .post('/api/queue/clinicId')
       .send({ auth0Id: 'auth0|doctor' });
 
     expect(res.status).toBe(403);
@@ -84,7 +84,7 @@ describe('GET /api/queue/:clinicID', () => {
     Staff.findOne.mockResolvedValue(null);
 
     const res = await request(app)
-      .get('/api/queue/clinicId')
+      .post('/api/queue/clinicId')
       .send({ auth0Id: 'auth0|doctor' })
       .query({ userID: 'userId' });
 
@@ -100,7 +100,7 @@ describe('GET /api/queue/:clinicID', () => {
     StaffSpeciality.find.mockResolvedValue(null);
 
     const res = await request(app)
-      .get('/api/queue/clinicId')
+      .post('/api/queue/clinicId')
       .send({ auth0Id: 'auth0|doctor' })
       .query({ userID: 'userId2' });
 
@@ -124,7 +124,7 @@ describe('GET /api/queue/:clinicID', () => {
     StaffSpeciality.find.mockResolvedValue([{ Speciality: 'spec1' }]);
 
     const res = await request(app)
-      .get('/api/queue/clinicId')
+      .post('/api/queue/clinicId')
       .send({ auth0Id: 'auth0|doctor' })
       .query({ userID: 'userId' });
 
@@ -151,7 +151,7 @@ describe('GET /api/queue/:clinicID', () => {
     });
 
     const res = await request(app)
-      .get('/api/queue/clinicId')
+      .post('/api/queue/clinicId')
       .send({ auth0Id: 'auth0|doctor', specialityIDs: ['spec1', 'spec2'] });
 
     expect(res.status).toBe(200);
@@ -171,7 +171,7 @@ describe('GET /api/queue/:clinicID', () => {
     });
 
     const res = await request(app)
-      .get('/api/queue/clinicId')
+      .post('/api/queue/clinicId')
       .send({ auth0Id: 'auth0|doctor' });
 
     expect(res.status).toBe(500);
