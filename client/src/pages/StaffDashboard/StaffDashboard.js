@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './StaffDashboard.css';
 import { LuUser } from "react-icons/lu";
 import { useAuth0 } from '@auth0/auth0-react';
+import { useApiAuth } from '../../hooks/apiAuth';
+
 
 const mockAppointments = [
   { id: "67890", name: "Jane Doe", time: "08:00 am", reason: "Flu shoot", status: "In Consult" },
@@ -14,14 +16,23 @@ const mockQueue = [
 ];
 
 function StaffDashboard() {
-  const { logout: auth0Logout } = useAuth0();
-  
+  const { apiFetch } = useApiAuth();
+  const {
+    user,
+    logout: auth0Logout,
+  } = useAuth0();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQueueModal, setIsQueueModal] = useState(false);
 
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
+
+  const staffId = user?.sub;
+  const [clinics, setClinics] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [patientQueue, setPatientQueue] = useState([]);
 
   const handleCardClick = (isQueue) => {
     setIsQueueModal(isQueue);
@@ -31,6 +42,83 @@ function StaffDashboard() {
   const closeModal = () => {
     setIsModalOpen(false);
   };
+
+    useEffect(() => {
+        if (!staffId) return;
+        async function fetchClinics() {
+            try {
+                setLoading(true);
+                const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        auth0ID: staffId,
+                    })
+                });
+
+                const data = await response.json();
+                setClinics(data);
+            } catch (error) {
+                console.error("Could not fetch clinics:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchClinics();
+    }, [staffId, apiFetch]);
+
+    useEffect(() => {
+        if (!staffId || !clinics) return;
+        async function fetchQueue() {
+            try {
+                const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${clinics[0]}`);
+                const data = await response.json();
+                setPatientQueue(data);
+            } catch (error) {
+                console.error("Could not fetch clinics:", error);
+            }
+        }
+        fetchQueue();
+    }, [staffId, clinics, apiFetch]);
+
+    /*
+    queueItem {
+    Clinic,
+    Speciality: { SpecialityName: string },
+    Patient: {
+      name,
+      surname,
+      title,
+      email,
+      role: ["Patient", "Admin", "Staff"] 
+    },
+    createdAt, updatedAt, id, ...
+    }
+     */
+
+    const toCard = (queueItem) => {
+        queueItem.status = "Waiting";
+        const date = new Date(queueItem.updatedAt);
+        return (
+            <article key={queueItem.id} className="patient-card">
+                <p className="patient-name">{queueItem.Patient.name} {queueItem.Patient.surname}</p>
+                <p>{date.toLocaleTimeString()}</p>
+                <p>{date.toLocaleDateString()}</p>
+                <p>{queueItem.Speciality.SpecialityName}</p>
+                <p className={`status-text ${queueItem.status.toLowerCase().replace(' ', '-')}`}>
+                    {queueItem.status}
+                </p>
+            </article>
+        );
+    };
+
+
+    if (loading)
+        return (
+            <main className="landing landing--loading">
+                <p>Loading dashboard...</p>
+            </main>
+        );
+
 
   return (
     <main className="staff-dashboard-wrapper">
@@ -93,6 +181,7 @@ function StaffDashboard() {
         <header className="data-section-header">Patient Queue</header>
         <section className="data-list-container">
           <ul className="data-cards-wrapper">
+          {/* patientQueue.length > 0 ? patientQueue.map(patient => toCard(patient)) : <></>} */}
             {mockQueue.map(patient => (
               <li key={patient.id} className="data-card" onClick={() => handleCardClick(true)} role="button" tabIndex={0}>
                 <strong className="data-card-name">{patient.name}</strong>
@@ -110,7 +199,7 @@ function StaffDashboard() {
       </section>
 
       <section className="data-section">
-        <header className="data-section-header">Add Patient Queue</header>
+        <header className="data-section-header">Add Patient to Queue</header>
         <section className="add-queue-container">
           <form className="add-queue-form">
             <fieldset className="form-group">
