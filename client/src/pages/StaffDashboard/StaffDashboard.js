@@ -38,8 +38,12 @@ function StaffDashboard() {
     async function fetchClinics() {
       try {
         setLoading(true);
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`);
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned/?auth0Id=${staffId}`);
         const data = await response.json();
+        if (!response.ok) {
+          console.error("Could not fetch clinics:", data);
+          return;
+        }
         setClinics(data);
       } catch (error) {
         console.error("Could not fetch clinics:", error);
@@ -54,16 +58,20 @@ function StaffDashboard() {
     if (!staffId || !clinics || clinics.length === 0) return;
     async function fetchQueue() {
       try {
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${clinics[0].id}`, {
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${clinics[0]._id}`, {
           method: 'POST',
           body: JSON.stringify({
             auth0Id: staffId,
           }),
         });
         const data = await response.json();
+        if (!response.ok) {
+          console.error("Could not fetch queue:", data);
+          return;
+        }
         setPatientQueue(data);
       } catch (error) {
-        console.error("Could not fetch clinics:", error);
+        console.error("Could not fetch queue:", error);
       }
     }
     fetchQueue();
@@ -77,9 +85,13 @@ function StaffDashboard() {
           method: 'GET',
         });
         const data = await response.json();
+        if (!response.ok) {
+          console.error("Could not fetch appointments:", data);
+          return;
+        }
         setAppointments(data);
       } catch (error) {
-        console.error("Could not fetch clinics:", error);
+        console.error("Could not fetch appointments:", error);
       }
     }
     fetchAppointments();
@@ -91,9 +103,9 @@ function StaffDashboard() {
     const bookingDate = new Date(appointmentItem.BookingDateTime);
     const patient = appointmentItem.Patient;
     return (
-      <li key={appointmentItem.id} className="data-card" onClick={() => handleCardClick(false)} role="button" tabIndex={0}>
+      <li key={appointmentItem._id} className="data-card" onClick={() => handleCardClick(appointmentItem)} role="button" tabIndex={0}>
         <strong className="data-card-name">{patient.name}</strong>
-        <span className="data-card-detail">ID: {patient.id}</span>
+        <span className="data-card-detail">ID: {patient._id}</span>
         <span className="data-card-detail">{bookingDate.toLocaleDateString()}</span>
         <span className="data-card-detail">{appointmentItem.ReasonDetails}</span>
         <span className={`status-badge ${appointmentItem.status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
@@ -109,9 +121,9 @@ function StaffDashboard() {
     const queueTime = new Date(queueItem.createdAt);
     const patient = queueItem.Patient;
     return (
-      <li key={patient.id} className="data-card" onClick={() => handleCardClick(true)} role="button" tabIndex={0}>
+      <li key={queueItem._id} className="data-card" onClick={() => handleCardClick(queueItem)} role="button" tabIndex={0}>
         <strong className="data-card-name">{patient.name}</strong>
-        <span className="data-card-detail">ID: {patient.id}</span>
+        <span className="data-card-detail">ID: {patient._id}</span>
         <span className="data-card-detail">{queueTime.toLocaleTimeString()}</span>
         <span className="data-card-detail">{queueItem.Speciality.SpecialityName}</span>
         <span className="status-badge status-white">

@@ -13,13 +13,13 @@ jest.mock('@auth0/auth0-react', () => ({
 }));
 
 const mockAppointments = [
-    { id: "67890", Patient: { id: "1", name: "Jane Doe" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Flu shot", status: "In Consult" },
-    { id: "12345", Patient: { id: "2", name: "John Doe" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Check-up", status: "Upcoming" }
+    { _id: "67890", Patient: { _id: "1", name: "Jane Doe", email: "jane.doe@mail.com" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Flu shot", status: "In Consult" },
+    { _id: "12345", Patient: { _id: "2", name: "John Doe", email: "john.doe@mail.com" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Check-up", status: "Upcoming" }
 ];
 
 const mockQueue = [
-    { id: "53820", Patient: { id: "3", name: "Janet Doe" }, createdAt: "2026-05-06T10:00:00Z", Speciality: { SpecialityName: "Maternity" }, status: "Waiting" },
-    { id: "74387", Patient: { id: "4", name: "Jack Doe" }, createdAt: "2026-05-06T10:00:00Z", Speciality: { SpecialityName: "General" }, status: "Waiting" }
+    { _id: "53820", Patient: { _id: "3", name: "Janet Doe", email: "janet.doe@mail.com" }, createdAt: "2026-05-06T10:00:00Z", Speciality: { SpecialityName: "Maternity" }, status: "Waiting" },
+    { _id: "74387", Patient: { _id: "4", name: "Jack Doe", email: "jack.doe@mail.com" }, createdAt: "2026-05-06T10:00:00Z", Speciality: { SpecialityName: "General" }, status: "Waiting" }
 ];
 
 const mockApiFetch = jest.fn();
