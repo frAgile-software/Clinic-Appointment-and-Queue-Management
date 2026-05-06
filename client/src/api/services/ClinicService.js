@@ -18,10 +18,11 @@ class ClinicService extends ResourceService {
     // uses listAssignedClinics in server
     // TODO: should use '/api/clinics/assigned/:staffId'
     getAssignedClinics(auth0Id) {
-        return this.priv.get(`${this.basePath}/assigned`, {auth0Id});
+        return this.priv.get(`${this.basePath}/assigned/`, {auth0Id});
     }
 
-    // TODO: currently createClinic on server. should be renamed to linkAdmin or something
+    // TODO: currently createClinic on server. Should be renamed to linkAdmin or something
+    // TODO: auth0Id should be in the url route name `/:auth0Id`, not in body
     linkAdmin(auth0Id, clinicId, practiceNumber) {
         return this.priv.post(`${this.basePath}/`, { auth0Id, clinicId, practiceNumber }, null);
     }
