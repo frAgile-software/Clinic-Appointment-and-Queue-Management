@@ -54,7 +54,7 @@ function StaffDashboard() {
     if (!staffId || !clinics || clinics.length === 0) return;
     async function fetchQueue() {
       try {
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${clinics[0]}`, {
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${clinics[0].id}`, {
           method: 'POST',
           body: JSON.stringify({
             auth0Id: staffId,
@@ -86,14 +86,15 @@ function StaffDashboard() {
   }, [staffId, apiFetch]);
 
   const toAppointmentCard = (appointmentItem) => {
-    appointmentItem.status = "Upcoming";
+    if (!appointmentItem.status)
+      appointmentItem.status = "Upcoming";
     const bookingDate = new Date(appointmentItem.BookingDateTime);
     const patient = appointmentItem.Patient;
     return (
       <li key={appointmentItem.id} className="data-card" onClick={() => handleCardClick(false)} role="button" tabIndex={0}>
         <strong className="data-card-name">{patient.name}</strong>
         <span className="data-card-detail">ID: {patient.id}</span>
-        <span className="data-card-detail">{bookingDate}</span>
+        <span className="data-card-detail">{bookingDate.toLocaleDateString()}</span>
         <span className="data-card-detail">{appointmentItem.ReasonDetails}</span>
         <span className={`status-badge ${appointmentItem.status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
           {appointmentItem.status}
@@ -103,7 +104,8 @@ function StaffDashboard() {
   };
 
   const toQueueCard = (queueItem) => {
-    queueItem.status = "Waiting";
+    if (!queueItem.status)
+      queueItem.status = "Waiting";
     const queueTime = new Date(queueItem.createdAt);
     const patient = queueItem.Patient;
     return (
