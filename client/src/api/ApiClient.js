@@ -40,8 +40,8 @@ class ApiClient {
 
     get(path, params) { return this.#request('GET', path, { params }); }
     post(path, body) { return this.#request('POST', path, { body }); }
-    put(path, body) { return this.#request('PUT', path, { body }); }
-    patch(path, body) { return this.#request('PATCH', path, { body }); }
+    put(path, body, params) { return this.#request('PUT', path, { body, params }); }
+    patch(path, body, params) { return this.#request('PATCH', path, { body, params }); }
     delete(path) { return this.#request('DELETE', path); }
 }
 
