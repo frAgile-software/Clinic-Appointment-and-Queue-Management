@@ -257,5 +257,6 @@ These are tracked in the service files with `// TODO` comments. We need to fix r
 | `getAssignedClinic` in server is redundant, `listAssignedClinics` should be used | Duplicate Server routes |
 | `getStaffSpecialities` in server should be under `/specialities` service | Server route |
 | `clinicInfo` in server is redundant | Duplicate Server routes |
+| `hooks/useApi.js` will no longer be needed | client/src/hooks/ |
 
 Please add other problems you come across here.
