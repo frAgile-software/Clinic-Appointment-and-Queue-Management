@@ -12,7 +12,7 @@ export const useApi = () => {
     });
 
     const pub = new ApiClient(process.env.REACT_APP_SERVER_URL);
-    const priv = new ApiClient(process.env.REACT_APP_SERVER_URL, getToken);
+    const priv = new ApiClient(`${process.env.REACT_APP_SERVER_URL}/api`, getToken);
 
     return {
       clinics: new ClinicService(pub, priv),
