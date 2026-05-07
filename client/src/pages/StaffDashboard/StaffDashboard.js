@@ -12,7 +12,7 @@ function StaffDashboard() {
   } = useAuth0();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isQueueModal, setIsQueueModal] = useState(false);
+  const [modalDetails, setModalDetails] = useState({});
 
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -24,8 +24,8 @@ function StaffDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [patientQueue, setPatientQueue] = useState([]);
 
-  const handleCardClick = (isQueue) => {
-    setIsQueueModal(isQueue);
+  const handleCardClick = (details) => {
+    setModalDetails(details);
     setIsModalOpen(true);
   };
 
@@ -80,10 +80,12 @@ function StaffDashboard() {
     if (!staffId) return;
     async function fetchAppointments() {
       try {
+        console.log("Finding appointments...");
         const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${staffId}`, {
           method: 'GET',
         });
         const data = await response.json();
+        console.log("Appointments found:", data);
         if (!response.ok) {
           console.error("Could not fetch appointments:", data);
           return;
@@ -105,7 +107,7 @@ function StaffDashboard() {
       <li key={appointmentItem._id} className="data-card" onClick={() => handleCardClick(appointmentItem)} role="button" tabIndex={0}>
         <strong className="data-card-name">{patient.name}</strong>
         <span className="data-card-detail">ID: {patient._id}</span>
-        <span className="data-card-detail">{bookingDate.toLocaleDateString()}</span>
+        <span className="data-card-detail">{bookingDate.toLocaleString()}</span>
         <span className="data-card-detail">{appointmentItem.ReasonDetails}</span>
         <span className={`status-badge ${appointmentItem.status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
           {appointmentItem.status}
@@ -227,14 +229,14 @@ function StaffDashboard() {
           <article className="modal-outer-box" onClick={(e) => e.stopPropagation()}>
             <section className="modal-inner-box">
               <header className="modal-header-canva">
-                <h2 className="modal-patient-name">{isQueueModal ? "Janet Doe" : "Jane Doe"}</h2>
+                <h2 className="modal-patient-name">{modalDetails.Patient.name}</h2>
                 <button className="modal-close-x" onClick={closeModal}>X</button>
               </header>
 
               <section className="modal-details-canva">
-                <p>Contact Number: 0858761234</p>
-                <p>Reason: {isQueueModal ? "Maternity" : "Flu shoot"}</p>
-                <p>More info: Ultrasound</p>
+                <p>Contact Email: {modalDetails.Patient.email}</p>
+                <p>Reason: {modalDetails.Speciality.SpecialityName}</p>
+                <p>More info: {modalDetails.ReasonDetails ? modalDetails.ReasonDetails : `has been waiting for ${Math.round(Math.abs(Date.now() - Date.parse(modalDetails.createdAt)) / (60 * 60 * 100)) / 10} hours`}</p>
               </section>
 
               <section className="modal-remarks-section">
