@@ -52,8 +52,7 @@ describe('POST /api/queue/:clinicID', () => {
     mockQueueFind(mockQueue);
 
     const res = await request(app)
-      .post('/api/queue/clinicId')
-      .send({ auth0Id: 'auth0|doctor' });
+      .get('/api/queue/clinicId');
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockQueue);
@@ -65,8 +64,8 @@ describe('POST /api/queue/:clinicID', () => {
     User.findOne.mockResolvedValue(null);
 
     const res = await request(app)
-      .post('/api/queue/clinicId')
-      .send({ userId: 'invalid_userId' });
+      .get('/api/queue/clinicId')
+      .query({ userId: 'invalid_userId' });
 
     expect(res.status).toBe(403);
     expect(res.body.message).toBe('Unauthorized.');
@@ -83,8 +82,8 @@ describe('POST /api/queue/:clinicID', () => {
     Staff.findOne.mockResolvedValue(mockCallingStaff);
 
     const res = await request(app)
-      .post('/api/queue/clinicId')
-      .send({ auth0Id: 'invalid_auth0' });
+      .get('/api/queue/clinicId')
+      .query({ auth0Id: 'invalid_auth0' });
 
     expect(res.status).toBe(404);
     expect(res.body.message).toBe('Could not find staff member.');
@@ -96,14 +95,14 @@ describe('POST /api/queue/:clinicID', () => {
     Staff.findOne.mockResolvedValue(null);
 
     const res = await request(app)
-      .post('/api/queue/clinicId')
-      .send({ auth0Id: 'auth0|doctor' });
+      .get('/api/queue/clinicId')
+      .query({ auth0Id: 'auth0|doctor' });
 
     expect(res.status).toBe(403);
     expect(res.body.message).toBe('Unauthorized.');
   });
 
-  it('should return 404 if staff link not found', async () => {
+  it('should return 404 if target staff link not found', async () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
     const mockCallingStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
     User.findOne.mockResolvedValue(mockUser);
@@ -112,8 +111,8 @@ describe('POST /api/queue/:clinicID', () => {
         .mockResolvedValue(null);
 
     const res = await request(app)
-      .post('/api/queue/clinicId')
-      .send({ userId: 'someUserId' });
+      .get('/api/queue/clinicId')
+      .query({ userId: 'someUserId' });
 
     expect(res.status).toBe(404);
     expect(res.body.message).toBe('Could not find staff member.');
@@ -127,14 +126,14 @@ describe('POST /api/queue/:clinicID', () => {
     StaffSpeciality.find.mockResolvedValue([]);
 
     const res = await request(app)
-      .post('/api/queue/clinicId')
-      .send({ userId: 'userId' });
+      .get('/api/queue/clinicId')
+      .query({ userId: 'userId' });
 
     expect(res.status).toBe(404);
     expect(res.body.message).toBe('Could not find staff member.');
   });
 
-  it('should return queue for a staff', async () => {
+  it('should return queue for a staff by userId', async () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
     const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
     const mockQueue = [
@@ -147,14 +146,35 @@ describe('POST /api/queue/:clinicID', () => {
     mockQueueFind(mockQueue);
 
     const res = await request(app)
-      .post('/api/queue/clinicId')
-      .send({ userId: 'userId' });
+      .get('/api/queue/clinicId')
+      .query({ userId: 'userId' });
 
     expect(res.status).toBe(200);
     expect(Queue.find).toHaveBeenCalledWith({
       Clinic: 'clinicId',
       Speciality: { $in: ['spec1'] }
     });
+  });
+
+  it('should return queue for a staff member by auth0Id', async () => {
+    const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
+    const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
+    const mockQueue = [
+      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', updatedAt: new Date().toString() },
+      { _id: 'queue2', Clinic: 'clinicId', Speciality: 'spec2', Patient: 'patient2', updatedAt: new Date().toString() }
+    ];
+
+    User.findOne.mockResolvedValue(mockUser);
+    Staff.findOne.mockResolvedValue(mockStaff);
+    StaffSpeciality.find.mockResolvedValue([{ Speciality: 'spec1' }]);
+    mockQueueFind(mockQueue);
+
+    const res = await request(app)
+      .get('/api/queue/clinicId')
+      .query({ auth0Id: 'auth0|doctor' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockQueue);
   });
 
   it('should return queue filtered by multiple specialities', async () => {
@@ -169,14 +189,33 @@ describe('POST /api/queue/:clinicID', () => {
     mockQueueFind(mockQueue);
 
     const res = await request(app)
-      .post('/api/queue/clinicId')
-      .send({ specialityIDs: ['spec1', 'spec2'] });
+      .get('/api/queue/clinicId')
+      .query({ specialityIDs: 'spec1,spec2' });
 
     expect(res.status).toBe(200);
     expect(Queue.find).toHaveBeenCalledWith({
       Clinic: mockStaff.Clinic,
       Speciality: { $in: ['spec1', 'spec2'] }
     });
+  });
+
+  it('should return whole clinic queue if no filters provided', async () => {
+    const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
+    const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
+    const mockQueue = [
+      { _id: 'queue1', Clinic: 'clinicId', Speciality: 'spec1', Patient: 'patient1', updatedAt: new Date() },
+      { _id: 'queue2', Clinic: 'clinicId', Speciality: 'spec2', Patient: 'patient2', updatedAt: new Date() }
+    ];
+
+    User.findOne.mockResolvedValue(mockUser);
+    Staff.findOne.mockResolvedValue(mockStaff);
+    mockQueueFind(mockQueue);
+
+    const res = await request(app)
+      .get('/api/queue/clinicId');
+
+    expect(res.status).toBe(200);
+    expect(Queue.find).toHaveBeenCalledWith({ Clinic: 'clinicId' });
   });
 
   it('should return 500 on server error', async () => {
@@ -192,8 +231,8 @@ describe('POST /api/queue/:clinicID', () => {
     });
 
     const res = await request(app)
-      .post('/api/queue/clinicId')
-      .send({ auth0Id: 'auth0|doctor' });
+      .get('/api/queue/clinicId')
+      .query({ auth0Id: 'auth0|doctor' });
 
     expect(res.status).toBe(500);
     expect(res.body.message).toBe('Server error.');
