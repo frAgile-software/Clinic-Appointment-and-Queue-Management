@@ -1,27 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './StaffDashboard.css';
 import { LuUser } from "react-icons/lu";
 import { useAuth0 } from '@auth0/auth0-react';
-
-const mockAppointments = [
-  { id: "67890", name: "Jane Doe", time: "08:00 am", reason: "Flu shoot", status: "In Consult" },
-  { id: "12345", name: "John Doe", time: "09:00 am", reason: "Check-up", status: "Upcoming" }
-];
-
-const mockQueue = [
-  { id: "53820", name: "Janet Doe", time: "08:11", reason: "Maternity", status: "Waiting" },
-  { id: "74387", name: "Jack Doe", time: "08:23", reason: "Check-up", status: "Waiting" }
-];
+import { useApiAuth } from '../../hooks/apiAuth';
 
 function StaffDashboard() {
-  const { logout: auth0Logout } = useAuth0();
-  
+  const { apiFetch } = useApiAuth();
+  const {
+    user,
+    logout: auth0Logout,
+  } = useAuth0();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQueueModal, setIsQueueModal] = useState(false);
 
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
+
+  const staffId = user?.sub;
+  const [clinics, setClinics] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [appointments, setAppointments] = useState([]);
+  const [patientQueue, setPatientQueue] = useState([]);
 
   const handleCardClick = (isQueue) => {
     setIsQueueModal(isQueue);
@@ -31,6 +32,112 @@ function StaffDashboard() {
   const closeModal = () => {
     setIsModalOpen(false);
   };
+
+  useEffect(() => {
+    if (!staffId) return;
+    async function fetchClinics() {
+      try {
+        setLoading(true);
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned/?auth0Id=${staffId}`);
+        const data = await response.json();
+        if (!response.ok) {
+          console.error("Could not fetch clinics:", data);
+          return;
+        }
+        setClinics(data);
+      } catch (error) {
+        console.error("Could not fetch clinics:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchClinics();
+  }, [staffId, apiFetch]);
+
+  useEffect(() => {
+    if (!staffId || !clinics || clinics.length === 0) return;
+    async function fetchQueue() {
+      try {
+        console.log("Finding queues...");
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${clinics[0]._id}?auth0Id=${staffId}`, {
+          method: 'GET',
+        });
+        const data = await response.json();
+        console.log("Queues found:", data);
+        if (!response.ok) {
+          console.error("Could not fetch queue:", data);
+          return;
+        }
+        setPatientQueue(data);
+      } catch (error) {
+        console.error("Could not fetch queue:", error);
+      }
+    }
+    fetchQueue();
+  }, [staffId, clinics, apiFetch]);
+
+  useEffect(() => {
+    if (!staffId) return;
+    async function fetchAppointments() {
+      try {
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${staffId}`, {
+          method: 'GET',
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          console.error("Could not fetch appointments:", data);
+          return;
+        }
+        setAppointments(data);
+      } catch (error) {
+        console.error("Could not fetch appointments:", error);
+      }
+    }
+    fetchAppointments();
+  }, [staffId, apiFetch]);
+
+  const toAppointmentCard = (appointmentItem) => {
+    if (!appointmentItem.status)
+      appointmentItem.status = "Upcoming";
+    const bookingDate = new Date(appointmentItem.BookingDateTime);
+    const patient = appointmentItem.Patient;
+    return (
+      <li key={appointmentItem._id} className="data-card" onClick={() => handleCardClick(appointmentItem)} role="button" tabIndex={0}>
+        <strong className="data-card-name">{patient.name}</strong>
+        <span className="data-card-detail">ID: {patient._id}</span>
+        <span className="data-card-detail">{bookingDate.toLocaleDateString()}</span>
+        <span className="data-card-detail">{appointmentItem.ReasonDetails}</span>
+        <span className={`status-badge ${appointmentItem.status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
+          {appointmentItem.status}
+        </span>
+      </li>
+    );
+  };
+
+  const toQueueCard = (queueItem) => {
+    if (!queueItem.status)
+      queueItem.status = "Waiting";
+    const queueTime = new Date(queueItem.createdAt);
+    const patient = queueItem.Patient;
+    return (
+      <li key={queueItem._id} className="data-card" onClick={() => handleCardClick(queueItem)} role="button" tabIndex={0}>
+        <strong className="data-card-name">{patient.name}</strong>
+        <span className="data-card-detail">ID: {patient._id}</span>
+        <span className="data-card-detail">{queueTime.toLocaleTimeString()}</span>
+        <span className="data-card-detail">{queueItem.Speciality.SpecialityName}</span>
+        <span className="status-badge status-white">
+          {queueItem.status}
+        </span>
+      </li>
+    );
+  };
+
+  if (loading)
+    return (
+      <main className="landing landing--loading">
+        <p>Loading dashboard...</p>
+      </main>
+    );
 
   return (
     <main className="staff-dashboard-wrapper">
@@ -73,17 +180,7 @@ function StaffDashboard() {
         <header className="data-section-header">Patient Appointments</header>
         <section className="data-list-container">
           <ul className="data-cards-wrapper">
-            {mockAppointments.map(appt => (
-              <li key={appt.id} className="data-card" onClick={() => handleCardClick(false)} role="button" tabIndex={0}>
-                <strong className="data-card-name">{appt.name}</strong>
-                <span className="data-card-detail">ID: {appt.id}</span>
-                <span className="data-card-detail">{appt.time}</span>
-                <span className="data-card-detail">{appt.reason}</span>
-                <span className={`status-badge ${appt.status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
-                  {appt.status}
-                </span>
-              </li>
-            ))}
+            {appointments.length > 0 ? appointments.map(appt => toAppointmentCard(appt)) : <></>}
           </ul>
         </section>
         <button className="next-action-btn">Next Appointment-&gt;</button>
@@ -93,31 +190,21 @@ function StaffDashboard() {
         <header className="data-section-header">Patient Queue</header>
         <section className="data-list-container">
           <ul className="data-cards-wrapper">
-            {mockQueue.map(patient => (
-              <li key={patient.id} className="data-card" onClick={() => handleCardClick(true)} role="button" tabIndex={0}>
-                <strong className="data-card-name">{patient.name}</strong>
-                <span className="data-card-detail">ID: {patient.id}</span>
-                <span className="data-card-detail">{patient.time}</span>
-                <span className="data-card-detail">{patient.reason}</span>
-                <span className="status-badge status-white">
-                  {patient.status}
-                </span>
-              </li>
-            ))}
+            {patientQueue.length > 0 ? patientQueue.map(patient => toQueueCard(patient)) : <></>}
           </ul>
         </section>
         <button className="next-action-btn">Next Queue Patient -&gt;</button>
       </section>
 
       <section className="data-section">
-        <header className="data-section-header">Add Patient Queue</header>
+        <header className="data-section-header">Add Patient to Queue</header>
         <section className="add-queue-container">
           <form className="add-queue-form">
             <fieldset className="form-group">
               <label className="form-label">Patient Name:</label>
               <input type="text" className="form-input-canva" />
             </fieldset>
-            
+
             <fieldset className="form-group">
               <label className="form-label">Arrival time:</label>
               <input type="text" className="form-input-canva" />
