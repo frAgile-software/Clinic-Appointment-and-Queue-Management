@@ -58,6 +58,7 @@ function StaffDashboard() {
     if (!staffId || !clinics || clinics.length === 0) return;
     async function fetchQueue() {
       try {
+        console.log("Finding queues...");
         const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${clinics[0]._id}`, {
           method: 'POST',
           body: JSON.stringify({
@@ -65,6 +66,7 @@ function StaffDashboard() {
           }),
         });
         const data = await response.json();
+        console.log("Queues found:", data);
         if (!response.ok) {
           console.error("Could not fetch queue:", data);
           return;
