@@ -8,12 +8,23 @@ const StaffSpeciality = require('../../database/models/StaffSpeciality');
 
 const app = express();
 app.use(express.json());
+app.use((req,res,next) => {
+  req.auth = {payload: { sub: 'auth0|doctor' }};
+  next();
+});
 app.use('/api/queue', getQueueRouter);
 
 jest.mock('../../database/models/User');
 jest.mock('../../database/models/Queue');
 jest.mock('../../database/models/Staff');
 jest.mock('../../database/models/StaffSpeciality');
+
+const mockQueueFind = (resolvedValue) => {
+    const populateMock = jest.fn().mockResolvedValue(resolvedValue);
+    const sortMock = jest.fn().mockReturnValue({ populate: populateMock });
+    Queue.find.mockReturnValue({ sort: sortMock });
+    return { sortMock, populateMock };
+};
 
 describe('POST /api/queue/:clinicID', () => {
   beforeEach(() => {
@@ -37,10 +48,8 @@ describe('POST /api/queue/:clinicID', () => {
 
     User.findOne.mockResolvedValue(mockUser);
     Staff.findOne.mockResolvedValue(mockStaff);
-    Queue.find.mockReturnValue({
-      sort: jest.fn().mockResolvedValue(mockQueue),
-      populate: jest.fn().mockResolvedValue(mockQueue)
-    });
+    StaffSpeciality.find.mockResolvedValue([{ Speciality: 'spec1' }]);
+    mockQueueFind(mockQueue);
 
     const res = await request(app)
       .post('/api/queue/clinicId')
@@ -52,18 +61,36 @@ describe('POST /api/queue/:clinicID', () => {
     expect(Staff.findOne).toHaveBeenCalledWith({ User: mockUser._id, Clinic: 'clinicId' });
   });
 
-  it('should return 403 if user not found', async () => {
+  it('should return 403 if calling user not found', async () => {
     User.findOne.mockResolvedValue(null);
 
     const res = await request(app)
       .post('/api/queue/clinicId')
-      .send({ auth0Id: 'invalid_auth0' });
+      .send({ userId: 'invalid_userId' });
 
     expect(res.status).toBe(403);
     expect(res.body.message).toBe('Unauthorized.');
   });
 
-  it('should return 403 if staff not found', async () => {
+  it('should return 404 if user not found by auth0Id', async () => {
+    const mockCallingUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
+    const mockCallingStaff = { _id: 'staffId', User: mockCallingUser._id, Clinic: 'clinicId' };
+
+    User.findOne
+        .mockResolvedValueOnce(mockCallingUser)
+        .mockResolvedValueOnce(null);
+
+    Staff.findOne.mockResolvedValue(mockCallingStaff);
+
+    const res = await request(app)
+      .post('/api/queue/clinicId')
+      .send({ auth0Id: 'invalid_auth0' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe('Could not find staff member.');
+  });
+
+  it('should return 403 if staff link not found', async () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
     User.findOne.mockResolvedValue(mockUser);
     Staff.findOne.mockResolvedValue(null);
@@ -78,15 +105,15 @@ describe('POST /api/queue/:clinicID', () => {
 
   it('should return 404 if staff link not found', async () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
-    const mockStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
+    const mockCallingStaff = { _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' };
     User.findOne.mockResolvedValue(mockUser);
-    Staff.findOne.mockResolvedValueOnce(mockStaff);
-    Staff.findOne.mockResolvedValue(null);
+    Staff.findOne
+        .mockResolvedValueOnce(mockCallingStaff)
+        .mockResolvedValue(null);
 
     const res = await request(app)
       .post('/api/queue/clinicId')
-      .send({ auth0Id: 'auth0|doctor' })
-      .query({ userID: 'userId' });
+      .send({ userId: 'someUserId' });
 
     expect(res.status).toBe(404);
     expect(res.body.message).toBe('Could not find staff member.');
@@ -97,12 +124,11 @@ describe('POST /api/queue/:clinicID', () => {
     const mockStaff = { _id: 'staffId', User: 'userId', Clinic: 'clinicId' };
     User.findOne.mockResolvedValue(mockUser);
     Staff.findOne.mockResolvedValue(mockStaff);
-    StaffSpeciality.find.mockResolvedValue(null);
+    StaffSpeciality.find.mockResolvedValue([]);
 
     const res = await request(app)
       .post('/api/queue/clinicId')
-      .send({ auth0Id: 'auth0|doctor' })
-      .query({ userID: 'userId2' });
+      .send({ userId: 'userId' });
 
     expect(res.status).toBe(404);
     expect(res.body.message).toBe('Could not find staff member.');
@@ -117,22 +143,17 @@ describe('POST /api/queue/:clinicID', () => {
 
     User.findOne.mockResolvedValue(mockUser);
     Staff.findOne.mockResolvedValue(mockStaff);
-    Queue.find.mockReturnValue({
-      sort: jest.fn().mockResolvedValue(mockQueue),
-      populate: jest.fn().mockResolvedValue(mockQueue)
-    });
     StaffSpeciality.find.mockResolvedValue([{ Speciality: 'spec1' }]);
+    mockQueueFind(mockQueue);
 
     const res = await request(app)
       .post('/api/queue/clinicId')
-      .send({ auth0Id: 'auth0|doctor' })
-      .query({ userID: 'userId' });
+      .send({ userId: 'userId' });
 
     expect(res.status).toBe(200);
     expect(Queue.find).toHaveBeenCalledWith({
-      Clinic: mockStaff.Clinic,
-      Speciality: { $in: ['spec1'] },
-      options: { sort: {updatedAt: 1} }
+      Clinic: 'clinicId',
+      Speciality: { $in: ['spec1'] }
     });
   });
 
@@ -145,20 +166,16 @@ describe('POST /api/queue/:clinicID', () => {
 
     User.findOne.mockResolvedValue(mockUser);
     Staff.findOne.mockResolvedValue(mockStaff);
-    Queue.find.mockReturnValue({
-      sort: jest.fn().mockResolvedValue(mockQueue),
-      populate: jest.fn().mockResolvedValue(mockQueue)
-    });
+    mockQueueFind(mockQueue);
 
     const res = await request(app)
       .post('/api/queue/clinicId')
-      .send({ auth0Id: 'auth0|doctor', specialityIDs: ['spec1', 'spec2'] });
+      .send({ specialityIDs: ['spec1', 'spec2'] });
 
     expect(res.status).toBe(200);
     expect(Queue.find).toHaveBeenCalledWith({
       Clinic: mockStaff.Clinic,
-      Speciality: { $in: ['spec1', 'spec2'] },
-      options: { sort: { updatedAt: 1 } }
+      Speciality: { $in: ['spec1', 'spec2'] }
     });
   });
 
@@ -166,8 +183,12 @@ describe('POST /api/queue/:clinicID', () => {
     const mockUser = { _id: 'userId', auth0Id: 'auth0|doctor' };
     User.findOne.mockResolvedValue(mockUser);
     Staff.findOne.mockResolvedValue({ _id: 'staffId', User: mockUser._id, Clinic: 'clinicId' });
+    StaffSpeciality.find.mockResolvedValue([{ Speciality: 'spec1' }]);
+
     Queue.find.mockReturnValue({
-      sort: jest.fn().mockRejectedValue(new Error('Database error'))
+        sort: jest.fn().mockReturnValue({
+            populate: jest.fn().mockRejectedValue(new Error('Database error'))
+        })
     });
 
     const res = await request(app)
