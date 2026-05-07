@@ -5,6 +5,20 @@ const Queue = require("../../database/models/Queue");
 const Staff = require("../../database/models/Staff");
 const StaffSpeciality = require("../../database/models/StaffSpeciality");
 
+const getByClinic = async (clinic) => {
+    console.log("Queues by clinic...", clinic);
+
+    const filter = { Clinic: clinic };
+
+    const queue = await Queue.find(filter)
+        .sort({ updatedAt: 1 })
+        .populate([
+            { path: "Speciality" },
+            { path: "Patient", select: "-auth0Id" }
+        ]);
+
+    return queue;
+};
 const getBySpecialities = async (specialityIDs, clinic) => {
     console.log("Queues by specialities...", specialityIDs, clinic);
 
@@ -48,12 +62,13 @@ const getByAuth0Id = async (targetAuth0Id, clinic) => {
 };
 
 
-router.post("/:clinicID", async (req, res) => {
+router.get("/:clinicID", async (req, res) => {
     try {
-        const { specialityIDs, auth0Id, userId } = req.body;
+        const { auth0Id, userId } = req.query;
+        const specialityIDs = req.query.specialityIDs?.split(",") ?? [];
         const { clinicID } = req.params;
 
-        console.log("GET QUEUES\nIncoming payload:\nbody:", req.body, "query:", req.params);
+        console.log("GET QUEUES\nIncoming payload:\nquery:", req.query, "params:", req.params);
 
         const callingUser = await User.findOne({ auth0Id: req.auth.payload.sub });
         if (!callingUser) {
@@ -69,7 +84,8 @@ router.post("/:clinicID", async (req, res) => {
 
         const queue = userId !== undefined ? await getByStaff(userId, clinicID) 
                     : auth0Id !== undefined ? await getByAuth0Id(auth0Id, clinicID) 
-                    : await getBySpecialities(specialityIDs ?? [], clinicID);
+                    : specialityIDs?.length ? await getBySpecialities(specialityIDs, clinicID)
+                    : await getByClinic(clinicID);
 
         if (queue === null) {
             console.log("Could not find staff member.");
