@@ -37,7 +37,15 @@ const clinicSchema = new Schema({
   contactNumber: {
     type: String,
     required: true
+    },
+  practiceTimes: { // times are not required. Can be set by admin.
+    open: {
+      type: String, //e.g. "08:00"
+    },
+    close: {
+      type: String, //e.g. "22:00"
     }
+    },
 });
 
 const Clinic = mongoose.model("Clinic", clinicSchema);
