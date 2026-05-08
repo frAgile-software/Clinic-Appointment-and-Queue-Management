@@ -1,7 +1,6 @@
-import Speciality from '../../../../server/src/database/models/Speciality';
 import {ResourceService} from '../ResourceService';
 
-export class ClinicService extends ResourceService {
+export class AppointmentService extends ResourceService {
     constructor(publicClient, privateClient) {
         super(publicClient, privateClient, '/appointments');
     }
