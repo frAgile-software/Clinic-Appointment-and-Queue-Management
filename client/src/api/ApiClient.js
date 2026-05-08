@@ -16,18 +16,19 @@ class ApiClient {
         return headers;
     }
 
-    async #request(method, path, { params, body } = {} ) {
-        const url = new URL(`${this.#baseUrl}${path}`);
-
-        // add query params to request
+    async #request(method, path, { params, body } = {}) {
+        let urlString = `${this.#baseUrl}${path}`;
+        
         if (params) {
-            Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+            const searchParams = new URLSearchParams();
+            Object.entries(params).forEach(([k, v]) => searchParams.set(k, v));
+            urlString += `?${searchParams.toString()}`;
         }
 
-        const res = await fetch(url, {
+        const res = await fetch(urlString, {
             method,
             headers: await this.#getHeaders(),
-            ...(body && { body: JSON.stringify(body)}),
+            ...(body && { body: JSON.stringify(body) }),
         });
 
         if (!res.ok) {
