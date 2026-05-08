@@ -239,6 +239,45 @@ const staffSpecs = await api.specialities.getForStaff("staff123");
 
 ---
 
+### `AppointmentService`
+
+Base path: `/appointments`.
+
+| Method | auth | Server route |
+|---|---|---|
+| `cancel(appointmentId)`| Private | `DELETE /api/appointments/:appointmentId` |
+| `create({clinicId, staffUserId, patientAuth0Id, bookingDateTime, description, specialityName})`| Private |`POST /api/appointments/` |
+| `getForAuth0Id(auth0Id)`| Private | `GET /api/appointments/:auth0Id` |
+| `update(appointmentId, {patientUID, staffUID, clinicId, bookingDateTime, specialityId})`| Private | `PUT /api/appointments/:appointmentId` |
+
+**Example usage in a component**
+```js
+const api = useApi();
+
+// create appointment
+await api.appointments.create({
+  clinicId: "clnc1",
+  staffUserId: "stff1",
+  patientAuth0Id: "auth0|123",
+  bookingDateTime: new Date().toISOString();
+  description: "My elbow smells funny :(",
+  specialityName: "General Checkup",
+});
+
+// update appointment
+await api.appointments.create("appt1", {
+  patientUID: "auth0|123",
+})
+
+// cancel appointment
+await api.appointments.cancel("appt1");
+
+// get a list of appointments by auth0Id
+const appointments = await api.appointments.getForAuth0Id("auth0|123");
+```
+
+---
+
 ## How to Create a New Service
 
 Follow this pattern for `ScheduleService`, `AppointmentService`, `QueueService` and `SpecialityService`.
@@ -321,5 +360,7 @@ These are tracked in the service files with `// TODO` comments. We need to fix r
 | `getStaffSpecialities` in server should be under `/specialities` service | Server route |
 | `clinicInfo` in server is redundant | Duplicate Server routes |
 | `hooks/useApi.js` will no longer be needed | client/src/hooks/ |
+| `updateAppointment` should also include description field | `AppointmentService.update` |
+| `createAppointment` fix naming convention | `AppointmentService.create` |
 
 Please add other problems you come across here.
