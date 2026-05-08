@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { ClinicService } from './services/ClinicService';
 import { UserService } from './services/UserService';
 import { QueueService } from './services/QueueService';
+import { SpecialityService } from './services/SpecialityService';
 
 export const useApi = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -23,7 +24,7 @@ export const useApi = () => {
       // schedules: new ScheduleService(pub, priv),
       // appointments: new AppointmentService(pub, priv),
       queues: new QueueService(pub, priv),
-      // specialities: new SpecialityService(pub, priv),
+      specialities: new SpecialityService(pub, priv),
     };
     
   }, [getAccessTokenSilently]);

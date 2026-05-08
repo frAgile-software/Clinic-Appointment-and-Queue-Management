@@ -5,7 +5,7 @@ const Staff = require("../../database/models/Staff");
 const StaffSpeciality = require("../../database/models/StaffSpeciality");
 const Speciality = require("../../database/models/Speciality");
 
-router.get("/:staffID/specialities", async (req, res)=> {
+router.get("/staff/:staffID", async (req, res)=> {
     try {
         const { staffID } = req.params;
 
