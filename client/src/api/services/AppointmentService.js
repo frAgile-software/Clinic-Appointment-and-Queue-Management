@@ -21,7 +21,7 @@ export class AppointmentService extends ResourceService {
         }, null);
     }
 
-    getForAuth0Id({auth0Id}) {
+    getForAuth0Id(auth0Id) {
         return this.priv.get(`${this.basePath}/${auth0Id}`, null);
     }
 
