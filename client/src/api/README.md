@@ -238,6 +238,33 @@ const staffSpecs = await api.specialities.getForStaff("staff123");
 
 ---
 
+### `ScheduleService`
+
+Base path: `/schedules`. All methods are login protected.
+
+| Method | Server route |
+|---|---|
+| `getSchedule(userId)` | `GET /api/schedules/:userId` |
+| `update(scheduleId, {Staff, DayOfWeek, StartTime, EndTime})` | `PUT /api/schedules/:scheduleId` |
+
+**Example usage in a component**
+```js
+const api = useApi();
+
+// get a staff's schedule
+const schedule = await api.schedules.getSchedule("user123");
+
+// update a specific schedule entry
+await spi.schedules.update("schdl1", {
+  Staff: "user123",
+  DayOfWeek: 0,
+  StartTime: "01:00",
+  EndTime: "23:00"
+});
+```
+
+---
+
 ## How to Create a New Service
 
 Follow this pattern for `ScheduleService`, `AppointmentService`, `QueueService` and `SpecialityService`.
