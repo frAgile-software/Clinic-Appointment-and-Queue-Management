@@ -1,4 +1,4 @@
-class ApiClient {
+export class ApiClient {
     #baseUrl;
     #getToken;
 
@@ -46,7 +46,7 @@ class ApiClient {
     delete(path, body, params) { return this.#request('DELETE', path, { body, params }); }
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(status, message) {
     super(message);
     this.status = status;

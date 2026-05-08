@@ -1,4 +1,6 @@
-class UserService extends ResourceService {
+import {ResourceService} from '../ResourceService';
+
+export class UserService extends ResourceService {
     constructor(publicClient, privateClient) {
         super(publicClient, privateClient, '/users');
     }
