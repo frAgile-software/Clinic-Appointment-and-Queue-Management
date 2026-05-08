@@ -1,4 +1,6 @@
-class SpecialityService extends ResourceService {
+import {ResourceService} from '../ResourceService';
+
+export class SpecialityService extends ResourceService {
     constructor(publicClient, privateClient) {
         super(publicClient, privateClient, '/specialities');
     }
