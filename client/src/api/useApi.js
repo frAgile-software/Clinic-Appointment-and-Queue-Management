@@ -2,6 +2,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useMemo } from 'react';
 import { ClinicService } from './services/ClinicService';
 import { UserService } from './services/UserService';
+import { SpecialityService } from './services/SpecialityService';
 import { QueueService } from './services/QueueService';
 
 export const useApi = () => {
@@ -22,8 +23,8 @@ export const useApi = () => {
       users: new UserService(pub, priv),
       // schedules: new ScheduleService(pub, priv),
       // appointments: new AppointmentService(pub, priv),
+      specialities: new SpecialityService(pub, priv),
       queues: new QueueService(pub, priv),
-      // specialities: new SpecialityService(pub, priv),
     };
     
   }, [getAccessTokenSilently]);

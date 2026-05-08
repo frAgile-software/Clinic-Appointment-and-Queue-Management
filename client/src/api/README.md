@@ -212,6 +212,31 @@ await api.queues.addPatient({ clinicId: "clin1", specialityId: "spec1", patientI
 ```
 
 ---
+### `SpecialityService`
+
+Base path: `/specialities`.
+
+| Method | auth | Server route |
+|---|---|---|
+| `addToStaff({staffId, specialityId})`| Private | `POST /api/specialities/staff/:staffId/:specialityId` |
+| `removeFromStaff({staffId, specialityId})`| Private |`DELETE /api/specialities/staff/:staffId/:specialityId` |
+| `getForStaff(staffId)`| Public | `GET /specialities/staff/:staffId` |
+
+**Example usage in a component**
+```js
+const api = useApi();
+
+// add speciality to staff
+await api.specialities.addToStaff({staffId: "staff123", specialityId: "spc1"});
+
+// remove speciality from staff
+await api.specialities.removeFromStaff({staffId: "staff123", specialityId: "spc1"});
+
+// get a list of staff specialities
+const staffSpecs = await api.specialities.getForStaff("staff123");
+```
+
+---
 
 ## How to Create a New Service
 
