@@ -129,5 +129,5 @@ const runSuite = (basePath) => {
     });
 };
 
-describe('GET /specialities/:staffID', () => runSuite('/specialities'));
-describe('GET /api/specialities/:staffID', () => runSuite('/api/specialities'));
+describe('GET /specialities/staff/:staffID', () => runSuite('/specialities/staff'));
+describe('GET /api/specialities/staff/:staffID', () => runSuite('/api/specialities/staff'));
