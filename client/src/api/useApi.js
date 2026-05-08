@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import {ApiClient} from './ApiClient';
 import { ClinicService } from './services/ClinicService';
 import { UserService } from './services/UserService';
+import { SpecialityService } from './services/SpecialityService';
 import { QueueService } from './services/QueueService';
 import { SpecialityService } from './services/SpecialityService';
 
@@ -25,8 +26,8 @@ export const useApi = () => {
       users: new UserService(pub, priv),
       // schedules: new ScheduleService(pub, priv),
       // appointments: new AppointmentService(pub, priv),
-      queues: new QueueService(pub, priv),
       specialities: new SpecialityService(pub, priv),
+      queues: new QueueService(pub, priv),
     };
     
   }, [getAccessTokenSilently]);
