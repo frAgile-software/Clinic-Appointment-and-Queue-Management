@@ -9,11 +9,11 @@ useApi (hook)
   |-> ApiClient (pub)     (no auth token)
   |-> ApiClient (priv)    (attaches Auth0 JWT on every request)
   |----> Services
-        |-> ClinicService   (done)
-        |-> UserService     (done)
+        |-> ClinicService       (done)
+        |-> UserService         (done)
         |-> ScheduleService
         |-> AppointmentService
-        |-> QueueService
+        |-> QueueService        (done)
         |-> SpecialityService
 ```
 
@@ -32,7 +32,7 @@ src/
         |-- UserService.js        
         |-- ScheduleService.js    -> TODO
         |-- AppointmentService.js -> TODO
-        |-- QueueService.js       -> TODO
+        |-- QueueService.js
         |-- SpecialityService.js  -> TODO
 ```
 
@@ -174,6 +174,41 @@ const assigned = await api.clinics.getAssignedClinics('auth0|abc123');
 await api.clinics.linkStaff('clinic-123', { auth0Id: 'auth0|abc123', id: 'user-456' });
 await api.clinics.updateClinic('clinic-123', { name: 'New Name' });
 await api.clinics.removeStaff('clinic-123', 'staff-789');
+```
+
+---
+
+### `QueueService`
+
+Base path: `/queues`.
+
+| Method | auth | Server route |
+|---|---|---|
+| `getForPatient(patientAuth0Id)` | Private | `GET /api/queues/patient/:auth0Id` |
+| `addPatient(clinicId, patientId, specialityName)` | Public | `POST /queues/` |
+| `remove(queueId)` | Private | `DELETE /api/queues/:queueId` |
+| `update(queueId, {clinicId, specialityId, patientId})` | Private | `PUT /api/queues/:queueId` |
+| `get(clinicId, {auth0Id, userId, specialityIDs})` | Private | `GET /api/queues/:clinicId` with <br> `?auth0Id=..`,  `?userId=..`, or `?specialityIDs=spec1,spec2...`|
+
+
+**Example usage in a component**
+```js
+const api = useApi();
+
+// Get for Patient
+const queuePatient = await api.queues.getForPatient("auth0|123");
+
+// Get
+const queue = await api.queues.get('clinicId', {userId: "user123"});
+const queue = await api.queues.get('clinicId', {auth0Id: "auth0|456"});
+const queue = await api.queues.get('clinicId', {specialityIDs: "GP,Maternity"});      // use comma separated names,
+const queue = await api.queues.get('clinicId', {specialityIDs: ["GP","Maternity"]});  // or array of names
+
+// Update (pass all fields to replace queue doc)
+await api.queues.update('queue123', {clinicId: "clin1", specialityId: "spec1", patientId: "pat1"});
+
+// Add patient to queue
+await api.queues.addPatient({ clinicId: "clin1", specialityId: "spec1", patientId: "pat1" });
 ```
 
 ---
