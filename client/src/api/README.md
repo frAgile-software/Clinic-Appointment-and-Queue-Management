@@ -11,7 +11,7 @@ useApi (hook)
   |----> Services
         |-> ClinicService       (done)
         |-> UserService         (done)
-        |-> ScheduleService
+        |-> ScheduleService     (done)
         |-> AppointmentService
         |-> QueueService        (done)
         |-> SpecialityService
@@ -30,7 +30,7 @@ src/
     |-- services/
         |-- ClinicService.js      
         |-- UserService.js        
-        |-- ScheduleService.js    -> TODO
+        |-- ScheduleService.js
         |-- AppointmentService.js -> TODO
         |-- QueueService.js
         |-- SpecialityService.js  -> TODO
