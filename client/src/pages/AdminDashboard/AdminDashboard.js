@@ -66,7 +66,20 @@ function AdminDashboard() {
     }
 
     if (!selectedClinic) {
-    return <p>No assigned clinics found.</p>;
+        return (
+            <main className="dashboard">
+                <header className="navbar">
+                    <h2 id="navCliniQ">CliniQ</h2>
+                    <nav className="nav">
+                        <button className="nav_button" onClick={logout}>Log Out</button>
+                    </nav>
+                </header>
+                <section className="section">
+                    <h2>No assigned clinics found.</h2>
+                    <p>You do not have any clinics assigned to your account. Please contact your administrator or log out and try again.</p>
+                </section>
+            </main>
+        );
     }
         
 
