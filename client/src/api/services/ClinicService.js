@@ -26,7 +26,11 @@ export class ClinicService extends ResourceService {
     // TODO: currently createClinic on server. Should be renamed to linkAdmin or something
     // TODO: auth0Id should be in the url route name `/:auth0Id`, not in body
     linkAdmin(auth0Id, clinicId, practiceNumber) {
-        return this.priv.post(`${this.basePath}/`, { auth0Id, clinicId, practiceNumber }, null);
+        return this.priv.post(`${this.basePath}/`, { 
+            auth0Id: auth0Id, 
+            clinicID: clinicId, 
+            practiceNumber: practiceNumber 
+        }, null);
     }
 
     // TODO: should be patch, not put (since can update individual fields)

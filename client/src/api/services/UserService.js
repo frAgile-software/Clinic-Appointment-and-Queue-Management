@@ -6,7 +6,9 @@ export class UserService extends ResourceService {
     }
 
     register({auth0Id, name, surname, title, email, role}) {
-        return this.priv.post(`${this.basePath}/register`, {auth0Id, name, surname, title, email, role}, null);
+        return this.priv.post(`${this.basePath}/register`, {
+            auth0Id, name, surname, title, email, role
+        }, null);
     }
 
     update(auth0Id, updates) {
