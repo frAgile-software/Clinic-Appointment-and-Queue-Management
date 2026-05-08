@@ -58,7 +58,8 @@ beforeEach(() => {
 });
 
 const runSuite = (basePath) => {
-
+    console.log(`${basePath}/1234`);
+    
     test('Returns 200 specialities when found', async () => {
         User.findById.mockResolvedValueOnce(VALID_USER);
         Staff.findOne.mockResolvedValueOnce(VALID_STAFF_DOC);
@@ -66,7 +67,7 @@ const runSuite = (basePath) => {
             populate: jest.fn().mockResolvedValueOnce(MOCK_SPECIALITIES)
         });
 
-        const res = await request(app).get(`${basePath}/1234/specialities`);
+        const res = await request(app).get(`${basePath}/1234`);
 
         expect(res.statusCode).toEqual(200);
         expect(res.body).toEqual({
@@ -82,7 +83,7 @@ const runSuite = (basePath) => {
             populate: jest.fn().mockResolvedValueOnce([])
         });
 
-        const res = await request(app).get(`${basePath}/1234/specialities`);
+        const res = await request(app).get(`${basePath}/1234`);
 
         expect(res.statusCode).toEqual(200);
         expect(res.body).toEqual({
@@ -97,7 +98,7 @@ const runSuite = (basePath) => {
             role: 'Patient',
         });
 
-        const res = await request(app).get(`${basePath}/1234/specialities`);
+        const res = await request(app).get(`${basePath}/1234`);
 
         expect(res.statusCode).toEqual(403);
     });
@@ -105,7 +106,7 @@ const runSuite = (basePath) => {
     test('Returns 404 when staff not found', async () => {
         User.findById.mockResolvedValueOnce(null);
 
-        const res = await request(app).get(`${basePath}/1234/specialities`);
+        const res = await request(app).get(`${basePath}/1234`);
 
         expect(res.statusCode).toEqual(404);
     });
@@ -114,7 +115,7 @@ const runSuite = (basePath) => {
         User.findById.mockResolvedValueOnce(VALID_USER);
         Staff.findOne.mockResolvedValueOnce(null);
 
-        const res = await request(app).get(`${basePath}/1234/specialities`);
+        const res = await request(app).get(`${basePath}/1234`);
 
         expect(res.statusCode).toEqual(404);
     });
@@ -122,11 +123,11 @@ const runSuite = (basePath) => {
     test('Returns 500 on server error', async () => {
         User.findById.mockRejectedValueOnce(new Error("Server error."));
 
-        const res = await request(app).get(`${basePath}/1234/specialities`);
+        const res = await request(app).get(`${basePath}/1234`);
 
         expect(res.statusCode).toEqual(500);
     });
 };
 
-describe('GET /clinics/:staffID/specialities', () => runSuite('/clinics'));
-describe('GET /api/clinics/:staffID/specialities', () => runSuite('/api/clinics'));
+describe('GET /specialities/staff/:staffID', () => runSuite('/specialities/staff'));
+describe('GET /api/specialities/staff/:staffID', () => runSuite('/api/specialities/staff'));
