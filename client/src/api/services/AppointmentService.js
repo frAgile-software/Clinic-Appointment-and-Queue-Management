@@ -25,6 +25,7 @@ export class AppointmentService extends ResourceService {
         return this.priv.get(`${this.basePath}/${auth0Id}`, null);
     }
 
+    // TODO: include description for updating
     update(appointmentId, {patientUID, staffUID, clinicId, bookingDateTime, specialityId}) {
         return this.priv.put(`${this.basePath}/${appointmentId}`, {
             Patient: patientUID, 
