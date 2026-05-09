@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { useApiAuth } from '../../hooks/apiAuth';
 
 function AdminDashboard() {
-     const { user, logout: auth0Logout, isAuthenticated, isLoading, getAccessTokenSilently} = useAuth0();
+     const { user, logout: auth0Logout, isAuthenticated, isLoading} = useAuth0();
     const { apiFetch } = useApiAuth();
     //const [dashboardData] = useState(adminDashboardStub);
    // const [selectedClinic, setSelectedClinic] = useState(adminDashboardStub.clinics[0]);
