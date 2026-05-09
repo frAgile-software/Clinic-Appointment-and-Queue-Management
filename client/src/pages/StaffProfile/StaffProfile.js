@@ -126,7 +126,7 @@ function StaffProfile() {
         const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`);
         const data = await response.json();
         console.log("Fetched clinics:", data);
-        setClinics(data[0]);
+        setClinics(data);
         
       } catch (error) {
         console.error("Could not fetch clinics:", error);
