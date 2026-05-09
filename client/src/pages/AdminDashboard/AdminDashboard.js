@@ -72,6 +72,7 @@ function AdminDashboard() {
                     <h2 id="navCliniQ">CliniQ</h2>
                     <nav className="nav">
                         <button className="nav_button" onClick={logout}>Log Out</button>
+                        
                     </nav>
                 </header>
                 <section className="section">
