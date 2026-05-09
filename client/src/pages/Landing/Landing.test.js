@@ -557,7 +557,8 @@ describe('<Landing />', () => {
                 await userEvent.click(screen.getByText('Parkmed Neuro Clinic'));
             });
 
-            expect(screen.getByText(/1 Park Lane/i)).toBeInTheDocument();
+            const addressParagraph = document.querySelector('.clinic-modal-details p:nth-child(2)');
+            expect(addressParagraph).toHaveTextContent('1 Park Lane');
         });
 
         test('modal shows contact number', async () => {
@@ -590,7 +591,7 @@ describe('<Landing />', () => {
                 await userEvent.click(screen.getByText('Parkmed Neuro Clinic'));
             });
 
-            expect(screen.getByText('Open now')).toBeInTheDocument();
+            expect(document.querySelector('.modal-badge.status-open')).toBeInTheDocument();
         });
 
         test('modal shows Join Queue and Book Now buttons', async () => {
@@ -712,7 +713,7 @@ describe('<Landing />', () => {
                 await userEvent.click(screen.getByText('Parkmed Neuro Clinic'));
             });
 
-            expect(screen.getByText('Closed')).toBeInTheDocument();
+            expect(document.querySelector('.modal-badge.status-closed')).toBeInTheDocument();
         });
 
         test('modal shows Hours not set when practiceTimes is missing', async () => {

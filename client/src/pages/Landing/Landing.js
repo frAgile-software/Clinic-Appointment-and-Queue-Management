@@ -398,10 +398,10 @@ const isClinicOpen = (clinic) => {
            </span>
           </section>
           <section style={{ display: 'flex', gap: '0.5rem' }}>
-            <button className="clinic-modal-book-btn" onClick={() => { alert('Please log in or sign up to continue.'); signup(); }}>
+            <button className="clinic-modal-book-btn" onClick={() => { signup(); }}>
               Join Queue
             </button>
-            <button className="clinic-modal-book-btn" onClick={() => { alert('Please log in or sign up to continue.'); signup(); }}>
+            <button className="clinic-modal-book-btn" onClick={() => {  signup(); }}>
               Book Now
             </button>
           </section>
