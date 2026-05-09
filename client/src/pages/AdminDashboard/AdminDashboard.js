@@ -40,7 +40,7 @@ function AdminDashboard() {
         if (!isLoading && isAuthenticated) {
             fetchAssignedClinics();
         }
-    }, [user, isAuthenticated, isLoading]);
+    }, [user, isAuthenticated, isLoading, apiFetch]);
 
     useEffect(() => {
         const fetchStaff = async () => {
@@ -61,7 +61,7 @@ function AdminDashboard() {
         };
 
         fetchStaff();
-    }, [selectedClinic, user]);
+    }, [selectedClinic, user, apiFetch]);
 
     if (isLoading) {
     return <p>Loading dashboard...</p>;
