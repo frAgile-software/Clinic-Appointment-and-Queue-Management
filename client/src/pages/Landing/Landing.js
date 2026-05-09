@@ -16,6 +16,7 @@ function Landing() {
   const [hasSearched, setHasSearched] = useState(false); // true once user has searched
   const [pagination,  setPagination]  = useState({page:1, totalPages:1, total:0});
   const [page,        setPage]        = useState(1);
+  const [selectedClinic,  setSelectedClinic]  = useState(null);
 
   const { apiFetch } = useApiAuth();
   const navigate     = useNavigate();
@@ -26,7 +27,8 @@ function Landing() {
     provinces: [],
     towns: [],
     suburbs: [],
-    types: []
+    types: [],
+    services: []
   });
 
   //stores currently filter choices
@@ -54,6 +56,23 @@ function Landing() {
     loginWithRedirect: login,
     user,
   } = useAuth0();
+
+  // Gets the current time by comparing the start and end times
+const isClinicOpen = (clinic) => {
+  if (!clinic.practiceTimes?.open || !clinic.practiceTimes?.close) return false;
+
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const [openH, openM]   = clinic.practiceTimes.open.split(':').map(Number);
+  const [closeH, closeM] = clinic.practiceTimes.close.split(':').map(Number);
+
+  const openMinutes  = openH  * 60 + openM;
+  const closeMinutes = closeH * 60 + closeM;
+
+  return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+};
+
 
   const signup = () => login({ authorizationParams: { screen_hint: 'signup' } });
 
@@ -141,7 +160,8 @@ function Landing() {
   const handleSearch = (e) => e.preventDefault();
 
   // ── Navigate to full clinic detail page on card click ─────
-  const handleClinicClick = (clinicId) => navigate(`/clinics/${clinicId}`);
+  const handleClinicClick = (clinic) => setSelectedClinic(clinic);
+  const closePopup = () => setSelectedClinic(null);
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
@@ -155,6 +175,7 @@ function Landing() {
       if (filters.town) params.set('town', filters.town);
       if (filters.suburb) params.set('suburb', filters.suburb);
       if (filters.type) params.set('type', filters.type);
+      if (filters.service) params.set('service', filters.service);
 
       try {
         console.log("FILTERS:", filters);
@@ -162,7 +183,7 @@ function Landing() {
         const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
         const json = await res.json();
 
-        setFilterOptions(json);
+        setFilterOptions({ ...json, services: json.services || [] });
       } catch (error) {
         console.error("Couldn't fetch filter options:", error);
       }
@@ -209,45 +230,52 @@ function Landing() {
         <p>Find a clinic near you and reserve your slot in minutes.</p>
 
         {/* Typing calls the filterClinic API with ?name= — no page nav */}
-        <form className="search-bar" onSubmit={handleSearch} role="search">
-          <input
-            type="search"
-            placeholder="Search by clinic name…"
-            value={search}
-            onChange={(e) => {setSearch(e.target.value); setPage(1);}}
-            aria-label="Search clinics"
-          />
-          <button type="submit">Search</button>
-        </form>
-        <form>
-          <select value={filters.province} onChange={e => updateFilter('province', e.target.value)}>
-            <option value="">All provinces</option>
-            {filterOptions.provinces.map(p => (
-                <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
+        {/* --- DUAL SEARCH BAR --- */}
+              <form className="dashboard-dual-search" onSubmit={handleSearch} role="search">
+                <section className="search-input-group">
+                  <input
+                    type="search"
+                    placeholder="Clinic name (e.g. Parkmed)"
+                    value={search}
+                    onChange={(e) => {setSearch(e.target.value); setPage(1);}}
+                    aria-label="Search by clinic name"
+                  />
+                </section>
+                <hr className="search-divider" />
+                <section className="search-select-group">
+                  <select 
+                    value={filters.service} 
+                    onChange={e => updateFilter('service', e.target.value)}
+                    aria-label="Filter by reason for visit"
+                  >
+                    <option value="">Reason for visit (All)</option>
+                    {filterOptions.services?.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </section>
+                <button type="submit" className="dual-search-btn">Search</button>
+              </form>
+              
+              <form className="dashboard-filters">
+                <select value={filters.province} onChange={e => updateFilter('province', e.target.value)}>
+                  <option value="">All provinces</option>
+                  {filterOptions.provinces?.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+                <select value={filters.town} onChange={e => updateFilter('town', e.target.value)}>
+                  <option value="">All towns</option>
+                  {filterOptions.towns?.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <select value={filters.suburb} onChange={e => updateFilter('suburb', e.target.value)}>
+                  <option value="">All suburbs</option>
+                  {filterOptions.suburbs?.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <select value={filters.type} onChange={e => updateFilter('type', e.target.value)}>
+                  <option value="">All types</option>
+                  {filterOptions.types?.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </form>
 
-          <select value={filters.town} onChange={e => updateFilter('town', e.target.value)}>
-            <option value="">All towns</option>
-            {filterOptions.towns.map(t => (
-                <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-
-          <select value={filters.suburb} onChange={e => updateFilter('suburb', e.target.value)}>
-            <option value="">All suburbs</option>
-            {filterOptions.suburbs.map(s => (
-                <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-
-          <select value={filters.type} onChange={e => updateFilter('type', e.target.value)}>
-            <option value="">All types</option>
-            {filterOptions.types.map(t => (
-                <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </form>
       </header>
 
       {/* Clinic cards  */}
@@ -275,10 +303,10 @@ function Landing() {
               <li
                 key={clinic._id}
                 className="clinic-card"
-                onClick={() => handleClinicClick(clinic._id)}
+                onClick={() => handleClinicClick(clinic)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && handleClinicClick(clinic._id)}
+                onKeyDown={(e) => e.key === 'Enter' && handleClinicClick(clinic)}
                 aria-label={`View details for ${clinic.practiceName}`}
               >
                 <strong className="clinic-name">{clinic.practiceName}</strong>
@@ -286,8 +314,8 @@ function Landing() {
                 <span   className="clinic-addr">
                   {clinic.physicalAddress}, {clinic.physicalTown}
                 </span>
-                <span className={`clinic-badge ${clinic.isOpen ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
-                  {clinic.isOpen ? 'Open now' : 'Closed'}
+                <span className={`clinic-badge ${isClinicOpen(clinic) ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
+                  {isClinicOpen(clinic) ? 'Open now' : 'Closed'}
                 </span>
               </li>
             ))}
@@ -341,7 +369,50 @@ function Landing() {
           <p className="clinics-empty">No clinics found for "{search}".</p>
         )}
 
+      </section> {/* closes clinics-section */}
+
+
+      {selectedClinic && (
+  <section className="clinic-modal-overlay" onClick={closePopup}>
+    <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()}>
+      <section className="clinic-modal-inner">
+        <section className="clinic-modal-header">
+          <h2>{selectedClinic.practiceName}</h2>
+          <button className="clinic-modal-close" onClick={closePopup}>X</button>
+        </section>
+
+        <section className="clinic-modal-details">
+        <p>Practice Type: {selectedClinic.practiceTypeDescription || 'General Practice'}</p>
+        <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalTown}</p>
+        <p>Practice Number: {selectedClinic.practiceNumber || 'Not provided'}</p>
+        <p>Contact: {selectedClinic.contactNumber || 'Not provided'}</p>
+        <p>Hours: {
+        selectedClinic.practiceTimes?.open && selectedClinic.practiceTimes?.close? `${selectedClinic.practiceTimes.open} – ${selectedClinic.practiceTimes.close}`: ' Hours not set'
+  }</p>
+</section>
+
+        <section className="clinic-modal-footer">
+          <section className="clinic-modal-badges">
+            <span className={`modal-badge ${isClinicOpen(selectedClinic) ? 'status-open' : 'status-closed'}`}>
+              {isClinicOpen(selectedClinic) ? 'Open now' : 'Closed'}
+           </span>
+          </section>
+          <section style={{ display: 'flex', gap: '0.5rem' }}>
+            <button className="clinic-modal-book-btn" onClick={() => { alert('Please log in or sign up to continue.'); signup(); }}>
+              Join Queue
+            </button>
+            <button className="clinic-modal-book-btn" onClick={() => { alert('Please log in or sign up to continue.'); signup(); }}>
+              Book Now
+            </button>
+          </section>
+        </section>
       </section>
+    </section>
+  </section>
+)}
+      
+
+      
 
     </main>
   );
