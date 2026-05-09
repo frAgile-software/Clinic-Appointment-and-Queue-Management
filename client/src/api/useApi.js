@@ -1,9 +1,12 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useMemo } from 'react';
+
+import {ApiClient} from './ApiClient';
 import { ClinicService } from './services/ClinicService';
 import { UserService } from './services/UserService';
 import { SpecialityService } from './services/SpecialityService';
 import { QueueService } from './services/QueueService';
+import { SpecialityService } from './services/SpecialityService';
 
 export const useApi = () => {
   const { getAccessTokenSilently } = useAuth0();

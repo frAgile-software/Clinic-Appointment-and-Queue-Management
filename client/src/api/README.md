@@ -70,7 +70,7 @@ client.delete(path, body, params)
 Base class for all services. Each service defines it's own methods.
 
 ```js
-class ResourceService {
+export class ResourceService {
   constructor(publicClient, privateClient, basePath) {
     this.pub = publicClient;    // public (no token)
     this.priv = privateClient;  // private (token)
@@ -245,7 +245,9 @@ Follow this pattern for `ScheduleService`, `AppointmentService`, `QueueService` 
 **1. Create the file** at `src/api/services/YourService.js`
 
 ```js
-class YourService extends ResourceService {
+import {ResourceService} from '../ResourceService';
+
+export class YourService extends ResourceService {
   constructor(pub, priv) {
     super(pub, priv, '/your-base-path'); // e.g. '/clinics'
   }

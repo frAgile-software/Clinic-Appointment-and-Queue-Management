@@ -1,10 +1,14 @@
-class UserService extends ResourceService {
+import {ResourceService} from '../ResourceService';
+
+export class UserService extends ResourceService {
     constructor(publicClient, privateClient) {
         super(publicClient, privateClient, '/users');
     }
 
     register({auth0Id, name, surname, title, email, role}) {
-        return this.priv.post(`${this.basePath}/register`, {auth0Id, name, surname, title, email, role}, null);
+        return this.priv.post(`${this.basePath}/register`, {
+            auth0Id, name, surname, title, email, role
+        }, null);
     }
 
     update(auth0Id, updates) {
