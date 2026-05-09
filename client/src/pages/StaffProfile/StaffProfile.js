@@ -105,7 +105,7 @@ function StaffProfile() {
     async function fetchSpecialities() {
       try { 
         console.log("Fetching specialities...");
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/${profileData._id}/specialities`);
+        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/specialities/staff/${profileData._id}`);
         const data = await response.json();
         console.log("Fetched specialities response:", data);
         setSpecialities(data.Specialities || []);
