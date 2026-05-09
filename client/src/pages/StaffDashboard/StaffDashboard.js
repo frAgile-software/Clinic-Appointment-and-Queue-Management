@@ -134,6 +134,43 @@ function StaffDashboard() {
     );
   };
 
+  const updateConsultStatus = async (consultItem, newStatus) => {
+    if (!consultItem || !consultItem._id) {
+      console.error('Missing consultation item for status update');
+      return;
+    }
+
+    const isQueueItem = consultItem.type === 'Queue' || (!!consultItem.createdAt && !consultItem.BookingDateTime);
+    const endpoint = isQueueItem
+      ? `${process.env.REACT_APP_SERVER_URL}/api/queues/${consultItem._id}`
+      : `${process.env.REACT_APP_SERVER_URL}/api/appointments/${consultItem._id}`;
+
+    try {
+      const response = await apiFetch(endpoint, {
+        method: 'PUT',
+        body: JSON.stringify({ Status: newStatus }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error('Could not update consult status:', data);
+        return;
+      }
+
+      const updatedItem = { ...consultItem, status: newStatus };
+      setModalDetails(updatedItem);
+
+      if (isQueueItem) {
+        setPatientQueue((prev) => prev.map((item) => (item._id === consultItem._id ? updatedItem : item)));
+      } else {
+        setAppointments((prev) => prev.map((item) => (item._id === consultItem._id ? updatedItem : item)));
+      }
+    } catch (error) {
+      console.error('Could not update consult status:', error);
+    }
+  };
+
+
   if (loading)
     return (
       <main className="landing landing--loading">
@@ -245,10 +282,10 @@ function StaffDashboard() {
               </section>
 
               <footer className="modal-actions-footer">
-                <button className="modal-action-btn btn-purple">Check in</button>
-                <button className="modal-action-btn btn-purple">In Consult</button>
-                <button className="modal-action-btn btn-green">Done</button>
-                <button className="modal-action-btn btn-red">No show</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsultStatus(modalDetails, "In Consult")}>Check in</button>
+                <button className="modal-action-btn btn-green" onClick={() => updateConsultStatus(modalDetails, "Completed")}>Done</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsultStatus(modalDetails, "Cancelled")}>Cancel</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsultStatus(modalDetails, "No-show")}>No show</button>
               </footer>
             </section>
           </article>
