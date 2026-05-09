@@ -1,12 +1,11 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-                
-const queueSchema = new Schema({
+const ConsultModel = require('./Consult');
 
-    Clinic: {type: Schema.Types.ObjectId, ref: 'Clinic', required: true}, //FK
-    Speciality: {type: Schema.Types.ObjectId, ref: "Speciality", required: true}, //FK
-    Patient: {type: Schema.Types.ObjectId, ref: 'User', required: true}, //FK
-}, { timestamps: true });
+const Queue = ConsultModel.discriminator('Queue',
+    new Schema({
+        TimeSeen: { type: Date, required: false },
+    }, {discriminatorKey: 'type'})
+);
 
-const Queue = mongoose.model('Queue', queueSchema);
 module.exports = Queue;
