@@ -8,7 +8,7 @@ class QueueService extends ResourceService {
   }
 
   addPatient(clinicId, patientId, specialityName) {
-    return this.pub.post(`${this.basePath}/`, {clinicId, specialityName, auth0Id});
+    return this.pub.post(`${this.basePath}/`, {clinicID: clinicId, specialityName: specialityName, auth0ID: patientId});
   }
 
   remove(queueId) {
@@ -16,7 +16,7 @@ class QueueService extends ResourceService {
   }
 
   update(queueId, {clinicId, specialityId, patientId}) {
-    return this.priv.put(`${this.basePath}/${queueId}`, {clinicId, specialityId, patientId}, null);
+    return this.priv.put(`${this.basePath}/${queueId}`, {Clinic: clinicId, Speciality: specialityId, Patient: patientId}, null);
   }
 
   get(clinicId, { auth0Id, userId, specialityIDs }) {

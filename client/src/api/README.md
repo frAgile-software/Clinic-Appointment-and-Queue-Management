@@ -12,9 +12,9 @@ useApi (hook)
         |-> ClinicService       (done)
         |-> UserService         (done)
         |-> ScheduleService     (done)
-        |-> AppointmentService
+        |-> AppointmentService  (done)
         |-> QueueService        (done)
-        |-> SpecialityService
+        |-> SpecialityService   (done)
 ```
 
 ---
@@ -31,9 +31,9 @@ src/
         |-- ClinicService.js      
         |-- UserService.js        
         |-- ScheduleService.js
-        |-- AppointmentService.js -> TODO
+        |-- AppointmentService.js
         |-- QueueService.js
-        |-- SpecialityService.js  -> TODO
+        |-- SpecialityService.js
 ```
 
 ---
@@ -70,7 +70,7 @@ client.delete(path, body, params)
 Base class for all services. Each service defines it's own methods.
 
 ```js
-class ResourceService {
+export class ResourceService {
   constructor(publicClient, privateClient, basePath) {
     this.pub = publicClient;    // public (no token)
     this.priv = privateClient;  // private (token)
@@ -212,6 +212,7 @@ await api.queues.addPatient({ clinicId: "clin1", specialityId: "spec1", patientI
 ```
 
 ---
+
 ### `SpecialityService`
 
 Base path: `/specialities`.
@@ -265,6 +266,44 @@ await spi.schedules.update("schdl1", {
 
 ---
 
+### `AppointmentService`
+
+Base path: `/appointments`.
+
+| Method | auth | Server route |
+|---|---|---|
+| `cancel(appointmentId)`| Private | `DELETE /api/appointments/:appointmentId` |
+| `create({clinicId, staffUserId, patientAuth0Id, bookingDateTime, description, specialityName})`| Private |`POST /api/appointments/` |
+| `getForAuth0Id(auth0Id)`| Private | `GET /api/appointments/:auth0Id` |
+| `update(appointmentId, {patientUID, staffUID, clinicId, bookingDateTime, specialityId})`| Private | `PUT /api/appointments/:appointmentId` |
+
+**Example usage in a component**
+```js
+const api = useApi();
+
+// create appointment
+await api.appointments.create({
+  clinicId: "clnc1",
+  staffUserId: "stff1",
+  patientAuth0Id: "auth0|123",
+  bookingDateTime: new Date().toISOString();
+  description: "My elbow smells funny :(",
+  specialityName: "General Checkup",
+});
+
+// update appointment
+await api.appointments.create("appt1", {
+  patientUID: "auth0|123",
+})
+
+// cancel appointment
+await api.appointments.cancel("appt1");
+
+// get a list of appointments by auth0Id
+const appointments = await api.appointments.getForAuth0Id("auth0|123");
+```
+---
+
 ## How to Create a New Service
 
 Follow this pattern for `ScheduleService`, `AppointmentService`, `QueueService` and `SpecialityService`.
@@ -272,7 +311,9 @@ Follow this pattern for `ScheduleService`, `AppointmentService`, `QueueService` 
 **1. Create the file** at `src/api/services/YourService.js`
 
 ```js
-class YourService extends ResourceService {
+import {ResourceService} from '../ResourceService';
+
+export class YourService extends ResourceService {
   constructor(pub, priv) {
     super(pub, priv, '/your-base-path'); // e.g. '/clinics'
   }
@@ -345,5 +386,7 @@ These are tracked in the service files with `// TODO` comments. We need to fix r
 | `getStaffSpecialities` in server should be under `/specialities` service | Server route |
 | `clinicInfo` in server is redundant | Duplicate Server routes |
 | `hooks/useApi.js` will no longer be needed | client/src/hooks/ |
+| `updateAppointment` should also include description field | `AppointmentService.update` |
+| `createAppointment` fix naming convention | `AppointmentService.create` |
 
 Please add other problems you come across here.
