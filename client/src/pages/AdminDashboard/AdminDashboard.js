@@ -5,10 +5,11 @@ import logo from './clinicLogo.png';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect } from 'react';
 
+import { useApiAuth } from '../../hooks/apiAuth';
 
 function AdminDashboard() {
-     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
-
+     const { user, logout: auth0Logout, isAuthenticated, isLoading, getAccessTokenSilently} = useAuth0();
+    const { apiFetch } = useApiAuth();
     //const [dashboardData] = useState(adminDashboardStub);
    // const [selectedClinic, setSelectedClinic] = useState(adminDashboardStub.clinics[0]);
     const logout = () => {
@@ -22,7 +23,7 @@ function AdminDashboard() {
             try {
                 if (!user?.sub) return;
 
-                const response = await fetch(
+                const response = await apiFetch( 
                     `${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${encodeURIComponent(user.sub)}`
                 );
                 const data = await response.json();
@@ -38,14 +39,14 @@ function AdminDashboard() {
         if (!isLoading && isAuthenticated) {
             fetchAssignedClinics();
         }
-    }, [user, isAuthenticated, isLoading]);
+    }, [user, isAuthenticated, isLoading, apiFetch]);
 
     useEffect(() => {
         const fetchStaff = async () => {
             try {
-                if (!selectedClinic || !user?.sub) return;
+                 if (!selectedClinic || !user?.sub) return;
 
-                const response = await fetch(
+                const response = await apiFetch( 
                     `${process.env.REACT_APP_SERVER_URL}/api/clinics/${selectedClinic._id}/staff?auth0Id=${encodeURIComponent(user.sub)}`
                 );
                 const data = await response.json();
@@ -59,28 +60,14 @@ function AdminDashboard() {
         };
 
         fetchStaff();
-    }, [selectedClinic, user]);
+    }, [selectedClinic, user,  apiFetch]);
 
     if (isLoading) {
     return <p>Loading dashboard...</p>;
     }
 
     if (!selectedClinic) {
-        return (
-            <main className="dashboard">
-                <header className="navbar">
-                    <h2 id="navCliniQ">CliniQ</h2>
-                    <nav className="nav">
-                        <button className="nav_button" onClick={logout}>Log Out</button>
-                        
-                    </nav>
-                </header>
-                <section className="section">
-                    <h2>No assigned clinics found.</h2>
-                    <p>You do not have any clinics assigned to your account. Please contact your administrator or log out and try again.</p>
-                </section>
-            </main>
-        );
+    return <p>No assigned clinics found.</p>;
     }
         
 
