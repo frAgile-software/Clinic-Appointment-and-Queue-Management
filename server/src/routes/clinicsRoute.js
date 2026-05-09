@@ -20,7 +20,7 @@ router.use("/clinics", getClinic);
 
 // API routes - specific routes first
 router.use("/api/clinics/assigned", requireAuth, getAssignedClinic);
-router.use("/api/clinics/assigned", requireAuth, listAssignedClinics);
+router.use("/api/clinics/assigned-list", requireAuth, listAssignedClinics);
 
 // Other API clinic routes
 router.use("/api/clinics", requireAuth, createClinic);

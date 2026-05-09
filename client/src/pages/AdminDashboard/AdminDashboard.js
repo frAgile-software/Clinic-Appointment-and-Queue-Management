@@ -4,10 +4,12 @@ import bell from './bell.png';
 import logo from './clinicLogo.png';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect } from 'react';
+import { useApiAuth } from '../../hooks/apiAuth'; 
 
 
 function AdminDashboard() {
-     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
+    const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
+    const { apiFetch } = useApiAuth();
 
     //const [dashboardData] = useState(adminDashboardStub);
    // const [selectedClinic, setSelectedClinic] = useState(adminDashboardStub.clinics[0]);
@@ -22,8 +24,8 @@ function AdminDashboard() {
             try {
                 if (!user?.sub) return;
 
-                const response = await fetch(
-                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${encodeURIComponent(user.sub)}`
+                const response = await apiFetch(
+                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned-list?auth0Id=${encodeURIComponent(user.sub)}`
                 );
                 const data = await response.json();
 
@@ -45,7 +47,7 @@ function AdminDashboard() {
             try {
                 if (!selectedClinic || !user?.sub) return;
 
-                const response = await fetch(
+                const response = await apiFetch(
                     `${process.env.REACT_APP_SERVER_URL}/api/clinics/${selectedClinic._id}/staff?auth0Id=${encodeURIComponent(user.sub)}`
                 );
                 const data = await response.json();
