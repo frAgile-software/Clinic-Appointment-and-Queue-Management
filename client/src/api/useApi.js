@@ -1,12 +1,12 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useMemo } from 'react';
 
-import {ApiClient} from './ApiClient';
+import { ApiClient } from './ApiClient';
 import { ClinicService } from './services/ClinicService';
 import { UserService } from './services/UserService';
-import { SpecialityService } from './services/SpecialityService';
 import { QueueService } from './services/QueueService';
 import { SpecialityService } from './services/SpecialityService';
+import { AppointmentService } from './services/AppointmentService'
 
 export const useApi = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -25,9 +25,9 @@ export const useApi = () => {
       clinics: new ClinicService(pub, priv),
       users: new UserService(pub, priv),
       // schedules: new ScheduleService(pub, priv),
-      // appointments: new AppointmentService(pub, priv),
-      specialities: new SpecialityService(pub, priv),
+      appointments: new AppointmentService(pub, priv),
       queues: new QueueService(pub, priv),
+      specialities: new SpecialityService(pub, priv),
     };
     
   }, [getAccessTokenSilently]);
