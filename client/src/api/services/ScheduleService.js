@@ -1,6 +1,6 @@
 import { ResourceService } from '../ResourceService';
 
-export class YourService extends ResourceService {
+export class ScheduleService extends ResourceService {
     constructor(pub, priv) {
         super(pub, priv, '/schedules');
     }
