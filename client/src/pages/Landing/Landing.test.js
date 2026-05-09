@@ -65,6 +65,7 @@ beforeEach(() => {
     mockUsersGet.mockRejectedValue({ status: 404 });
 });
 
+// Clear all mocks after each test so they don't bleed into each other
 afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
@@ -72,6 +73,8 @@ afterEach(() => {
     jest.clearAllMocks();
 });
 
+// Helper: renders Landing inside a router
+// MemoryRouter is required because Landing uses useNavigate
 const renderLanding = async () => {
     await act(async () => {
         render(
@@ -154,7 +157,9 @@ describe('<Landing />', () => {
             });
 
             await renderLanding();
-            await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/dashboard/patient'));
+            await waitFor(() => {
+                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/patient')
+            });
         });
 
         test('redirects Staff to /dashboard/staff', async () => {
@@ -169,7 +174,9 @@ describe('<Landing />', () => {
             });
 
             await renderLanding();
-            await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/dashboard/staff'));
+            await waitFor(() => {
+                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/staff')
+            });
         });
 
         test('redirects Admin to /dashboard/admin', async () => {
@@ -184,7 +191,9 @@ describe('<Landing />', () => {
             });
 
             await renderLanding();
-            await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/dashboard/admin'));
+            await waitFor(() => {
+                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/admin')
+            });
         });
 
         test('redirects to /register when user not found (404)', async () => {
@@ -457,7 +466,6 @@ describe('<Landing />', () => {
 
         test('clicking a clinic card opens the modal', async () => {
             await renderWithClinicAndOpenModal();
-            // Name appears in both the card and the modal header
             expect(screen.getAllByText('Parkmed Neuro Clinic').length).toBeGreaterThan(1);
         });
 
@@ -478,7 +486,7 @@ describe('<Landing />', () => {
         });
 
         test('modal shows open badge when clinic is open', async () => {
-            await renderWithClinicAndOpenModal(); // 00:00–23:59 → always open
+            await renderWithClinicAndOpenModal();
             expect(document.querySelector('.modal-badge.status-open')).toBeInTheDocument();
         });
 
@@ -557,7 +565,6 @@ describe('<Landing />', () => {
             });
 
             await waitFor(() => {
-                // Only the card instance remains — modal header is gone
                 expect(screen.getAllByText('Parkmed Neuro Clinic').length).toBe(1);
             });
         });
