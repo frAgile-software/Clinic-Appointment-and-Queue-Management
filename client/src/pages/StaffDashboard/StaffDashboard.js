@@ -99,8 +99,6 @@ function StaffDashboard() {
   }, [staffId, apiFetch]);
 
   const toAppointmentCard = (appointmentItem) => {
-    if (!appointmentItem.status)
-      appointmentItem.status = "Upcoming";
     const bookingDate = new Date(appointmentItem.BookingDateTime);
     const patient = appointmentItem.Patient;
     return (
@@ -109,16 +107,14 @@ function StaffDashboard() {
         <span className="data-card-detail">ID: {patient._id}</span>
         <span className="data-card-detail">{bookingDate.toLocaleString()}</span>
         <span className="data-card-detail">{appointmentItem.ReasonDetails}</span>
-        <span className={`status-badge ${appointmentItem.status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
-          {appointmentItem.status}
+        <span className={`status-badge ${appointmentItem.Status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
+          {appointmentItem.Status}
         </span>
       </li>
     );
   };
 
   const toQueueCard = (queueItem) => {
-    if (!queueItem.status)
-      queueItem.status = "Waiting";
     const queueTime = new Date(queueItem.createdAt);
     const patient = queueItem.Patient;
     return (
@@ -128,7 +124,7 @@ function StaffDashboard() {
         <span className="data-card-detail">{queueTime.toLocaleTimeString()}</span>
         <span className="data-card-detail">{queueItem.Speciality.SpecialityName}</span>
         <span className="status-badge status-white">
-          {queueItem.status}
+          {queueItem.Status}
         </span>
       </li>
     );
@@ -157,7 +153,7 @@ function StaffDashboard() {
         return;
       }
 
-      const updatedItem = { ...consultItem, status: newStatus };
+      const updatedItem = { ...consultItem, Status: newStatus };
       setModalDetails(updatedItem);
 
       if (isQueueItem) {
@@ -170,6 +166,20 @@ function StaffDashboard() {
     }
   };
 
+  const nav_bar = (
+    <header className="staff-header-canva">
+      <section className="brand-section">
+        <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
+        <h2 className="brand-title">Clinics and Qs</h2>
+      </section>
+      <nav className="header-nav-canva">
+        <button className="icon-btn-user" aria-label="Profile">
+          <LuUser />
+        </button>
+        <button className="logout-btn-canva" onClick={logout}>Logout</button>
+      </nav>
+    </header>
+  );
 
   if (loading)
     return (
@@ -178,20 +188,18 @@ function StaffDashboard() {
       </main>
     );
 
+  if (!clinics || clinics.length === 0)
+    return (
+      <main className="staff-dashboard-wrapper">
+        {nav_bar}
+        <p>You are not assigned to any clinics.</p>
+        <p>Please contact the administrator for your clinic and ask to be added.</p>
+      </main>
+    );
+
   return (
     <main className="staff-dashboard-wrapper">
-      <header className="staff-header-canva">
-        <section className="brand-section">
-          <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
-          <h2 className="brand-title">Clinics and Qs</h2>
-        </section>
-        <nav className="header-nav-canva">
-          <button className="icon-btn-user" aria-label="Profile">
-            <LuUser />
-          </button>
-          <button className="logout-btn-canva" onClick={logout}>Logout</button>
-        </nav>
-      </header>
+      {nav_bar}
 
       <section className="welcome-banner-canva">
         <h1 className="welcome-title-canva">Welcome Back, Staff Member</h1>
@@ -282,6 +290,7 @@ function StaffDashboard() {
               </section>
 
               <footer className="modal-actions-footer">
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsultStatus(modalDetails, "Waiting")}>Set waiting</button>
                 <button className="modal-action-btn btn-purple" onClick={() => updateConsultStatus(modalDetails, "In Consult")}>Check in</button>
                 <button className="modal-action-btn btn-green" onClick={() => updateConsultStatus(modalDetails, "Completed")}>Done</button>
                 <button className="modal-action-btn btn-red" onClick={() => updateConsultStatus(modalDetails, "Cancelled")}>Cancel</button>
