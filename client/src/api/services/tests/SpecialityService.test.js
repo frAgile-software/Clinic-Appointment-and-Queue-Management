@@ -19,5 +19,17 @@ describe('SpecialityService', () => {
         service = new SpecialityService(mockPublicClient, mockPrivateClient);
     });
 
-    afterEach(() => jest.cleanAllMocks());
+    afterEach(() => jest.clearAllMocks());
+
+    describe('constructor', () => {
+
+        it('should set basePath to /specialities', async () => {
+            expect(service.basePath).toBe('/specialities');
+        });
+
+        it('should assign public and private clients', async () => {
+            expect(service.pub).toBe(mockPublicClient);
+            expect(service.priv).toBe(mockPrivateClient);
+        });
+    });
 });

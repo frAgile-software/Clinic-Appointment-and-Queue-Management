@@ -19,5 +19,17 @@ describe('QueueService', () => {
         service = new QueueService(mockPublicClient, mockPrivateClient);
     });
 
-    afterEach(() => jest.cleanAllMocks());
+    afterEach(() => jest.clearAllMocks());
+
+    describe('constructor', () => {
+
+        it('should set basePath to /queues', async () => {
+            expect(service.basePath).toBe('/queues');
+        });
+
+        it('should assign public and private clients', async () => {
+            expect(service.pub).toBe(mockPublicClient);
+            expect(service.priv).toBe(mockPrivateClient);
+        });
+    });
 });

@@ -19,5 +19,17 @@ describe('UserService', () => {
         service = new UserService(mockPublicClient, mockPrivateClient);
     });
 
-    afterEach(() => jest.cleanAllMocks());
+    afterEach(() => jest.clearAllMocks());
+
+    describe('constructor', () => {
+
+        it('should set basePath to /users', async () => {
+            expect(service.basePath).toBe('/users');
+        });
+
+        it('should assign public and private clients', async () => {
+            expect(service.pub).toBe(mockPublicClient);
+            expect(service.priv).toBe(mockPrivateClient);
+        });
+    });
 });
