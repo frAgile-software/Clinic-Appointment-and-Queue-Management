@@ -6,7 +6,7 @@ import { useApi } from '../../api/useApi';
 import { useNavigate } from 'react-router';
 
 const activeStatus = ["Waiting", "In Consult"];
-// const inactiveStatus = ["Completed", "Cancelled", "No-show"];
+const inactiveStatus = ["Completed", "Cancelled", "No-show"];
 
 function StaffDashboard() {
   const {
@@ -28,6 +28,8 @@ function StaffDashboard() {
   const [loading, setLoading] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [patientQueue, setPatientQueue] = useState([]);
+  const [viewingHistory, setViewingHistory] = useState(false); // Ok, these state things are genuinely black magic
+  const statusList = !viewingHistory ? activeStatus : inactiveStatus;
 
   const handleCardClick = (details) => {
     setModalDetails(details);
@@ -60,7 +62,7 @@ function StaffDashboard() {
     async function fetchQueue() {
       try {
         console.log("Finding queues...");
-        const data = await api.queues.get(clinics[0]._id, {auth0Id: staffId, statuses: activeStatus});
+        const data = await api.queues.get(clinics[0]._id, {auth0Id: staffId, statuses: statusList});
         console.log("Queues found:", data);
         setPatientQueue(data);
       } catch (error) {
@@ -68,14 +70,14 @@ function StaffDashboard() {
       }
     }
     fetchQueue();
-  }, [staffId, clinics, api]);
+  }, [staffId, clinics, api, statusList]);
 
   useEffect(() => {
     if (!staffId) return;
     async function fetchAppointments() {
       try {
         console.log("Finding appointments...");
-        const data = await api.appointments.getForAuth0Id(staffId, {statuses: activeStatus});
+        const data = await api.appointments.getForAuth0Id(staffId, {statuses: statusList});
         console.log("Appointments found:", data);
         setAppointments(data);
       } catch (error) {
@@ -83,7 +85,7 @@ function StaffDashboard() {
       }
     }
     fetchAppointments();
-  }, [staffId, api]);
+  }, [staffId, api, statusList]);
 
   const toAppointmentCard = (appointmentItem) => {
     const bookingDate = new Date(appointmentItem.BookingDateTime);
@@ -198,12 +200,12 @@ function StaffDashboard() {
 
         <article className="quick-action-card">
           <h3 className="quick-action-title">View Appointment History</h3>
-          <button className="pill-btn-purple">VIEW HISTORY</button>
+          <button className="pill-btn-purple" onClick={() => setViewingHistory(!viewingHistory)}>TOGGLE HISTORY</button>
         </article>
       </section>
 
       <section className="data-section">
-        <header className="data-section-header">Patient Appointments</header>
+        <header className="data-section-header">Patient Appointment{viewingHistory ? " History" : "s"}</header>
         <section className="data-list-container">
           <ul className="data-cards-wrapper">
             {appointments.length > 0 ? appointments.map(appt => toAppointmentCard(appt)) : <></>}
@@ -213,7 +215,7 @@ function StaffDashboard() {
       </section>
 
       <section className="data-section">
-        <header className="data-section-header">Patient Queue</header>
+        <header className="data-section-header">Patient Queue {viewingHistory ? "History" : ""}</header>
         <section className="data-list-container">
           <ul className="data-cards-wrapper">
             {patientQueue.length > 0 ? patientQueue.map(patient => toQueueCard(patient)) : <></>}
