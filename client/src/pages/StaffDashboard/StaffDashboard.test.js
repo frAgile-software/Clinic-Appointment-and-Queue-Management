@@ -2,9 +2,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import StaffDashboard from './StaffDashboard';
 import { MemoryRouter } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from '../../api/useApi';
 
-jest.mock('../../hooks/apiAuth');
+jest.mock('../../api/useApi');
 jest.mock('@auth0/auth0-react', () => ({
     useAuth0: () => ({
         user: { sub: "auth0|12345" },
@@ -13,46 +13,33 @@ jest.mock('@auth0/auth0-react', () => ({
 }));
 
 const mockAppointments = [
-    { _id: "67890", Patient: { _id: "1", name: "Jane Doe", email: "jane.doe@mail.com" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Flu shot", Speciality: { SpecialityName: "General" }, status: "In Consult" },
-    { _id: "12345", Patient: { _id: "2", name: "John Doe", email: "john.doe@mail.com" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Check-up", Speciality: { SpecialityName: "ENT" }, status: "Upcoming" }
+    { _id: "67890", Patient: { _id: "1", name: "Jane Doe", email: "jane.doe@mail.com" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Flu shot", Speciality: { SpecialityName: "General" }, Status: "In Consult", Remarks: "" },
+    { _id: "12345", Patient: { _id: "2", name: "John Doe", email: "john.doe@mail.com" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Check-up", Speciality: { SpecialityName: "ENT" }, Status: "Upcoming", Remarks: "" }
 ];
 
 const mockQueue = [
-    { _id: "53820", Patient: { _id: "3", name: "Janet Doe", email: "janet.doe@mail.com" }, createdAt: "2026-05-06T10:00:00Z", Speciality: { SpecialityName: "Maternity" }, status: "Waiting" },
-    { _id: "74387", Patient: { _id: "4", name: "Jack Doe", email: "jack.doe@mail.com" }, createdAt: "2026-05-06T10:00:00Z", Speciality: { SpecialityName: "General" }, status: "Waiting" }
+    { _id: "53820", Patient: { _id: "3", name: "Janet Doe", email: "janet.doe@mail.com" }, createdAt: "2026-05-06T10:00:00Z", Speciality: { SpecialityName: "Maternity" }, Status: "Waiting", Remarks: ""  },
+    { _id: "74387", Patient: { _id: "4", name: "Jack Doe", email: "jack.doe@mail.com" }, createdAt: "2026-05-06T10:00:00Z", Speciality: { SpecialityName: "General" }, Status: "Waiting", Remarks: "" }
 ];
 
-const mockApiFetch = jest.fn();
+const mockGetAssignedClinics = jest.fn();
+const mockGetQueue = jest.fn();
+const mockGetAppointments = jest.fn();
+const mockUpdateQueue = jest.fn();
+const mockUpdateAppointment = jest.fn();
 
 beforeEach(() => {
     jest.clearAllMocks();
 
-    useApiAuth.mockReturnValue({
-        apiFetch: mockApiFetch,
+    useApi.mockReturnValue({
+        clinics: { getAssignedClinics: mockGetAssignedClinics },
+        queues: { get: mockGetQueue, update: mockUpdateQueue },
+        appointments: { getForAuth0Id: mockGetAppointments, update: mockUpdateAppointment },
     });
 
-    mockApiFetch.mockImplementation((url, options) => {
-        if (url.includes('/api/clinics')) {
-            return Promise.resolve({
-                ok: true,
-                json: async () => ([{ id: "987654" }]),
-            });
-        }
-        if (url.includes('/api/queues')) {
-            return Promise.resolve({
-                ok: true,
-                json: async () => (mockQueue),
-            });
-        }
-        if (url.includes('/api/appointments')) {
-            return Promise.resolve({
-                ok: true,
-                json: async () => (mockAppointments),
-            });
-        }
-
-        return Promise.resolve({ ok: true, json: async () => ({}) });
-    });
+    mockGetAssignedClinics.mockResolvedValue([{ _id: "987654" }]);
+    mockGetQueue.mockResolvedValue(mockQueue);
+    mockGetAppointments.mockResolvedValue(mockAppointments);
 });
 
 afterEach(() => {
@@ -125,4 +112,30 @@ test('renders profile icon', async () => {
 
     const profileIcon = screen.getByLabelText(/Profile/i);
     expect(profileIcon).toBeInTheDocument();
+});
+
+test('uses API calls to load clinics, queue, and appointments', async () => {
+    await renderDashboard();
+
+    expect(mockGetAssignedClinics).toHaveBeenCalledWith('auth0|12345');
+    expect(mockGetQueue).toHaveBeenCalledWith('987654', { auth0Id: 'auth0|12345' });
+    expect(mockGetAppointments).toHaveBeenCalledWith('auth0|12345');
+});
+
+test('opens a patient modal when a queue item is clicked', async () => {
+    await renderDashboard();
+
+    const queuePatient = await screen.findByText(/Janet Doe/i);
+    queuePatient.click();
+
+    expect(await screen.findByText(/Contact Email:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Reason:\s*Maternity/i)).toBeInTheDocument();
+});
+
+test('shows add queue form fields', async () => {
+    await renderDashboard();
+
+    expect(screen.getByText(/Patient Name:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Arrival time:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Reason:/i)).toBeInTheDocument();
 });

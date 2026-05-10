@@ -17,8 +17,8 @@ export class QueueService extends ResourceService {
     return this.priv.delete(`${this.basePath}/${queueId}`, null, null);
   }
 
-  update(queueId, {clinicId, specialityId, patientId}) {
-    return this.priv.put(`${this.basePath}/${queueId}`, {Clinic: clinicId, Speciality: specialityId, Patient: patientId}, null);
+  update(queueId, {clinicId, specialityId, patientId, status, remarks}) {
+    return this.priv.put(`${this.basePath}/${queueId}`, {Clinic: clinicId, Speciality: specialityId, Patient: patientId, Status: status, Remarks: remarks}, null);
   }
 
   get(clinicId, { auth0Id, userId, specialityIDs }) {
