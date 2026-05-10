@@ -7,7 +7,7 @@ import { useApi } from '../../api/useApi';
 jest.mock('../../api/useApi');
 jest.mock('@auth0/auth0-react', () => ({
     useAuth0: () => ({
-        user: { sub: "auth0|12345" },
+        user: { sub: "auth0|12345", name: "Hugh Morris" },
         logout: jest.fn(),
     }),
 }));
@@ -103,7 +103,7 @@ test('renders action buttons', async () => {
 test('renders welcome message', async () => {
     await renderDashboard();
 
-    const welcomeMessage = screen.getByText(/Welcome Back, Staff Member/i);
+    const welcomeMessage = screen.getByText(/Welcome Back, Hugh Morris/i);
     expect(welcomeMessage).toBeInTheDocument();
 });
 
