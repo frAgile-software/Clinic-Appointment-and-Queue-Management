@@ -21,7 +21,7 @@ export class ApiClient {
         
         if (params) {
             const searchParams = new URLSearchParams();
-            Object.entries(params).forEach(([k, v]) => searchParams.set(k, v));
+            Object.entries(params).forEach(([k, v]) => {if (v !== undefined) searchParams.set(k, v)});
             urlString += `?${searchParams.toString()}`;
         }
 
