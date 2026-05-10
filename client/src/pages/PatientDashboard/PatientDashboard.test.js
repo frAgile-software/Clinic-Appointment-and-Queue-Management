@@ -688,10 +688,10 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: /Confirm/i })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Join Queue/i })).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByRole("button", { name: /Confirm/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
 
       await waitFor(() => {
         expect(screen.getByRole("button", { name: /LEAVE QUEUE/i })).toBeInTheDocument();
@@ -729,9 +729,9 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: /Confirm/i })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Join Queue/i })).toBeInTheDocument();
       });
-      fireEvent.click(screen.getByRole("button", { name: /Confirm/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
 
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalledWith("Failed to join queue:", expect.any(Error));
