@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 
 import './Landing.css';
-import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from '../../api/useApi';
 
 
 const PAGE_LIMIT = 12; //clinics per page
@@ -16,9 +16,10 @@ function Landing() {
   const [hasSearched, setHasSearched] = useState(false); // true once user has searched
   const [pagination,  setPagination]  = useState({page:1, totalPages:1, total:0});
   const [page,        setPage]        = useState(1);
+  const [selectedClinic,  setSelectedClinic]  = useState(null);
 
-  const { apiFetch } = useApiAuth();
-  const navigate     = useNavigate();
+  const api = useApi();
+  const navigate = useNavigate();
   const clinicsSectionRef = useRef(null);
 
   //stores what filter options are available
@@ -26,7 +27,8 @@ function Landing() {
     provinces: [],
     towns: [],
     suburbs: [],
-    types: []
+    types: [],
+    services: []
   });
 
   //stores currently filter choices
@@ -55,41 +57,63 @@ function Landing() {
     user,
   } = useAuth0();
 
+  // Gets the current time by comparing the start and end times
+const isClinicOpen = (clinic) => {
+  if (!clinic.practiceTimes?.open || !clinic.practiceTimes?.close) return false;
+
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const [openH, openM]   = clinic.practiceTimes.open.split(':').map(Number);
+  const [closeH, closeM] = clinic.practiceTimes.close.split(':').map(Number);
+
+  const openMinutes  = openH  * 60 + openM;
+  const closeMinutes = closeH * 60 + closeM;
+
+  return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+};
+
+
   const signup = () => login({ authorizationParams: { screen_hint: 'signup' } });
+
+  const hasVerified = useRef(false);
 
   // Redirect already-logged-in users to their dashboard 
   useEffect(() => {
     const verifyUserRole = async () => {
       if (!isLoading && isAuthenticated && user) {
+
+        if (hasVerified.current) return;  // make sure this only runs once
+        hasVerified.current = true;
+
         setIsVerifying(true);
         try {
           
-          console.log(`Attempting to get user from url ${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
-          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
+          console.log(`Attempting to get user.`);
 
-          if (response.ok) {
-            console.log("User found. Redirecting...");
-            const data = await response.json();
-            const redirectMap = {
-              Patient: '/dashboard/patient',
-              Staff:   '/dashboard/staff',
-              Admin:   '/dashboard/admin',
-            };
-            navigate(redirectMap[data.role] || '/');
-          } else if (response.status === 404) {
+          const data = await api.users.get(user?.sub);
+
+          console.log("User found. Redirecting...");
+
+          const redirectMap = {
+            Patient: '/dashboard/patient',
+            Staff:   '/dashboard/staff',
+            Admin:   '/dashboard/admin',
+          };
+          navigate(redirectMap[data.role] || '/');
+        } catch (error) {
+          if (error.status === 404) {
+            console.log("Not registred. redirecting...");
             navigate('/register');
           } else {
-            console.error('Failed to verify user profile.');
+            console.error('Network error during verification:', error);
             setIsVerifying(false);
           }
-        } catch (error) {
-          console.error('Network error during verification:', error);
-          setIsVerifying(false);
         }
       }
     };
     verifyUserRole();
-  }, [isLoading, isAuthenticated, user, navigate, apiFetch]);
+  }, [isLoading, isAuthenticated, user, navigate, api]);
 
   // Search the API whenever the user types
   // Debounced by 400ms so we don't fire on every keystroke.
@@ -102,21 +126,21 @@ function Landing() {
       setLoadingList(true);
       setHasSearched(true);
       try {
-        const params = new URLSearchParams();
-        if (search.trim()) params.set('name', search.trim());
-        if (filters.province) params.set('province', filters.province);
-        if (filters.town) params.set('town', filters.town);
-        if (filters.suburb) params.set('suburb', filters.suburb);
-        if (filters.type) params.set('type', filters.type);
-        if (filters.service) params.set('service', filters.service);
-        params.set('_orderby', filters._orderby);
-        params.set('_order', filters._order);
-        params.set("_page", page);
-        params.set("_page_len", PAGE_LIMIT);
+        console.log('Fetching clinics by filters...');
+        const params = {};
+        if (search.trim()) params.name = search.trim();
+        if (filters.province) params.province = filters.province;
+        if (filters.town) params.town = filters.town;
+        if (filters.suburb) params.suburb = filters.suburb;
+        if (filters.type) params.type = filters.type;
+        if (filters.service) params.service = filters.service;
+        params._orderby = filters._orderby;
+        params._order = filters._order;
+        params._page = page;
+        params._page_len = PAGE_LIMIT;
 
-        console.log("Trying to fetch:",`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
-        const res  = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
-        const json = await res.json();
+        const json = await api.clinics.filterAll(params);
+        console.log("Clinics found:", json);
 
         // filterClinic returns { data: [...], pagination: {...} }
         setClinics(json.data || []);
@@ -135,13 +159,14 @@ function Landing() {
 
     // Cleanup timer on unmount or next keystroke
     return () => clearTimeout(debounceTimer.current);
-  }, [search, filters, page]);
+  }, [search, filters, page, api]);
 
   // Prevent form from refreshing the page 
   const handleSearch = (e) => e.preventDefault();
 
   // ── Navigate to full clinic detail page on card click ─────
-  const handleClinicClick = (clinicId) => navigate(`/clinics/${clinicId}`);
+  const handleClinicClick = (clinic) => setSelectedClinic(clinic);
+  const closePopup = () => setSelectedClinic(null);
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
@@ -150,18 +175,13 @@ function Landing() {
   
   useEffect(() => {
     const fetchFilterOptions = async () => {
-      const params = new URLSearchParams();
-      if (filters.province) params.set('province', filters.province);
-      if (filters.town) params.set('town', filters.town);
-      if (filters.suburb) params.set('suburb', filters.suburb);
-      if (filters.type) params.set('type', filters.type);
-
       try {
         console.log("FILTERS:", filters);
-        console.log(`Attempting to get filters from ${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
-        const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
-        const json = await res.json();
 
+        const json = await api.clinics.getFilters(filters);
+
+        console.log("Fetched filter options:", json);
+        
         setFilterOptions(json);
       } catch (error) {
         console.error("Couldn't fetch filter options:", error);
@@ -169,7 +189,7 @@ function Landing() {
     };
 
     fetchFilterOptions();
-  }, [filters.province, filters.town, filters.suburb, filters.type, filters]);
+  }, [filters, api]);
 
   const buildPageRange = (current, total) => {
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -209,45 +229,52 @@ function Landing() {
         <p>Find a clinic near you and reserve your slot in minutes.</p>
 
         {/* Typing calls the filterClinic API with ?name= — no page nav */}
-        <form className="search-bar" onSubmit={handleSearch} role="search">
-          <input
-            type="search"
-            placeholder="Search by clinic name…"
-            value={search}
-            onChange={(e) => {setSearch(e.target.value); setPage(1);}}
-            aria-label="Search clinics"
-          />
-          <button type="submit">Search</button>
-        </form>
-        <form>
-          <select value={filters.province} onChange={e => updateFilter('province', e.target.value)}>
-            <option value="">All provinces</option>
-            {filterOptions.provinces.map(p => (
-                <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
+        {/* --- DUAL SEARCH BAR --- */}
+              <form className="dashboard-dual-search" onSubmit={handleSearch} role="search">
+                <section className="search-input-group">
+                  <input
+                    type="search"
+                    placeholder="Clinic name (e.g. Parkmed)"
+                    value={search}
+                    onChange={(e) => {setSearch(e.target.value); setPage(1);}}
+                    aria-label="Search by clinic name"
+                  />
+                </section>
+                <hr className="search-divider" />
+                <section className="search-select-group">
+                  <select 
+                    value={filters.service} 
+                    onChange={e => updateFilter('service', e.target.value)}
+                    aria-label="Filter by reason for visit"
+                  >
+                    <option value="">Reason for visit (All)</option>
+                    {filterOptions.services?.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </section>
+                <button type="submit" className="dual-search-btn">Search</button>
+              </form>
+              
+              <form className="dashboard-filters">
+                <select value={filters.province} onChange={e => updateFilter('province', e.target.value)}>
+                  <option value="">All provinces</option>
+                  {filterOptions.provinces?.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+                <select value={filters.town} onChange={e => updateFilter('town', e.target.value)}>
+                  <option value="">All towns</option>
+                  {filterOptions.towns?.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <select value={filters.suburb} onChange={e => updateFilter('suburb', e.target.value)}>
+                  <option value="">All suburbs</option>
+                  {filterOptions.suburbs?.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <select value={filters.type} onChange={e => updateFilter('type', e.target.value)}>
+                  <option value="">All types</option>
+                  {filterOptions.types?.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </form>
 
-          <select value={filters.town} onChange={e => updateFilter('town', e.target.value)}>
-            <option value="">All towns</option>
-            {filterOptions.towns.map(t => (
-                <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-
-          <select value={filters.suburb} onChange={e => updateFilter('suburb', e.target.value)}>
-            <option value="">All suburbs</option>
-            {filterOptions.suburbs.map(s => (
-                <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-
-          <select value={filters.type} onChange={e => updateFilter('type', e.target.value)}>
-            <option value="">All types</option>
-            {filterOptions.types.map(t => (
-                <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </form>
       </header>
 
       {/* Clinic cards  */}
@@ -275,10 +302,10 @@ function Landing() {
               <li
                 key={clinic._id}
                 className="clinic-card"
-                onClick={() => handleClinicClick(clinic._id)}
+                onClick={() => handleClinicClick(clinic)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && handleClinicClick(clinic._id)}
+                onKeyDown={(e) => e.key === 'Enter' && handleClinicClick(clinic)}
                 aria-label={`View details for ${clinic.practiceName}`}
               >
                 <strong className="clinic-name">{clinic.practiceName}</strong>
@@ -286,8 +313,8 @@ function Landing() {
                 <span   className="clinic-addr">
                   {clinic.physicalAddress}, {clinic.physicalTown}
                 </span>
-                <span className={`clinic-badge ${clinic.isOpen ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
-                  {clinic.isOpen ? 'Open now' : 'Closed'}
+                <span className={`clinic-badge ${isClinicOpen(clinic) ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
+                  {isClinicOpen(clinic) ? 'Open now' : 'Closed'}
                 </span>
               </li>
             ))}
@@ -341,7 +368,50 @@ function Landing() {
           <p className="clinics-empty">No clinics found for "{search}".</p>
         )}
 
+      </section> {/* closes clinics-section */}
+
+
+      {selectedClinic && (
+  <section className="clinic-modal-overlay" onClick={closePopup}>
+    <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()}>
+      <section className="clinic-modal-inner">
+        <section className="clinic-modal-header">
+          <h2>{selectedClinic.practiceName}</h2>
+          <button className="clinic-modal-close" onClick={closePopup}>X</button>
+        </section>
+
+        <section className="clinic-modal-details">
+        <p>Practice Type: {selectedClinic.practiceTypeDescription || 'General Practice'}</p>
+        <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalTown}</p>
+        <p>Practice Number: {selectedClinic.practiceNumber || 'Not provided'}</p>
+        <p>Contact: {selectedClinic.contactNumber || 'Not provided'}</p>
+        <p>Hours: {
+        selectedClinic.practiceTimes?.open && selectedClinic.practiceTimes?.close? `${selectedClinic.practiceTimes.open} – ${selectedClinic.practiceTimes.close}`: ' Hours not set'
+  }</p>
+</section>
+
+        <section className="clinic-modal-footer">
+          <section className="clinic-modal-badges">
+            <span className={`modal-badge ${isClinicOpen(selectedClinic) ? 'status-open' : 'status-closed'}`}>
+              {isClinicOpen(selectedClinic) ? 'Open now' : 'Closed'}
+           </span>
+          </section>
+          <section style={{ display: 'flex', gap: '0.5rem' }}>
+            <button className="clinic-modal-book-btn" onClick={() => { signup(); }}>
+              Join Queue
+            </button>
+            <button className="clinic-modal-book-btn" onClick={() => {  signup(); }}>
+              Book Now
+            </button>
+          </section>
+        </section>
       </section>
+    </section>
+  </section>
+)}
+      
+
+      
 
     </main>
   );

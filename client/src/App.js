@@ -7,7 +7,8 @@ import AdminDashboard from    "./pages/AdminDashboard/AdminDashboard"
 import StaffDashboard from    "./pages/StaffDashboard/StaffDashboard"
 import PatientDashboard from  "./pages/PatientDashboard/PatientDashboard"
 import StaffProfile from      "./pages/StaffProfile/StaffProfile"
-import Booking from         "./pages/Booking/Booking"
+import Booking from           "./pages/Booking/Booking"
+import PatientProfile from    './pages/PatientProfile/PatientProfile'
 function App() {
   const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, isLoading } = useAuth0();
@@ -32,7 +33,7 @@ function App() {
           <ProtectedRoute>
             <StaffDashboard /> 
           </ProtectedRoute>} />
-          <Route path="/dashboard/staff/profile" element= {
+        <Route path="/dashboard/staff/profile" element= {
           <ProtectedRoute>
             <StaffProfile />
           </ProtectedRoute>} />
@@ -40,7 +41,11 @@ function App() {
           <ProtectedRoute>
             <PatientDashboard /> 
           </ProtectedRoute>} />
-          <Route path="/book" element={<Booking />} />
+        <Route path="/dashboard/patient/profile" element={
+          <ProtectedRoute>
+            <PatientProfile />
+          </ProtectedRoute>} />
+        <Route path="/book" element={<Booking />} />
       </Routes>
     </BrowserRouter>
   );

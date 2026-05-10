@@ -34,6 +34,7 @@ function PatientDashboard() {
   const [selectedClinic, setSelectedClinic] = useState(null);
   const [showQueuePanel, setShowQueuePanel] = useState(false);
   const [selectedService, setSelectedService] = useState('');
+  const [joiningQueue, setJoiningQueue] = useState(false);
   
   const clinicsSectionRef = useRef(null);
   const debounceTimer = useRef(null);
@@ -175,6 +176,8 @@ function PatientDashboard() {
   const handleConfirmQueue =async () => {
     if (!selectedService) return;
 
+    setJoiningQueue(true);
+
     try {
       const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/`, {
         method: 'POST',
@@ -195,6 +198,8 @@ function PatientDashboard() {
       }
     } catch (error) {
       console.error("Failed to join queue:", error);
+    } finally {
+      setJoiningQueue(false);
     }
   }
 
@@ -311,7 +316,7 @@ function PatientDashboard() {
         </section>
 
         <section className="header-actions">
-          <button className="profile-btn" aria-label="Profile">
+          <button className="profile-btn" aria-label="Profile" onClick={() => navigate('/dashboard/patient/profile')}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
@@ -563,8 +568,17 @@ function PatientDashboard() {
                         <button
                           className="clinic-modal-book-btn"
                           onClick={handleConfirmQueue}
+                          disabled={joiningQueue}
                         >
-                          Confirm
+                          {joiningQueue ? (
+                            <>
+                              Joining...
+                            </>
+                          ) : 
+                            <>
+                              Join Queue
+                            </>
+                          }
                         </button>
                       )}
                     </section>

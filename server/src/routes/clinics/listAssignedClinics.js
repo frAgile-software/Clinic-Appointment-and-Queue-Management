@@ -22,7 +22,7 @@ router.get("/", async (req, res) => {
         //check if user is staff
         const staffRecords = await Staff.find({ User: user._id });
         if (!staffRecords || staffRecords.length === 0) {
-            console.log("Fail: User is not a staff member");
+            console.log("Fail: User is not a staff member..");
             return res.status(404).json({ error: "User is not a staff member" });
         }
         

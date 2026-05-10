@@ -10,16 +10,35 @@ jest.mock('@auth0/auth0-react', () => ({
     useAuth0: jest.fn(),
 }));
 
-//  Mock: apiAuth hook 
-// apiFetch is only called when a user is authenticated.
+// Landing.js calls api.clinics.filterAll(), api.clinics.getFilters(), api.users.get(), so mocks:
+const mockFilterAll  = jest.fn();
+const mockGetFilters = jest.fn();
+const mockUsersGet   = jest.fn();
 
-jest.mock('../../hooks/apiAuth', () => ({
-    useApiAuth: () => ({ apiFetch: jest.fn() }),
+jest.mock('../../api/useApi', () => ({
+    useApi: () => ({
+        clinics: {
+            filterAll:  mockFilterAll,
+            getFilters: mockGetFilters,
+        },
+        users: {
+            get: mockUsersGet,
+        },
+    }),
 }));
 
-// Mock: global fetch
-// The Landing page calls fetch on mount to load clinics.
-// We return empty data here since card rendering is not
+// Reused across tests. practiceTimes 00:00–23:59 means always open
+const baseClinic = {
+    _id:                     '1',
+    practiceName:            'Parkmed Neuro Clinic',
+    practiceTypeDescription: 'Neurology specialist',
+    physicalAddress:         '1 Park Lane',
+    physicalTown:            'JOHANNESBURG',
+    practiceNumber:          '0012345',
+    contactNumber:           '011 123 4567',
+    practiceTimes:           { open: '00:00', close: '23:59' },
+};
+
 beforeEach(() => {
     jest.useFakeTimers();
 
@@ -30,23 +49,20 @@ beforeEach(() => {
         loginWithRedirect: jest.fn(),
     });
 
-    global.fetch = jest.fn((url) => {
-        if (url.includes('/clinics/filters')) {
-            return Promise.resolve({
-                ok: true,
-                json: () => Promise.resolve({
-                    provinces: ['GAUTENG', 'WESTERN CAPE'],
-                    towns:     ['JOHANNESBURG', 'CAPE TOWN'],
-                    suburbs:   ['PARKTOWN','SEA POINT'],
-                    types:     ['SPECIALIST', 'GENERAL PRACTICE'],
-                }),
-            });
-        }
-        return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve({ data: [], pagination: {} }),
-        });
+    mockGetFilters.mockResolvedValue({
+        provinces: ['GAUTENG', 'WESTERN CAPE'],
+        towns:     ['JOHANNESBURG', 'CAPE TOWN'],
+        suburbs:   ['PARKTOWN', 'SEA POINT'],
+        types:     ['SPECIALIST', 'GENERAL PRACTICE'],
+        services:  ['General Consultation', 'Cardiology'],
     });
+
+    mockFilterAll.mockResolvedValue({
+        data:       [],
+        pagination: { page: 1, totalPages: 1, total: 0 },
+    });
+
+    mockUsersGet.mockRejectedValue({ status: 404 });
 });
 
 // Clear all mocks after each test so they don't bleed into each other
@@ -57,9 +73,8 @@ afterEach(() => {
     jest.clearAllMocks();
 });
 
-//  Helper: renders Landing inside a router 
+// Helper: renders Landing inside a router
 // MemoryRouter is required because Landing uses useNavigate
-
 const renderLanding = async () => {
     await act(async () => {
         render(
@@ -71,12 +86,26 @@ const renderLanding = async () => {
     });
 };
 
+// Renders Landing with one clinic card visible, then clicks it to open the modal
+const renderWithClinicAndOpenModal = async (clinic = baseClinic) => {
+    mockFilterAll.mockResolvedValue({
+        data:       [clinic],
+        pagination: { page: 1, totalPages: 1, total: 1 },
+    });
+
+    await renderLanding();
+    await waitFor(() => expect(screen.getByText(clinic.practiceName)).toBeInTheDocument());
+
+    await act(async () => {
+        await userEvent.click(screen.getByText(clinic.practiceName));
+    });
+};
 
 describe('<Landing />', () => {
 
     //  Nav bar tests 
 
-    // The  logo must always be visible in the top nav bar
+    // The logo must always be visible in the top nav bar
     test('renders the site name', async () => {
         await renderLanding();
         expect(screen.getByText(/clinics and qs/i)).toBeInTheDocument();
@@ -94,7 +123,7 @@ describe('<Landing />', () => {
         expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
     });
 
-    // Hero / search tests
+    // Hero / search tests 
 
     // The main headline should always be visible on the landing page
     test('renders the headline', async () => {
@@ -113,25 +142,13 @@ describe('<Landing />', () => {
         await renderLanding();
         expect(screen.getByRole('button', { name: /^search$/i })).toBeInTheDocument();
     });
-    
+
+    // Redirect tests 
     describe('Redirects', () => {
         test('redirects Patient to /dashboard/patient', async () => {
             const mockNavigate = jest.fn();
             jest.spyOn(require('react-router'), 'useNavigate').mockReturnValue(mockNavigate);
-
-            const mockApiFetch = jest.fn((url) => {
-                if (url.includes('/api/users/')) {
-                    return Promise.resolve({
-                        ok: true,
-                        json: () => Promise.resolve({ role: 'Patient' }),
-                    });
-                }
-            });
-
-            jest.spyOn(require('../../hooks/apiAuth'), 'useApiAuth').mockReturnValue({
-                apiFetch: mockApiFetch,
-            });
-
+            mockUsersGet.mockResolvedValue({ role: 'Patient' });
             require('@auth0/auth0-react').useAuth0.mockReturnValue({
                 isAuthenticated: true,
                 isLoading: false,
@@ -140,29 +157,15 @@ describe('<Landing />', () => {
             });
 
             await renderLanding();
-
             await waitFor(() => {
-                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/patient');
+                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/patient')
             });
         });
 
         test('redirects Staff to /dashboard/staff', async () => {
             const mockNavigate = jest.fn();
             jest.spyOn(require('react-router'), 'useNavigate').mockReturnValue(mockNavigate);
-
-            const mockApiFetch = jest.fn((url) => {
-                if (url.includes('/api/users/')) {
-                    return Promise.resolve({
-                        ok: true,
-                        json: () => Promise.resolve({ role: 'Staff' }),
-                    });
-                }
-            });
-
-            jest.spyOn(require('../../hooks/apiAuth'), 'useApiAuth').mockReturnValue({
-                apiFetch: mockApiFetch,
-            });
-
+            mockUsersGet.mockResolvedValue({ role: 'Staff' });
             require('@auth0/auth0-react').useAuth0.mockReturnValue({
                 isAuthenticated: true,
                 isLoading: false,
@@ -171,29 +174,15 @@ describe('<Landing />', () => {
             });
 
             await renderLanding();
-
             await waitFor(() => {
-                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/staff');
+                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/staff')
             });
         });
 
         test('redirects Admin to /dashboard/admin', async () => {
             const mockNavigate = jest.fn();
             jest.spyOn(require('react-router'), 'useNavigate').mockReturnValue(mockNavigate);
-
-            const mockApiFetch = jest.fn((url) => {
-                if (url.includes('/api/users/')) {
-                    return Promise.resolve({
-                        ok: true,
-                        json: () => Promise.resolve({ role: 'Admin' }),
-                    });
-                }
-            });
-
-            jest.spyOn(require('../../hooks/apiAuth'), 'useApiAuth').mockReturnValue({
-                apiFetch: mockApiFetch,
-            });
-
+            mockUsersGet.mockResolvedValue({ role: 'Admin' });
             require('@auth0/auth0-react').useAuth0.mockReturnValue({
                 isAuthenticated: true,
                 isLoading: false,
@@ -202,18 +191,15 @@ describe('<Landing />', () => {
             });
 
             await renderLanding();
-
             await waitFor(() => {
-                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/admin');
+                expect(mockNavigate).toHaveBeenCalledWith('/dashboard/admin')
             });
         });
 
         test('redirects to /register when user not found (404)', async () => {
             const mockNavigate = jest.fn();
             jest.spyOn(require('react-router'), 'useNavigate').mockReturnValue(mockNavigate);
-            jest.spyOn(require('../../hooks/apiAuth'), 'useApiAuth').mockReturnValue({
-                apiFetch: jest.fn(() => Promise.resolve({ ok: false, status: 404 })),
-            });
+            mockUsersGet.mockRejectedValue({ status: 404 });
             require('@auth0/auth0-react').useAuth0.mockReturnValue({
                 isAuthenticated: true, isLoading: false,
                 user: { sub: 'auth0|123' }, loginWithRedirect: jest.fn(),
@@ -223,34 +209,42 @@ describe('<Landing />', () => {
             await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/register'));
         });
 
-        test('handles failed profile verification', async () => {
-            jest.spyOn(require('../../hooks/apiAuth'), 'useApiAuth').mockReturnValue({
-                apiFetch: jest.fn(() => Promise.resolve({ ok: false, status: 500 })),
-            });
+        test('handles failed profile verification and shows landing page', async () => {
+            mockUsersGet.mockRejectedValue({ status: 500 });
             require('@auth0/auth0-react').useAuth0.mockReturnValue({
                 isAuthenticated: true, isLoading: false,
                 user: { sub: 'auth0|123' }, loginWithRedirect: jest.fn(),
             });
 
             await renderLanding();
-            expect(screen.getByText(/skip the queue/i)).toBeInTheDocument();
+            await waitFor(() => {
+                expect(screen.getByText(/skip the queue/i)).toBeInTheDocument();
+            });
         });
     });
 
-    // Filter dropdown tests
-    describe('Clinic sesarching and filtering', () => {
-        
-        test('renders all four filter dropdowns', async () => {
+    //  Filter dropdown tests
+    describe('Clinic searching and filtering', () => { //spelling fixed
+
+       
+        test('renders all five filter dropdowns', async () => {
             await renderLanding();
-            expect(screen.getAllByRole('combobox')).toHaveLength(4);
+            expect(screen.getAllByRole('combobox')).toHaveLength(5);
         });
 
         test('each dropdown has a default All option', async () => {
             await renderLanding();
+            expect(screen.getByText('Reason for visit (All)')).toBeInTheDocument();
             expect(screen.getByText('All provinces')).toBeInTheDocument();
             expect(screen.getByText('All towns')).toBeInTheDocument();
             expect(screen.getByText('All suburbs')).toBeInTheDocument();
             expect(screen.getByText('All types')).toBeInTheDocument();
+        });
+
+        test('services dropdown is populated from API', async () => {
+            await renderLanding();
+            expect(screen.getByText('General Consultation')).toBeInTheDocument();
+            expect(screen.getByText('Cardiology')).toBeInTheDocument();
         });
 
         test('province dropdown is populated from API', async () => {
@@ -277,95 +271,93 @@ describe('<Landing />', () => {
             expect(screen.getByText('GENERAL PRACTICE')).toBeInTheDocument();
         });
 
-        test('selecting a province calls fetch with province param', async () => {
+        // index 0 = reason for visit, 1 = province, 2 = town, 3 = suburb, 4 = type
+        test('selecting a service calls filterAll with service param', async () => {
             await renderLanding();
 
             await act(async () => {
-                await userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'GAUTENG');
+                await userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'General Consultation');
+                jest.runAllTimers();
             });
 
             await waitFor(() => {
-                expect(global.fetch).toHaveBeenCalledWith(
-                    expect.stringContaining('province=GAUTENG')
+                expect(mockFilterAll).toHaveBeenCalledWith(
+                    expect.objectContaining({ service: 'General Consultation' })
                 );
             });
         });
 
-        test('selecting a town calls fetch with town param', async () => {
+        test('selecting a province calls filterAll with province param', async () => {
             await renderLanding();
 
             await act(async () => {
-                await userEvent.selectOptions(screen.getAllByRole('combobox')[1], 'JOHANNESBURG');
+                await userEvent.selectOptions(screen.getAllByRole('combobox')[1], 'GAUTENG');
+                jest.runAllTimers();
             });
 
             await waitFor(() => {
-                expect(global.fetch).toHaveBeenCalledWith(
-                    expect.stringContaining('town=JOHANNESBURG')
+                expect(mockFilterAll).toHaveBeenCalledWith(
+                    expect.objectContaining({ province: 'GAUTENG' })
                 );
             });
         });
 
-        test('selecting a suburb calls fetch with suburb param', async () => {
+        test('selecting a town calls filterAll with town param', async () => {
             await renderLanding();
 
             await act(async () => {
-                await userEvent.selectOptions(screen.getAllByRole('combobox')[2], 'PARKTOWN');
+                await userEvent.selectOptions(screen.getAllByRole('combobox')[2], 'JOHANNESBURG');
+                jest.runAllTimers();
             });
 
             await waitFor(() => {
-                expect(global.fetch).toHaveBeenCalledWith(
-                    expect.stringContaining('suburb=PARKTOWN')
+                expect(mockFilterAll).toHaveBeenCalledWith(
+                    expect.objectContaining({ town: 'JOHANNESBURG' })
                 );
             });
         });
 
-        test('selecting a type calls fetch with type param', async () => {
+        test('selecting a suburb calls filterAll with suburb param', async () => {
             await renderLanding();
 
             await act(async () => {
-                await userEvent.selectOptions(screen.getAllByRole('combobox')[3], 'SPECIALIST');
+                await userEvent.selectOptions(screen.getAllByRole('combobox')[3], 'PARKTOWN');
+                jest.runAllTimers();
             });
 
             await waitFor(() => {
-                expect(global.fetch).toHaveBeenCalledWith(
-                    expect.stringContaining('type=SPECIALIST')
+                expect(mockFilterAll).toHaveBeenCalledWith(
+                    expect.objectContaining({ suburb: 'PARKTOWN' })
+                );
+            });
+        });
+
+        test('selecting a type calls filterAll with type param', async () => {
+            await renderLanding();
+
+            await act(async () => {
+                await userEvent.selectOptions(screen.getAllByRole('combobox')[4], 'SPECIALIST');
+                jest.runAllTimers();
+            });
+
+            await waitFor(() => {
+                expect(mockFilterAll).toHaveBeenCalledWith(
+                    expect.objectContaining({ type: 'SPECIALIST' })
                 );
             });
         });
 
         test('shows clinic cards when filter returns results', async () => {
-            global.fetch = jest.fn((url) => {
-                if (url.includes('/clinics/filters')) {
-                    return Promise.resolve({
-                        ok: true,
-                        json: () => Promise.resolve({
-                            provinces: ['GAUTENG'],
-                            towns:     ['JOHANNESBURG'],
-                            suburbs:   ['PARKTOWN'],
-                            types:     ['SPECIALIST'],
-                        }),
-                    });
-                }
-                return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve({
-                        data: [{
-                            _id:                    '1',
-                            practiceName:           'Parkmed Neuro Clinic',
-                            practiceTypeDescription:'Neurology specialist',
-                            physicalAddress:        '1 Park Lane',
-                            physicalTown:           'JOHANNESBURG',
-                            isOpen:                 true,
-                        }],
-                        pagination: { total: 1 },
-                    }),
-                });
+            mockFilterAll.mockResolvedValue({
+                data:       [baseClinic],
+                pagination: { page: 1, totalPages: 1, total: 1 },
             });
 
             await renderLanding();
 
             await act(async () => {
-                await userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'GAUTENG');
+                await userEvent.selectOptions(screen.getAllByRole('combobox')[1], 'GAUTENG');
+                jest.runAllTimers();
             });
 
             await waitFor(() => {
@@ -374,10 +366,12 @@ describe('<Landing />', () => {
         });
 
         test('shows no clinics found when filter returns empty', async () => {
+            // mockFilterAll already returns [] by default
             await renderLanding();
 
             await act(async () => {
-                await userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'GAUTENG');
+                await userEvent.selectOptions(screen.getAllByRole('combobox')[1], 'GAUTENG');
+                jest.runAllTimers();
             });
 
             await waitFor(() => {
@@ -386,13 +380,7 @@ describe('<Landing />', () => {
         });
 
         test('handles clinic fetch network error gracefully', async () => {
-            global.fetch = jest.fn((url) => {
-                if (url.includes('/clinics/filters')) return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve({ provinces:[], towns:[], suburbs:[], types:[] }),
-                });
-                return Promise.reject(new Error('Network error'));
-            });
+            mockFilterAll.mockRejectedValue(new Error('Network error'));
 
             await renderLanding();
             expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
@@ -410,38 +398,21 @@ describe('<Landing />', () => {
         });
 
         test('shows clinic count when results are returned', async () => {
-            global.fetch = jest.fn((url) => {
-                if (url.includes('/clinics/filters')) return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve({ provinces:[], towns:[], suburbs:[], types:[] }),
-                });
-                return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve({
-                        data: [{ _id: '1', practiceName: 'Clinic A', practiceTypeDescription: 'GP', physicalAddress: '1 St', physicalTown: 'Town', isOpen: false }],
-                        pagination: { page: 1, totalPages: 1, total: 1 }
-                    }),
-                });
+            mockFilterAll.mockResolvedValue({
+                data:       [{ ...baseClinic, _id: '2', practiceName: 'Clinic A' }],
+                pagination: { page: 1, totalPages: 1, total: 1 },
             });
 
             await renderLanding();
             await waitFor(() => expect(screen.getByText(/showing/i)).toBeInTheDocument());
         });
 
+
         describe('Pagination tests', () => {
             beforeEach(() => {
-                global.fetch = jest.fn((url) => {
-                    if (url.includes('/clinics/filters')) return Promise.resolve({
-                        ok: true,
-                        json: () => Promise.resolve({ provinces:[], towns:[], suburbs:[], types:[] }),
-                    });
-                    return Promise.resolve({
-                        ok: true,
-                        json: () => Promise.resolve({
-                            data: [{ _id: '1', practiceName: 'Clinic A', practiceTypeDescription: 'GP', physicalAddress: '1 St', physicalTown: 'Town', isOpen: true }],
-                            pagination: { page: 1, totalPages: 3, total: 30 }
-                        }),
-                    });
+                mockFilterAll.mockResolvedValue({
+                    data:       [{ ...baseClinic, _id: '2', practiceName: 'Clinic A' }],
+                    pagination: { page: 1, totalPages: 3, total: 30 },
                 });
             });
 
@@ -454,7 +425,7 @@ describe('<Landing />', () => {
                 expect(screen.getByLabelText('Previous page')).toBeDisabled();
             });
 
-            test('clicking next page fetches page 2', async () => {
+            test('clicking next page calls filterAll with _page 2', async () => {
                 await renderLanding();
 
                 await waitFor(() => expect(screen.getByText('Clinic A')).toBeInTheDocument());
@@ -464,10 +435,14 @@ describe('<Landing />', () => {
                     jest.runAllTimers();
                 });
 
-                expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('_page=2'));
+                await waitFor(() => {
+                    expect(mockFilterAll).toHaveBeenCalledWith(
+                        expect.objectContaining({ _page: 2 })
+                    );
+                });
             });
 
-            test('clicking a page number fetches that page', async () => {
+            test('clicking a page number calls filterAll with that page', async () => {
                 await renderLanding();
 
                 await waitFor(() => expect(screen.getByText('Clinic A')).toBeInTheDocument());
@@ -477,9 +452,121 @@ describe('<Landing />', () => {
                     jest.runAllTimers();
                 });
 
-                expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('_page=2'));
+                await waitFor(() => {
+                    expect(mockFilterAll).toHaveBeenCalledWith(
+                        expect.objectContaining({ _page: 2 })
+                    );
+                });
+            });
+        });
+    });
+
+    // Clinic modal tests
+    describe('Clinic detail modal', () => {
+
+        test('clicking a clinic card opens the modal', async () => {
+            await renderWithClinicAndOpenModal();
+            expect(screen.getAllByText('Parkmed Neuro Clinic').length).toBeGreaterThan(1);
+        });
+
+        test('modal shows clinic address', async () => {
+            await renderWithClinicAndOpenModal();
+            const modalDetails = document.querySelector('.clinic-modal-details');
+            expect(modalDetails).toHaveTextContent('1 Park Lane');
+        });
+
+        test('modal shows contact number', async () => {
+            await renderWithClinicAndOpenModal();
+            expect(screen.getByText(/contact/i)).toBeInTheDocument();
+        });
+
+        test('modal shows opening hours', async () => {
+            await renderWithClinicAndOpenModal();
+            expect(screen.getByText(/00:00/i)).toBeInTheDocument();
+        });
+
+        test('modal shows open badge when clinic is open', async () => {
+            await renderWithClinicAndOpenModal();
+            expect(document.querySelector('.modal-badge.status-open')).toBeInTheDocument();
+        });
+
+        test('modal shows closed badge when clinic is closed', async () => {
+            const closedClinic = { ...baseClinic, practiceTimes: { open: '00:00', close: '00:01' } };
+            await renderWithClinicAndOpenModal(closedClinic);
+            expect(document.querySelector('.modal-badge.status-closed')).toBeInTheDocument();
+        });
+
+        test('modal shows Hours not set when practiceTimes is missing', async () => {
+            const noHoursClinic = {
+                ...baseClinic,
+                _id:          '2',
+                practiceName: 'No Hours Clinic',
+                practiceTimes: {},
+            };
+            await renderWithClinicAndOpenModal(noHoursClinic);
+            expect(screen.getByText(/hours not set/i)).toBeInTheDocument();
+        });
+
+        test('modal shows Join Queue and Book Now buttons', async () => {
+            await renderWithClinicAndOpenModal();
+            expect(screen.getByRole('button', { name: /join queue/i })).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: /book now/i })).toBeInTheDocument();
+        });
+
+        test('clicking Join Queue triggers signup', async () => {
+            const mockLogin = jest.fn();
+            require('@auth0/auth0-react').useAuth0.mockReturnValue({
+                isAuthenticated: false, isLoading: false,
+                user: null, loginWithRedirect: mockLogin,
+            });
+
+            await renderWithClinicAndOpenModal();
+
+            await act(async () => {
+                await userEvent.click(screen.getByRole('button', { name: /join queue/i }));
+            });
+
+            expect(mockLogin).toHaveBeenCalled();
+        });
+
+        test('clicking Book Now triggers signup', async () => {
+            const mockLogin = jest.fn();
+            require('@auth0/auth0-react').useAuth0.mockReturnValue({
+                isAuthenticated: false, isLoading: false,
+                user: null, loginWithRedirect: mockLogin,
+            });
+
+            await renderWithClinicAndOpenModal();
+
+            await act(async () => {
+                await userEvent.click(screen.getByRole('button', { name: /book now/i }));
+            });
+
+            expect(mockLogin).toHaveBeenCalled();
+        });
+
+        test('clicking the close button dismisses the modal', async () => {
+            await renderWithClinicAndOpenModal();
+
+            await act(async () => {
+                await userEvent.click(document.querySelector('.clinic-modal-close'));
+            });
+
+            await waitFor(() => {
+                expect(document.querySelector('.clinic-modal-overlay')).not.toBeInTheDocument();
             });
         });
 
+        test('clicking the overlay dismisses the modal', async () => {
+            await renderWithClinicAndOpenModal();
+
+            await act(async () => {
+                await userEvent.click(document.querySelector('.clinic-modal-overlay'));
+            });
+
+            await waitFor(() => {
+                expect(screen.getAllByText('Parkmed Neuro Clinic').length).toBe(1);
+            });
+        });
     });
 });

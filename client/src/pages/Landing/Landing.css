@@ -308,3 +308,98 @@
   width: auto;
   display: block;
 }
+
+.clinic-modal-book-btn {
+  background-color: var(--color-brand);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
+}
+
+.clinic-modal-book-btn:hover {
+  opacity: 0.9;
+}
+
+/* Dual search bar */
+.dashboard-dual-search {
+  display: flex;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto 1.5rem auto;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.dashboard-dual-search:focus-within {
+  box-shadow: 0 0 0 3px rgba(107,47,160,.25);
+  border-color: var(--color-brand);
+}
+.search-input-group { flex: 1.5; display: flex; }
+.search-input-group input {
+  width: 100%; padding: 14px 18px; font-size: 1rem;
+  border: none; outline: none; background: transparent; color: var(--color-text);
+}
+.search-input-group input::placeholder { color: var(--color-text-muted); }
+.search-divider { width: 1.5px; height: 30px; background-color: var(--color-border); margin: 0 10px; border: none; }
+.search-select-group { flex: 1; display: flex; }
+.search-select-group select {
+  width: 100%; padding: 14px 10px; font-size: 1rem;
+  border: none; outline: none; background: transparent; color: var(--color-text); cursor: pointer;
+}
+.dual-search-btn {
+  padding: 14px 28px; font-size: 1rem; font-weight: 600;
+  background: var(--color-brand); color: #fff; border: none; cursor: pointer;
+  border-radius: 0 calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0;
+  transition: background 0.15s; white-space: nowrap;
+}
+.dual-search-btn:hover { background: var(--color-brand-dark); }
+
+/* Filters row */
+.dashboard-filters {
+  display: flex; justify-content: center; flex-wrap: wrap;
+  gap: 1rem; margin-bottom: 2rem;
+}
+.dashboard-filters select {
+  padding: 0.5rem 1rem; border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm); background-color: #fff;
+  font-size: 0.95rem; color: var(--color-text-muted); outline: none; cursor: pointer;
+}
+.dashboard-filters select:focus { border-color: var(--color-brand); }
+
+/* Modal */
+.clinic-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background-color: rgba(0,0,0,0.3); backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px); display: flex;
+  justify-content: center; align-items: center; z-index: 1000;
+}
+.clinic-modal-outer {
+  background-color: var(--color-brand); padding: 1.5rem; border-radius: 20px;
+  width: 90%; max-width: 550px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+.clinic-modal-inner {
+  background-color: #dcdcdc; border-radius: 16px; padding: 2rem;
+  position: relative; display: flex; flex-direction: column; gap: 1.5rem;
+}
+.clinic-modal-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.clinic-modal-header h2 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #000; max-width: 85%; }
+.clinic-modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #000; line-height: 1; padding: 0; }
+.clinic-modal-details { font-size: 0.9rem; color: #111; line-height: 1.6; }
+.clinic-modal-details p { margin: 0; }
+.clinic-modal-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 0.5rem; }
+.clinic-modal-badges { display: flex; flex-direction: column; gap: 0.75rem; }
+.modal-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; width: fit-content; }
+.modal-badge.status-open { background-color: #7ad86b; color: #000; }
+.modal-badge.status-closed { background-color: #fee2e2; color: #b91c1c; }
+.clinic-modal-book-btn {
+  background-color: var(--color-brand); color: #fff; border: none;
+  padding: 0.6rem 1.2rem; border-radius: 16px; cursor: pointer;
+  font-weight: 500; font-size: 0.9rem; transition: opacity 0.2s;
+}
+.clinic-modal-book-btn:hover { opacity: 0.9; }

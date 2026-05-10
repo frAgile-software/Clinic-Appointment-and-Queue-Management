@@ -1,193 +1,353 @@
-/* 1. Reset and Typography - Use a simple sans-serif font */
-
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: black; /* Default text color */
 }
 
-/* 2. Header - Simple black border at the bottom */
-.staff-header {
+.staff-dashboard-wrapper {
+  background-color: #e5e5e5;
+  min-height: 100vh;
+  padding-bottom: 50px;
+}
+
+.staff-header-canva {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 30px;
-  background: white;
-  border-bottom: 2px solid black;
+  padding: 10px 20px;
+  background-color: #f3f4f6;
+  border-bottom: 2px solid #6b1fad;
 }
 
-.logo {
-  font-size: 20px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.nav-links {
+.brand-section {
   display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  background-color: #6b1fad;
+  border-radius: 50%;
+  padding: 4px;
+}
+
+.brand-title {
+  font-size: 22px;
+  font-weight: 500;
+  color: #333;
+}
+
+.header-nav-canva {
+  display: flex;
+  align-items: center;
   gap: 20px;
+}
+
+.icon-btn-user {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+  display: flex;
   align-items: center;
 }
 
-/* 3. Header Buttons - Text-only, no border, no background */
-.nav-btn, .icon-btn {
-  background: none;
+.logout-btn-canva {
+  background-color: #000;
+  color: #fff;
   border: none;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 8px 24px;
+  font-weight: bold;
   cursor: pointer;
-  text-transform: uppercase;
-}
-
-.nav-btn:hover, .icon-btn:hover {
-  text-decoration: underline;
-}
-
-/* 4. Welcome Section - The main black-and-white area */
-.welcome-section {
-  padding: 60px 20px;
-  background-color: black;
-  color: white;
-  text-align: center;
-}
-
-/* Overriding global text color for this section */
-.welcome-title, .welcome-subtitle {
-  color: white;
-}
-
-.welcome-title {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.welcome-subtitle {
-  font-size: 16px;
-  opacity: 0.8; /* Subtle contrast */
-}
-
-/* 5. Patient Queue - Simple cards with thin borders */
-.patient-queue-section {
-  padding: 40px 20px;
-}
-
-.patient-queue-section h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  text-transform: uppercase;
-  font-size: 18px;
-  letter-spacing: 1px;
-}
-
-.queue-container {
-display: flex;
-  gap: 15px;
-  justify-content: left;
-  overflow-x: auto;
-  border: 2px solid black; 
-  padding: 30px;           /* Adds space inside the border so cards don't touch the edge */
-  margin: 20px 0;          /* Adds space outside the border */
-  background-color: #fafafa; /* Very subtle grey to make the white cards pop */
-  display: flex;
-  gap: 15px;
-  overflow-x: auto; /* Allows scrolling */
-}
-
-.patient-card {
-  border: 2px solid black; /* Key change: Black border instead of black background */
-  background-color: white;
-  color: black;
-  padding: 20px;
-  min-width: 180px;
-  text-align: center;
-}
-
-.patient-card p {
   font-size: 14px;
-  margin-bottom: 5px;
 }
 
-.patient-name {
-  font-weight: 700;
-  font-size: 16px;
+.welcome-banner-canva {
+  background-color: #6b1fad;
+  color: #fff;
+  padding: 30px 40px;
+  margin-bottom: 20px;
+}
+
+.welcome-title-canva {
+  font-size: 28px;
+  font-weight: 600;
   margin-bottom: 8px;
 }
 
-/* Status colors - monochromatic but differentiated */
-.status-text {
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 12px;
-  border: 1px solid black;
-  padding: 2px 6px;
-  display: inline-block;
+.welcome-subtitle-canva {
+  font-size: 14px;
+  opacity: 0.9;
 }
 
-.status-text.waiting {
-  background-color: white;
-  color: black;
-}
-
-.status-text.in-progress {
-  background-color: black;
-  color: white;
-}
-
-/* 6. Action Section - Clean boxes with heavy borders */
-.action-section {
+.quick-actions-row {
   display: flex;
   justify-content: center;
-  gap: 40px;
-  padding: 60px;
+  gap: 30px;
+  padding: 20px 40px;
 }
 
-.action-card {
+.quick-action-card {
+  background-color: #fff;
+  padding: 30px;
+  text-align: center;
+  flex: 1;
+  max-width: 300px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.quick-action-title {
+  font-size: 16px;
+  color: #000;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.pill-btn-purple {
+  background-color: #6b1fad;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: bold;
+  font-size: 12px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.data-section {
+  margin: 20px 40px;
+}
+
+.data-section-header {
+  background-color: #6b1fad;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  font-size: 18px;
+}
+
+.data-list-container {
+  background-color: #fff;
+  border: 2px solid #6b1fad;
+  padding: 20px;
+  min-height: 180px;
+}
+
+.data-cards-wrapper {
+  display: flex;
+  gap: 20px;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.data-card {
+  background-color: #e5e5e5;
+  padding: 15px;
+  min-width: 140px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: white;
-  border: 2px solid black; /* Key change: Border instead of blue background */
-  padding: 40px;
-  width: 320px;
-}
-
-.action-card h3 {
-  font-size: 16px;
-  margin-bottom: 20px;
-  text-transform: uppercase;
-}
-
-/* Minimal input fields */
-.form-input {
-  width: 100%;
-  margin-bottom: 15px;
-  padding: 10px;
-  border: 2px solid black; /* Thick border */
-  border-radius: 0; /* Minimal, no corners */
-  font-size: 14px;
-}
-
-.form-input:focus {
-  outline: none;
-  background-color: #f0f0f0; /* Subtle hover effect */
-}
-
-/* Black-on-White button for action cards */
-.action-btn {
-  width: 100%;
-  padding: 12px;
-  background-color: black;
-  color: white;
-  border: 2px solid black;
-  font-weight: 700;
-  text-transform: uppercase;
+  text-align: center;
+  gap: 6px;
   cursor: pointer;
 }
 
-.action-btn:hover {
-  background-color: white;
-  color: black;
+.data-card-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: #000;
+}
+
+.data-card-detail {
+  font-size: 12px;
+  color: #333;
+}
+
+.status-badge {
+  margin-top: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid #6b1fad;
+}
+
+.status-purple {
+  background-color: #6b1fad;
+  color: #fff;
+}
+
+.status-white {
+  background-color: #fff;
+  color: #000;
+}
+
+.next-action-btn {
+  background-color: #6b1fad;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.add-queue-container {
+  background-color: #fff;
+  border: 2px solid #6b1fad;
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.add-queue-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+  border: none;
+}
+
+.form-label {
+  width: 120px;
+  font-size: 16px;
+  color: #333;
+}
+
+.form-input-canva {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #6b1fad;
+  outline: none;
+}
+
+.form-submit-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.form-submit-btn {
+  width: auto;
+  min-width: 200px;
+}
+
+.modal-overlay-canva {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-outer-box {
+  background-color: #6b1fad;
+  padding: 20px;
+  border-radius: 20px;
+  width: 400px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-inner-box {
+  background-color: #d1d5db;
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal-header-canva {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.modal-patient-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+}
+
+.modal-close-x {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #000;
+}
+
+.modal-details-canva p {
+  font-size: 12px;
+  color: #000;
+  margin-bottom: 4px;
+}
+
+.modal-remarks-section {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  height: 100px;
+}
+
+.remarks-label {
+  font-size: 12px;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.remarks-textarea {
+  border: none;
+  resize: none;
+  outline: none;
+  flex: 1;
+  font-size: 12px;
+}
+
+.modal-actions-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.modal-action-btn {
+  color: #fff;
+  border: none;
+  border-radius: 15px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.btn-purple {
+  background-color: #6b1fad;
+}
+
+.btn-green {
+  background-color: #006400;
+}
+
+.btn-red {
+  background-color: #dc2626;
 }

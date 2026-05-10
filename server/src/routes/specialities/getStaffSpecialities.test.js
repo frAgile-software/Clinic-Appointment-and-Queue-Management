@@ -18,6 +18,10 @@ jest.mock('../../database/models/User', () => ({
     findById: jest.fn()
 }));
 
+jest.mock('../../database/models/Staff', () => ({
+    findOne: jest.fn()
+}));
+
 jest.mock('../../database/models/Speciality', () => ({
     find: jest.fn()
 }));
@@ -31,6 +35,7 @@ jest.mock('../../database/models/StaffSpeciality', () => ({
 const request = require('supertest');
 const app = require('../../index');
 const User = require('../../database/models/User');
+const Staff = require('../../database/models/Staff'); 
 const StaffSpeciality = require('../../database/models/StaffSpeciality');
 const Speciality = require('../../database/models/Speciality');
 
@@ -38,6 +43,10 @@ const VALID_USER = {
     _id: '1234',
     role: 'Staff',
 }
+
+const VALID_STAFF_DOC = {
+    _id: 'staffDoc1',
+};
 
 const MOCK_SPECIALITIES = [
     {Speciality: { _id: 'sp1', SpecialityName: 'Cardiology' }},
@@ -48,15 +57,17 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-describe('GET /clinics/:staffID/specialities', () => {
-
+const runSuite = (basePath) => {
+    console.log(`${basePath}/1234`);
+    
     test('Returns 200 specialities when found', async () => {
         User.findById.mockResolvedValueOnce(VALID_USER);
+        Staff.findOne.mockResolvedValueOnce(VALID_STAFF_DOC);
         StaffSpeciality.find.mockReturnValueOnce({
             populate: jest.fn().mockResolvedValueOnce(MOCK_SPECIALITIES)
         });
 
-        const res = await request(app).get('/clinics/1234/specialities');
+        const res = await request(app).get(`${basePath}/1234`);
 
         expect(res.statusCode).toEqual(200);
         expect(res.body).toEqual({
@@ -67,11 +78,12 @@ describe('GET /clinics/:staffID/specialities', () => {
 
     test('Returns 200 with empty Specialities when none found', async () => {
         User.findById.mockResolvedValueOnce(VALID_USER);
+        Staff.findOne.mockResolvedValueOnce(VALID_STAFF_DOC);
         StaffSpeciality.find.mockReturnValueOnce({
             populate: jest.fn().mockResolvedValueOnce([])
         });
 
-        const res = await request(app).get('/clinics/1234/specialities');
+        const res = await request(app).get(`${basePath}/1234`);
 
         expect(res.statusCode).toEqual(200);
         expect(res.body).toEqual({
@@ -86,7 +98,7 @@ describe('GET /clinics/:staffID/specialities', () => {
             role: 'Patient',
         });
 
-        const res = await request(app).get('/clinics/1234/specialities');
+        const res = await request(app).get(`${basePath}/1234`);
 
         expect(res.statusCode).toEqual(403);
     });
@@ -94,7 +106,16 @@ describe('GET /clinics/:staffID/specialities', () => {
     test('Returns 404 when staff not found', async () => {
         User.findById.mockResolvedValueOnce(null);
 
-        const res = await request(app).get('/clinics/1234/specialities');
+        const res = await request(app).get(`${basePath}/1234`);
+
+        expect(res.statusCode).toEqual(404);
+    });
+
+    test('Returns 404 when staff document not found', async () => {
+        User.findById.mockResolvedValueOnce(VALID_USER);
+        Staff.findOne.mockResolvedValueOnce(null);
+
+        const res = await request(app).get(`${basePath}/1234`);
 
         expect(res.statusCode).toEqual(404);
     });
@@ -102,68 +123,11 @@ describe('GET /clinics/:staffID/specialities', () => {
     test('Returns 500 on server error', async () => {
         User.findById.mockRejectedValueOnce(new Error("Server error."));
 
-        const res = await request(app).get('/clinics/1234/specialities');
+        const res = await request(app).get(`${basePath}/1234`);
 
         expect(res.statusCode).toEqual(500);
     });
-});
+};
 
-describe('GET /api/clinics/:staffID/specialities', () => {
-
-    test('Returns 200 specialities when found', async () => {
-        User.findById.mockResolvedValueOnce(VALID_USER);
-        StaffSpeciality.find.mockReturnValueOnce({
-            populate: jest.fn().mockResolvedValueOnce(MOCK_SPECIALITIES)
-        });
-
-        const res = await request(app).get('/api/clinics/1234/specialities');
-
-        expect(res.statusCode).toEqual(200);
-        expect(res.body).toEqual({
-            UserId: '1234',
-            Specialities: ['Cardiology', 'Neurology']
-        });
-    });
-
-    test('Returns 200 with empty Specialities when none found', async () => {
-        User.findById.mockResolvedValueOnce(VALID_USER);
-        StaffSpeciality.find.mockReturnValueOnce({
-            populate: jest.fn().mockResolvedValueOnce([])
-        });
-
-        const res = await request(app).get('/api/clinics/1234/specialities');
-
-        expect(res.statusCode).toEqual(200);
-        expect(res.body).toEqual({
-            UserId: '1234',
-            Specialities: []
-        });
-    });
-
-    test('Returns 403 when user is not a staff member', async () => {
-        User.findById.mockResolvedValueOnce({
-            _id: '1234',
-            role: 'Patient',
-        });
-
-        const res = await request(app).get('/api/clinics/1234/specialities');
-
-        expect(res.statusCode).toEqual(403);
-    });
-
-    test('Returns 404 when staff not found', async () => {
-        User.findById.mockResolvedValueOnce(null);
-
-        const res = await request(app).get('/api/clinics/1234/specialities');
-
-        expect(res.statusCode).toEqual(404);
-    });
-
-    test('Returns 500 on server error', async () => {
-        User.findById.mockRejectedValueOnce(new Error("Server error."));
-
-        const res = await request(app).get('/api/clinics/1234/specialities');
-
-        expect(res.statusCode).toEqual(500);
-    });
-});
+describe('GET /specialities/staff/:staffID', () => runSuite('/specialities/staff'));
+describe('GET /api/specialities/staff/:staffID', () => runSuite('/api/specialities/staff'));
