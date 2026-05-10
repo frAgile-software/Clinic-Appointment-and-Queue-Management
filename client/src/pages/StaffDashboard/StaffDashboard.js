@@ -3,6 +3,7 @@ import './StaffDashboard.css';
 import { LuUser } from "react-icons/lu";
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiAuth } from '../../hooks/apiAuth';
+import { useNavigate } from 'react-router';
 
 function StaffDashboard() {
   const { apiFetch } = useApiAuth();
@@ -10,6 +11,7 @@ function StaffDashboard() {
     user,
     logout: auth0Logout,
   } = useAuth0();
+  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalDetails, setModalDetails] = useState({});
@@ -174,7 +176,7 @@ function StaffDashboard() {
         <h2 className="brand-title">Clinics and Qs</h2>
       </section>
       <nav className="header-nav-canva">
-        <button className="icon-btn-user" aria-label="Profile">
+        <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/staff/profile')}>
           <LuUser />
         </button>
         <button className="logout-btn-canva" onClick={logout}>Logout</button>
