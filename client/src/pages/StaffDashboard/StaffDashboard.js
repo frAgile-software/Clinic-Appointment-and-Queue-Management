@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import './StaffDashboard.css';
 import { LuUser } from "react-icons/lu";
 import { useAuth0 } from '@auth0/auth0-react';
-import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from '../../api/useApi';
 import { useNavigate } from 'react-router';
 
 function StaffDashboard() {
-  const { apiFetch } = useApiAuth();
   const {
     user,
     logout: auth0Logout,
   } = useAuth0();
+  const api = useApi();
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,12 +41,7 @@ function StaffDashboard() {
     async function fetchClinics() {
       try {
         setLoading(true);
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned/?auth0Id=${staffId}`);
-        const data = await response.json();
-        if (!response.ok) {
-          console.error("Could not fetch clinics:", data);
-          return;
-        }
+        const data = await api.clinics.getAssignedClinics(staffId);
         setClinics(data);
       } catch (error) {
         console.error("Could not fetch clinics:", error);
@@ -55,51 +50,37 @@ function StaffDashboard() {
       }
     }
     fetchClinics();
-  }, [staffId, apiFetch]);
+  }, [staffId, api]);
 
   useEffect(() => {
     if (!staffId || !clinics || clinics.length === 0) return;
     async function fetchQueue() {
       try {
         console.log("Finding queues...");
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${clinics[0]._id}?auth0Id=${staffId}`, {
-          method: 'GET',
-        });
-        const data = await response.json();
+        const data = await api.queues.get(clinics[0]._id, {auth0Id: staffId});
         console.log("Queues found:", data);
-        if (!response.ok) {
-          console.error("Could not fetch queue:", data);
-          return;
-        }
         setPatientQueue(data);
       } catch (error) {
         console.error("Could not fetch queue:", error);
       }
     }
     fetchQueue();
-  }, [staffId, clinics, apiFetch]);
+  }, [staffId, clinics, api]);
 
   useEffect(() => {
     if (!staffId) return;
     async function fetchAppointments() {
       try {
         console.log("Finding appointments...");
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${staffId}`, {
-          method: 'GET',
-        });
-        const data = await response.json();
+        const data = await api.appointments.getForAuth0Id(staffId);
         console.log("Appointments found:", data);
-        if (!response.ok) {
-          console.error("Could not fetch appointments:", data);
-          return;
-        }
         setAppointments(data);
       } catch (error) {
         console.error("Could not fetch appointments:", error);
       }
     }
     fetchAppointments();
-  }, [staffId, apiFetch]);
+  }, [staffId, api]);
 
   const toAppointmentCard = (appointmentItem) => {
     const bookingDate = new Date(appointmentItem.BookingDateTime);
@@ -140,21 +121,12 @@ function StaffDashboard() {
     }
 
     const isQueueItem = consultItem.type === 'Queue' || (!!consultItem.createdAt && !consultItem.BookingDateTime);
-    const endpoint = isQueueItem
-      ? `${process.env.REACT_APP_SERVER_URL}/api/queues/${consultItem._id}`
-      : `${process.env.REACT_APP_SERVER_URL}/api/appointments/${consultItem._id}`;
-
+    
     try {
-      const response = await apiFetch(endpoint, {
-        method: 'PUT',
-        body: JSON.stringify({ Status: newStatus, Remarks: modalDetails.Remarks }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        console.error('Could not update consult status:', data);
-        return;
-      }
+      
+      const data = await (isQueueItem
+        ? api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks })
+        : api.appointments.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks }));
 
       const updatedItem = { ...consultItem, Status: newStatus, Remarks: modalDetails.Remarks };
       setModalDetails(updatedItem);

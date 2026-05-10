@@ -26,13 +26,15 @@ export class AppointmentService extends ResourceService {
     }
 
     // TODO: include description for updating
-    update(appointmentId, {patientUID, staffUID, clinicId, bookingDateTime, specialityId}) {
+    update(appointmentId, {patientUID, staffUID, clinicId, bookingDateTime, specialityId, status, remarks}) {
         return this.priv.put(`${this.basePath}/${appointmentId}`, {
             Patient: patientUID, 
             Staff: staffUID, 
             Clinic: clinicId, 
             BookingDateTime: bookingDateTime,
             Speciality: specialityId,
+            Status: status,
+            Remarks: remarks,
         }, null)
     }
 }
