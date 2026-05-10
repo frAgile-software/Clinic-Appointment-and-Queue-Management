@@ -13,8 +13,8 @@ describe('ClinicService', () => {
     let mockPublicClient;
 
     beforeEach(() => {
-        mockPrivateClient = { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn()};
-        mockPublicClient = { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn()};
+        mockPrivateClient = { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn(), patch: jest.fn()};
+        mockPublicClient = { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn(), patch: jest.fn()};
 
         service = new ClinicService(mockPublicClient, mockPrivateClient);
     });
