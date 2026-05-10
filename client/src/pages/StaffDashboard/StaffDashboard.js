@@ -5,6 +5,9 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../../api/useApi';
 import { useNavigate } from 'react-router';
 
+const activeStatus = ["Waiting", "In Consult"];
+// const inactiveStatus = ["Completed", "Cancelled", "No-show"];
+
 function StaffDashboard() {
   const {
     user,
@@ -57,7 +60,7 @@ function StaffDashboard() {
     async function fetchQueue() {
       try {
         console.log("Finding queues...");
-        const data = await api.queues.get(clinics[0]._id, {auth0Id: staffId});
+        const data = await api.queues.get(clinics[0]._id, {auth0Id: staffId, statuses: activeStatus});
         console.log("Queues found:", data);
         setPatientQueue(data);
       } catch (error) {
@@ -72,7 +75,7 @@ function StaffDashboard() {
     async function fetchAppointments() {
       try {
         console.log("Finding appointments...");
-        const data = await api.appointments.getForAuth0Id(staffId);
+        const data = await api.appointments.getForAuth0Id(staffId, {statuses: activeStatus});
         console.log("Appointments found:", data);
         setAppointments(data);
       } catch (error) {

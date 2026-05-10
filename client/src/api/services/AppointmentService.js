@@ -21,8 +21,10 @@ export class AppointmentService extends ResourceService {
         }, null);
     }
 
-    getForAuth0Id(auth0Id) {
-        return this.priv.get(`${this.basePath}/${auth0Id}`, null);
+    getForAuth0Id(auth0Id, {statuses} = {}) {
+        return this.priv.get(`${this.basePath}/${auth0Id}`, {
+            statuses: Array.isArray(statuses) ? statuses.join(',') : statuses
+        });
     }
 
     // TODO: include description for updating
