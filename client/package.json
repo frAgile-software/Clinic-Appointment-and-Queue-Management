@@ -47,7 +47,10 @@
         "/node_modules/",
         "src/index.js",
         "src/reportWebVitals.js",
-        "src/hooks/apiAuth.js"
+        "src/hooks/apiAuth.js",
+        "src/api/ApiClient.js",
+        "src/api/ResourceService.js",
+        "src/api/useApi.js"
     ]
   }
 }
