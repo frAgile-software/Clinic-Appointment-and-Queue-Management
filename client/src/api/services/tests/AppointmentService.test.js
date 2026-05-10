@@ -84,7 +84,7 @@ describe('AppointmentService', () => {
             service.getForAuth0Id(auth0Id);
             expect(mockPrivateClient.get).toHaveBeenCalledWith(
                 `/appointments/${auth0Id}`,
-                null
+                {"statuses": undefined}
             );
         });
     });
