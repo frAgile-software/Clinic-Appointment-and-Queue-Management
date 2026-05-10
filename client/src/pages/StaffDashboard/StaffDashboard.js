@@ -30,6 +30,7 @@ function StaffDashboard() {
   };
 
   const closeModal = () => {
+    updateConsult(modalDetails);
     setIsModalOpen(false);
   };
 
@@ -130,7 +131,7 @@ function StaffDashboard() {
     );
   };
 
-  const updateConsultStatus = async (consultItem, newStatus) => {
+  const updateConsult = async (consultItem, newStatus = consultItem.Status) => {
     if (!consultItem || !consultItem._id) {
       console.error('Missing consultation item for status update');
       return;
@@ -144,7 +145,7 @@ function StaffDashboard() {
     try {
       const response = await apiFetch(endpoint, {
         method: 'PUT',
-        body: JSON.stringify({ Status: newStatus }),
+        body: JSON.stringify({ Status: newStatus, Remarks: modalDetails.Remarks }),
       });
 
       const data = await response.json();
@@ -153,7 +154,7 @@ function StaffDashboard() {
         return;
       }
 
-      const updatedItem = { ...consultItem, Status: newStatus };
+      const updatedItem = { ...consultItem, Status: newStatus, Remarks: modalDetails.Remarks };
       setModalDetails(updatedItem);
 
       if (isQueueItem) {
@@ -286,15 +287,19 @@ function StaffDashboard() {
 
               <section className="modal-remarks-section">
                 <label className="remarks-label">Remarks:</label>
-                <textarea className="remarks-textarea"></textarea>
+                <textarea
+                  className="remarks-textarea"
+                  value={modalDetails.Remarks || ''}
+                  onChange={(e) => setModalDetails({ ...modalDetails, Remarks: e.target.value })}
+                />
               </section>
 
               <footer className="modal-actions-footer">
-                <button className="modal-action-btn btn-purple" onClick={() => updateConsultStatus(modalDetails, "Waiting")}>Set waiting</button>
-                <button className="modal-action-btn btn-purple" onClick={() => updateConsultStatus(modalDetails, "In Consult")}>Check in</button>
-                <button className="modal-action-btn btn-green" onClick={() => updateConsultStatus(modalDetails, "Completed")}>Done</button>
-                <button className="modal-action-btn btn-red" onClick={() => updateConsultStatus(modalDetails, "Cancelled")}>Cancel</button>
-                <button className="modal-action-btn btn-red" onClick={() => updateConsultStatus(modalDetails, "No-show")}>No show</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "Waiting")}>Set waiting</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "In Consult")}>Check in</button>
+                <button className="modal-action-btn btn-green" onClick={() => updateConsult(modalDetails, "Completed")}>Done</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "Cancelled")}>Cancel</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "No-show")}>No show</button>
               </footer>
             </section>
           </article>

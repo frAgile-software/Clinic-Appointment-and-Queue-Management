@@ -8,7 +8,7 @@ const Speciality = require("../../database/models/Speciality");
 router.put("/:queueId", async (req, res) => {
     try {
         const { queueId } = req.params;
-        const { Clinic: clinicId, Speciality: specialityId, Patient: patientId, Status: status} = req.body;
+        const { Clinic: clinicId, Speciality: specialityId, Patient: patientId, Status: status, Remarks: remarks} = req.body;
         if(!mongoose.Types.ObjectId.isValid(queueId)) {
             return res.status(400).json({ error: "Invalid queue ID" });
         }
@@ -48,6 +48,9 @@ router.put("/:queueId", async (req, res) => {
         }
         if (status !== undefined) {
             queueEntry.Status = status;
+        }
+        if (remarks !== undefined) {
+            queueEntry.Remarks = remarks;
         }
         const updatedQueueEntry = await queueEntry.save();
         return res.status(200).json({

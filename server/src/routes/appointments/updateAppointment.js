@@ -9,7 +9,7 @@ const Speciality = require("../../database/models/Speciality");
 router.put("/:appointmentID", async (req, res) => {
     try{
         const { appointmentID } = req.params;
-        const { Patient, Staff, Clinic: clinicId, BookingDateTime, Speciality: specialityId, Status: status } = req.body;
+        const { Patient, Staff, Clinic: clinicId, BookingDateTime, Speciality: specialityId, Status: status, Remarks: remarks } = req.body;
         if(!mongoose.Types.ObjectId.isValid(appointmentID)) {
             return res.status(400).json({ message: "Invalid appointment ID." });
         }
@@ -72,6 +72,9 @@ router.put("/:appointmentID", async (req, res) => {
         }
         if (status !== undefined) {
             appointment.Status = status;
+        }
+        if (remarks !== undefined) {
+            appointment.Remarks = remarks;
         }
         const updatedAppointment = await appointment.save();
         res.status(200).json({ message: "Appointment updated successfully.", appointment: updatedAppointment });
