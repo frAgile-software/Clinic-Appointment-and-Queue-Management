@@ -15,6 +15,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       contents: read #This is required for actions/checkout
 
     steps:
@@ -42,25 +43,6 @@ jobs:
           cp client/package.json deploy-frontend/package.json
           cp client/package-lock.json deploy-frontend/package-lock.json
           cd deploy-frontend && npm ci
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-app
-          path: ./deploy-frontend
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -75,5 +57,5 @@ jobs:
         with:
           app-name: 'ClinicsAndQs'
           slot-name: 'Production'
-          package: .
+          package: ./deploy-frontend
           
