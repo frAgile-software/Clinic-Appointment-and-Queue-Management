@@ -124,9 +124,10 @@ function StaffDashboard() {
     
     try {
       
-      const data = await (isQueueItem
-        ? api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks })
-        : api.appointments.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks }));
+      if (isQueueItem)
+        await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
+      else
+        await api.appointments.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
 
       const updatedItem = { ...consultItem, Status: newStatus, Remarks: modalDetails.Remarks };
       setModalDetails(updatedItem);
