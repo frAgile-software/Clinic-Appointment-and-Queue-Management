@@ -13,8 +13,8 @@ jest.mock('@auth0/auth0-react', () => ({
 }));
 
 const mockAppointments = [
-    { _id: "67890", Patient: { _id: "1", name: "Jane Doe", email: "jane.doe@mail.com" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Flu shot", status: "In Consult" },
-    { _id: "12345", Patient: { _id: "2", name: "John Doe", email: "john.doe@mail.com" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Check-up", status: "Upcoming" }
+    { _id: "67890", Patient: { _id: "1", name: "Jane Doe", email: "jane.doe@mail.com" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Flu shot", Speciality: { SpecialityName: "General" }, status: "In Consult" },
+    { _id: "12345", Patient: { _id: "2", name: "John Doe", email: "john.doe@mail.com" }, BookingDateTime: "2026-05-06T10:00:00Z", ReasonDetails: "Check-up", Speciality: { SpecialityName: "ENT" }, status: "Upcoming" }
 ];
 
 const mockQueue = [

@@ -12,7 +12,7 @@ function StaffDashboard() {
   } = useAuth0();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isQueueModal, setIsQueueModal] = useState(false);
+  const [modalDetails, setModalDetails] = useState({});
 
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -24,12 +24,13 @@ function StaffDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [patientQueue, setPatientQueue] = useState([]);
 
-  const handleCardClick = (isQueue) => {
-    setIsQueueModal(isQueue);
+  const handleCardClick = (details) => {
+    setModalDetails(details);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
+    updateConsult(modalDetails);
     setIsModalOpen(false);
   };
 
@@ -80,10 +81,12 @@ function StaffDashboard() {
     if (!staffId) return;
     async function fetchAppointments() {
       try {
+        console.log("Finding appointments...");
         const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${staffId}`, {
           method: 'GET',
         });
         const data = await response.json();
+        console.log("Appointments found:", data);
         if (!response.ok) {
           console.error("Could not fetch appointments:", data);
           return;
@@ -97,26 +100,22 @@ function StaffDashboard() {
   }, [staffId, apiFetch]);
 
   const toAppointmentCard = (appointmentItem) => {
-    if (!appointmentItem.status)
-      appointmentItem.status = "Upcoming";
     const bookingDate = new Date(appointmentItem.BookingDateTime);
     const patient = appointmentItem.Patient;
     return (
       <li key={appointmentItem._id} className="data-card" onClick={() => handleCardClick(appointmentItem)} role="button" tabIndex={0}>
         <strong className="data-card-name">{patient.name}</strong>
         <span className="data-card-detail">ID: {patient._id}</span>
-        <span className="data-card-detail">{bookingDate.toLocaleDateString()}</span>
+        <span className="data-card-detail">{bookingDate.toLocaleString()}</span>
         <span className="data-card-detail">{appointmentItem.ReasonDetails}</span>
-        <span className={`status-badge ${appointmentItem.status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
-          {appointmentItem.status}
+        <span className={`status-badge ${appointmentItem.Status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
+          {appointmentItem.Status}
         </span>
       </li>
     );
   };
 
   const toQueueCard = (queueItem) => {
-    if (!queueItem.status)
-      queueItem.status = "Waiting";
     const queueTime = new Date(queueItem.createdAt);
     const patient = queueItem.Patient;
     return (
@@ -126,11 +125,62 @@ function StaffDashboard() {
         <span className="data-card-detail">{queueTime.toLocaleTimeString()}</span>
         <span className="data-card-detail">{queueItem.Speciality.SpecialityName}</span>
         <span className="status-badge status-white">
-          {queueItem.status}
+          {queueItem.Status}
         </span>
       </li>
     );
   };
+
+  const updateConsult = async (consultItem, newStatus = consultItem.Status) => {
+    if (!consultItem || !consultItem._id) {
+      console.error('Missing consultation item for status update');
+      return;
+    }
+
+    const isQueueItem = consultItem.type === 'Queue' || (!!consultItem.createdAt && !consultItem.BookingDateTime);
+    const endpoint = isQueueItem
+      ? `${process.env.REACT_APP_SERVER_URL}/api/queues/${consultItem._id}`
+      : `${process.env.REACT_APP_SERVER_URL}/api/appointments/${consultItem._id}`;
+
+    try {
+      const response = await apiFetch(endpoint, {
+        method: 'PUT',
+        body: JSON.stringify({ Status: newStatus, Remarks: modalDetails.Remarks }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error('Could not update consult status:', data);
+        return;
+      }
+
+      const updatedItem = { ...consultItem, Status: newStatus, Remarks: modalDetails.Remarks };
+      setModalDetails(updatedItem);
+
+      if (isQueueItem) {
+        setPatientQueue((prev) => prev.map((item) => (item._id === consultItem._id ? updatedItem : item)));
+      } else {
+        setAppointments((prev) => prev.map((item) => (item._id === consultItem._id ? updatedItem : item)));
+      }
+    } catch (error) {
+      console.error('Could not update consult status:', error);
+    }
+  };
+
+  const nav_bar = (
+    <header className="staff-header-canva">
+      <section className="brand-section">
+        <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
+        <h2 className="brand-title">Clinics and Qs</h2>
+      </section>
+      <nav className="header-nav-canva">
+        <button className="icon-btn-user" aria-label="Profile">
+          <LuUser />
+        </button>
+        <button className="logout-btn-canva" onClick={logout}>Logout</button>
+      </nav>
+    </header>
+  );
 
   if (loading)
     return (
@@ -139,20 +189,18 @@ function StaffDashboard() {
       </main>
     );
 
+  if (!clinics || clinics.length === 0)
+    return (
+      <main className="staff-dashboard-wrapper">
+        {nav_bar}
+        <p>You are not assigned to any clinics.</p>
+        <p>Please contact the administrator for your clinic and ask to be added.</p>
+      </main>
+    );
+
   return (
     <main className="staff-dashboard-wrapper">
-      <header className="staff-header-canva">
-        <section className="brand-section">
-          <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
-          <h2 className="brand-title">Clinics and Qs</h2>
-        </section>
-        <nav className="header-nav-canva">
-          <button className="icon-btn-user" aria-label="Profile">
-            <LuUser />
-          </button>
-          <button className="logout-btn-canva" onClick={logout}>Logout</button>
-        </nav>
-      </header>
+      {nav_bar}
 
       <section className="welcome-banner-canva">
         <h1 className="welcome-title-canva">Welcome Back, Staff Member</h1>
@@ -227,26 +275,31 @@ function StaffDashboard() {
           <article className="modal-outer-box" onClick={(e) => e.stopPropagation()}>
             <section className="modal-inner-box">
               <header className="modal-header-canva">
-                <h2 className="modal-patient-name">{isQueueModal ? "Janet Doe" : "Jane Doe"}</h2>
+                <h2 className="modal-patient-name">{modalDetails.Patient.name}</h2>
                 <button className="modal-close-x" onClick={closeModal}>X</button>
               </header>
 
               <section className="modal-details-canva">
-                <p>Contact Number: 0858761234</p>
-                <p>Reason: {isQueueModal ? "Maternity" : "Flu shoot"}</p>
-                <p>More info: Ultrasound</p>
+                <p>Contact Email: {modalDetails.Patient.email}</p>
+                <p>Reason: {modalDetails.Speciality.SpecialityName}</p>
+                <p>More info: {modalDetails.ReasonDetails ? modalDetails.ReasonDetails : `has been waiting for ${Math.round(Math.abs(Date.now() - Date.parse(modalDetails.createdAt)) / (60 * 60 * 100)) / 10} hours`}</p>
               </section>
 
               <section className="modal-remarks-section">
                 <label className="remarks-label">Remarks:</label>
-                <textarea className="remarks-textarea"></textarea>
+                <textarea
+                  className="remarks-textarea"
+                  value={modalDetails.Remarks || ''}
+                  onChange={(e) => setModalDetails({ ...modalDetails, Remarks: e.target.value })}
+                />
               </section>
 
               <footer className="modal-actions-footer">
-                <button className="modal-action-btn btn-purple">Check in</button>
-                <button className="modal-action-btn btn-purple">In Consult</button>
-                <button className="modal-action-btn btn-green">Done</button>
-                <button className="modal-action-btn btn-red">No show</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "Waiting")}>Set waiting</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "In Consult")}>Check in</button>
+                <button className="modal-action-btn btn-green" onClick={() => updateConsult(modalDetails, "Completed")}>Done</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "Cancelled")}>Cancel</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "No-show")}>No show</button>
               </footer>
             </section>
           </article>
