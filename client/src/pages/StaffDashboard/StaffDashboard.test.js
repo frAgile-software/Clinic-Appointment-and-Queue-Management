@@ -22,6 +22,9 @@ const mockQueue = [
     { _id: "74387", Patient: { _id: "4", name: "Jack Doe", email: "jack.doe@mail.com" }, createdAt: "2026-05-06T10:00:00Z", Speciality: { SpecialityName: "General" }, Status: "Waiting", Remarks: "" }
 ];
 
+const activeStatus = ["Waiting", "In Consult"];
+// const inactiveStatus = ["Completed", "Cancelled", "No-show"];
+
 const mockGetAssignedClinics = jest.fn();
 const mockGetQueue = jest.fn();
 const mockGetAppointments = jest.fn();
@@ -118,8 +121,8 @@ test('uses API calls to load clinics, queue, and appointments', async () => {
     await renderDashboard();
 
     expect(mockGetAssignedClinics).toHaveBeenCalledWith('auth0|12345');
-    expect(mockGetQueue).toHaveBeenCalledWith('987654', { auth0Id: 'auth0|12345' });
-    expect(mockGetAppointments).toHaveBeenCalledWith('auth0|12345');
+    expect(mockGetQueue).toHaveBeenCalledWith('987654', { auth0Id: 'auth0|12345', statuses: activeStatus });
+    expect(mockGetAppointments).toHaveBeenCalledWith('auth0|12345', {statuses: activeStatus});
 });
 
 test('opens a patient modal when a queue item is clicked', async () => {

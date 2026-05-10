@@ -5,6 +5,9 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../../api/useApi';
 import { useNavigate } from 'react-router';
 
+const activeStatus = ["Waiting", "In Consult"];
+const inactiveStatus = ["Completed", "Cancelled", "No-show"];
+
 function StaffDashboard() {
   const {
     user,
@@ -25,6 +28,10 @@ function StaffDashboard() {
   const [loading, setLoading] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [patientQueue, setPatientQueue] = useState([]);
+  const [viewingHistory, setViewingHistory] = useState(false); // Ok, these state things are genuinely black magic
+  const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [loadingQueues, setLoadingQueues] = useState(false);
+  const statusList = !viewingHistory ? activeStatus : inactiveStatus;
 
   const handleCardClick = (details) => {
     setModalDetails(details);
@@ -56,31 +63,37 @@ function StaffDashboard() {
     if (!staffId || !clinics || clinics.length === 0) return;
     async function fetchQueue() {
       try {
+        setLoadingQueues(true);
         console.log("Finding queues...");
-        const data = await api.queues.get(clinics[0]._id, {auth0Id: staffId});
+        const data = await api.queues.get(clinics[0]._id, {auth0Id: staffId, statuses: statusList});
         console.log("Queues found:", data);
         setPatientQueue(data);
       } catch (error) {
         console.error("Could not fetch queue:", error);
+      } finally {
+        setLoadingQueues(false);
       }
     }
     fetchQueue();
-  }, [staffId, clinics, api]);
+  }, [staffId, clinics, api, statusList]);
 
   useEffect(() => {
     if (!staffId) return;
     async function fetchAppointments() {
       try {
+        setLoadingAppointments(true);
         console.log("Finding appointments...");
-        const data = await api.appointments.getForAuth0Id(staffId);
+        const data = await api.appointments.getForAuth0Id(staffId, {statuses: statusList});
         console.log("Appointments found:", data);
         setAppointments(data);
       } catch (error) {
         console.error("Could not fetch appointments:", error);
+      } finally {
+        setLoadingAppointments(false);
       }
     }
     fetchAppointments();
-  }, [staffId, api]);
+  }, [staffId, api, statusList]);
 
   const toAppointmentCard = (appointmentItem) => {
     const bookingDate = new Date(appointmentItem.BookingDateTime);
@@ -195,26 +208,26 @@ function StaffDashboard() {
 
         <article className="quick-action-card">
           <h3 className="quick-action-title">View Appointment History</h3>
-          <button className="pill-btn-purple">VIEW HISTORY</button>
+          <button className="pill-btn-purple" onClick={() => setViewingHistory(!viewingHistory)}>TOGGLE HISTORY</button>
         </article>
       </section>
 
       <section className="data-section">
-        <header className="data-section-header">Patient Appointments</header>
+        <header className="data-section-header">Patient Appointment{viewingHistory ? " History" : "s"}</header>
         <section className="data-list-container">
-          <ul className="data-cards-wrapper">
+          {loadingAppointments ? <p>Loading appointments...</p> : <ul className="data-cards-wrapper">
             {appointments.length > 0 ? appointments.map(appt => toAppointmentCard(appt)) : <></>}
-          </ul>
+          </ul>}
         </section>
         <button className="next-action-btn">Next Appointment-&gt;</button>
       </section>
 
       <section className="data-section">
-        <header className="data-section-header">Patient Queue</header>
+        <header className="data-section-header">Patient Queue {viewingHistory ? "History" : ""}</header>
         <section className="data-list-container">
-          <ul className="data-cards-wrapper">
+          {loadingQueues ? <p>Loading queues...</p> : <ul className="data-cards-wrapper">
             {patientQueue.length > 0 ? patientQueue.map(patient => toQueueCard(patient)) : <></>}
-          </ul>
+          </ul>}
         </section>
         <button className="next-action-btn">Next Queue Patient -&gt;</button>
       </section>

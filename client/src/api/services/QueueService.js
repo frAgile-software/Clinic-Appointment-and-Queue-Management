@@ -21,11 +21,12 @@ export class QueueService extends ResourceService {
     return this.priv.put(`${this.basePath}/${queueId}`, {Clinic: clinicId, Speciality: specialityId, Patient: patientId, Status: status, Remarks: remarks}, null);
   }
 
-  get(clinicId, { auth0Id, userId, specialityIDs }) {
+  get(clinicId, { auth0Id, userId, specialityIDs, statuses }) {
     return this.priv.get(`${this.basePath}/${clinicId}`, {
       auth0Id, 
       userId, 
-      specialityIDs: Array.isArray(specialityIDs) ? specialityIDs.join(',') : specialityIDs
+      specialityIDs: Array.isArray(specialityIDs) ? specialityIDs.join(',') : specialityIDs,
+      statuses: Array.isArray(statuses) ? statuses.join(',') : statuses
     });
   }
 }

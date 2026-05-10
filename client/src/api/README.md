@@ -187,8 +187,8 @@ Base path: `/queues`.
 | `getForPatient(patientAuth0Id)` | Private | `GET /api/queues/patient/:auth0Id` |
 | `addPatient(clinicId, patientId, specialityName)` | Public | `POST /queues/` |
 | `remove(queueId)` | Private | `DELETE /api/queues/:queueId` |
-| `update(queueId, {clinicId, specialityId, patientId})` | Private | `PUT /api/queues/:queueId` |
-| `get(clinicId, {auth0Id, userId, specialityIDs})` | Private | `GET /api/queues/:clinicId` with <br> `?auth0Id=..`,  `?userId=..`, or `?specialityIDs=spec1,spec2...`|
+| `update(queueId, {clinicId, specialityId, patientId, status, remarks})` | Private | `PUT /api/queues/:queueId` |
+| `get(clinicId, {auth0Id, userId, specialityIDs, statuses})` | Private | `GET /api/queues/:clinicId?statuses=...` with <br> `&auth0Id=..`,  `&userId=..`, or `&specialityIDs=spec1,spec2...`|
 
 
 **Example usage in a component**
@@ -199,13 +199,13 @@ const api = useApi();
 const queuePatient = await api.queues.getForPatient("auth0|123");
 
 // Get
-const queue = await api.queues.get('clinicId', {userId: "user123"});
+const queue = await api.queues.get('clinicId', {userId: "user123", statuses: ["Waiting", "In Consult"]}); // statuses optional, will only filter if some are given
 const queue = await api.queues.get('clinicId', {auth0Id: "auth0|456"});
 const queue = await api.queues.get('clinicId', {specialityIDs: "GP,Maternity"});      // use comma separated names,
 const queue = await api.queues.get('clinicId', {specialityIDs: ["GP","Maternity"]});  // or array of names
 
 // Update (pass all fields to replace queue doc)
-await api.queues.update('queue123', {clinicId: "clin1", specialityId: "spec1", patientId: "pat1"});
+await api.queues.update('queue123', {clinicId: "clin1", specialityId: "spec1", patientId: "pat1", status: "Cancelled", remarks: "Rude to staff"});
 
 // Add patient to queue
 await api.queues.addPatient({ clinicId: "clin1", specialityId: "spec1", patientId: "pat1" });
@@ -274,7 +274,7 @@ Base path: `/appointments`.
 |---|---|---|
 | `cancel(appointmentId)`| Private | `DELETE /api/appointments/:appointmentId` |
 | `create({clinicId, staffUserId, patientAuth0Id, bookingDateTime, description, specialityName})`| Private |`POST /api/appointments/` |
-| `getForAuth0Id(auth0Id)`| Private | `GET /api/appointments/:auth0Id` |
+| `getForAuth0Id(auth0Id)`| Private | `GET /api/appointments/:auth0Id?statuses=...` |
 | `update(appointmentId, {patientUID, staffUID, clinicId, bookingDateTime, specialityId})`| Private | `PUT /api/appointments/:appointmentId` |
 
 **Example usage in a component**
@@ -292,15 +292,16 @@ await api.appointments.create({
 });
 
 // update appointment
-await api.appointments.create("appt1", {
+await api.appointments.update("appt1", {
   patientUID: "auth0|123",
+  status: "In Consult"
 })
 
 // cancel appointment
 await api.appointments.cancel("appt1");
 
-// get a list of appointments by auth0Id
-const appointments = await api.appointments.getForAuth0Id("auth0|123");
+// get a list of upcoming appointments by auth0Id
+const appointments = await api.appointments.getForAuth0Id("auth0|123", {statuses: ["Waiting"]});
 ```
 ---
 
