@@ -178,8 +178,8 @@ function StaffDashboard() {
       {nav_bar}
 
       <section className="welcome-banner-canva">
-        <h1 className="welcome-title-canva">Welcome Back, Staff Member</h1>
-        <p className="welcome-subtitle-canva">Here's your dashboard overview for (this clinic)</p>
+        <h1 className="welcome-title-canva">Welcome Back, {user?.name}</h1>
+        <p className="welcome-subtitle-canva">Here's your dashboard overview for {clinics[0].practiceName}</p>
       </section>
 
       <section className="quick-actions-row">
