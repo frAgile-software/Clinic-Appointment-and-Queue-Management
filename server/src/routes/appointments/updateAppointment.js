@@ -71,7 +71,7 @@ router.put("/:appointmentID", async (req, res) => {
 
         }
         if (status !== undefined) {
-            queueEntry.Status = status;
+            appointment.Status = status;
         }
         const updatedAppointment = await appointment.save();
         res.status(200).json({ message: "Appointment updated successfully.", appointment: updatedAppointment });
