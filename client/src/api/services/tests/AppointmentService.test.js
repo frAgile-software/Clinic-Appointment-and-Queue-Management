@@ -45,25 +45,25 @@ describe('AppointmentService', () => {
         });
     });
 
-    decribe('create', () => {
+    describe('create', () => {
         const payload = {
             clinicId: 'cln1',
             staffUserId: 'staff1',
             patientAuth0Id: 'auth0|123',
-            bookingdateTime: '2026-05-10T10:00:00Z',
+            bookingDateTime: '2026-05-10T10:00:00Z',
             description: "Elbow :(",
             specialityName: "General Checkup",
         };
 
         it('should call POST on the correct path', async () => {
-            service.crear(payload);
+            service.create(payload);
             expect(mockPrivateClient.post).toHaveBeenCalledWith(
                 '/appointments/',
                 {
                     Clinic: payload.clinicId,
                     Staff: payload.staffUserId,
                     patientAuth0Id: payload.patientAuth0Id,
-                    BookingdateTime: payload.bookingdateTime,
+                    BookingDateTime: payload.bookingDateTime,
                     description: payload.description,
                     Speciality: payload.specialityName,
                 },
