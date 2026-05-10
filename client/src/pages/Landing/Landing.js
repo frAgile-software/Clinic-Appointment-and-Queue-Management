@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 
 import './Landing.css';
-import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from '../../api/useApi';
 
 
 const PAGE_LIMIT = 12; //clinics per page
@@ -18,8 +18,8 @@ function Landing() {
   const [page,        setPage]        = useState(1);
   const [selectedClinic,  setSelectedClinic]  = useState(null);
 
-  const { apiFetch } = useApiAuth();
-  const navigate     = useNavigate();
+  const api = useApi();
+  const navigate = useNavigate();
   const clinicsSectionRef = useRef(null);
 
   //stores what filter options are available
@@ -76,39 +76,44 @@ const isClinicOpen = (clinic) => {
 
   const signup = () => login({ authorizationParams: { screen_hint: 'signup' } });
 
+  const hasVerified = useRef(false);
+
   // Redirect already-logged-in users to their dashboard 
   useEffect(() => {
     const verifyUserRole = async () => {
       if (!isLoading && isAuthenticated && user) {
+
+        if (hasVerified.current) return;  // make sure this only runs once
+        hasVerified.current = true;
+
         setIsVerifying(true);
         try {
           
-          console.log(`Attempting to get user from url ${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
-          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
+          console.log(`Attempting to get user.`);
 
-          if (response.ok) {
-            console.log("User found. Redirecting...");
-            const data = await response.json();
-            const redirectMap = {
-              Patient: '/dashboard/patient',
-              Staff:   '/dashboard/staff',
-              Admin:   '/dashboard/admin',
-            };
-            navigate(redirectMap[data.role] || '/');
-          } else if (response.status === 404) {
+          const data = await api.users.get(user?.sub);
+
+          console.log("User found. Redirecting...");
+
+          const redirectMap = {
+            Patient: '/dashboard/patient',
+            Staff:   '/dashboard/staff',
+            Admin:   '/dashboard/admin',
+          };
+          navigate(redirectMap[data.role] || '/');
+        } catch (error) {
+          if (error.status === 404) {
+            console.log("Not registred. redirecting...");
             navigate('/register');
           } else {
-            console.error('Failed to verify user profile.');
+            console.error('Network error during verification:', error);
             setIsVerifying(false);
           }
-        } catch (error) {
-          console.error('Network error during verification:', error);
-          setIsVerifying(false);
         }
       }
     };
     verifyUserRole();
-  }, [isLoading, isAuthenticated, user, navigate, apiFetch]);
+  }, [isLoading, isAuthenticated, user, navigate, api]);
 
   // Search the API whenever the user types
   // Debounced by 400ms so we don't fire on every keystroke.
@@ -121,21 +126,21 @@ const isClinicOpen = (clinic) => {
       setLoadingList(true);
       setHasSearched(true);
       try {
-        const params = new URLSearchParams();
-        if (search.trim()) params.set('name', search.trim());
-        if (filters.province) params.set('province', filters.province);
-        if (filters.town) params.set('town', filters.town);
-        if (filters.suburb) params.set('suburb', filters.suburb);
-        if (filters.type) params.set('type', filters.type);
-        if (filters.service) params.set('service', filters.service);
-        params.set('_orderby', filters._orderby);
-        params.set('_order', filters._order);
-        params.set("_page", page);
-        params.set("_page_len", PAGE_LIMIT);
+        console.log('Fetching clinics by filters...');
+        const params = {};
+        if (search.trim()) params.name = search.trim();
+        if (filters.province) params.province = filters.province;
+        if (filters.town) params.town = filters.town;
+        if (filters.suburb) params.suburb = filters.suburb;
+        if (filters.type) params.type = filters.type;
+        if (filters.service) params.service = filters.service;
+        params._orderby = filters._orderby;
+        params._order = filters._order;
+        params._page = page;
+        params._page_len = PAGE_LIMIT;
 
-        console.log("Trying to fetch:",`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
-        const res  = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
-        const json = await res.json();
+        const json = await api.clinics.filterAll(params);
+        console.log("Clinics found:", json);
 
         // filterClinic returns { data: [...], pagination: {...} }
         setClinics(json.data || []);
@@ -154,7 +159,7 @@ const isClinicOpen = (clinic) => {
 
     // Cleanup timer on unmount or next keystroke
     return () => clearTimeout(debounceTimer.current);
-  }, [search, filters, page]);
+  }, [search, filters, page, api]);
 
   // Prevent form from refreshing the page 
   const handleSearch = (e) => e.preventDefault();
@@ -170,27 +175,21 @@ const isClinicOpen = (clinic) => {
   
   useEffect(() => {
     const fetchFilterOptions = async () => {
-      const params = new URLSearchParams();
-      if (filters.province) params.set('province', filters.province);
-      if (filters.town) params.set('town', filters.town);
-      if (filters.suburb) params.set('suburb', filters.suburb);
-      if (filters.type) params.set('type', filters.type);
-      if (filters.service) params.set('service', filters.service);
-
       try {
         console.log("FILTERS:", filters);
-        console.log(`Attempting to get filters from ${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
-        const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
-        const json = await res.json();
 
-        setFilterOptions({ ...json, services: json.services || [] });
+        const json = await api.clinics.getFilters(filters);
+
+        console.log("Fetched filter options:", json);
+        
+        setFilterOptions(json);
       } catch (error) {
         console.error("Couldn't fetch filter options:", error);
       }
     };
 
     fetchFilterOptions();
-  }, [filters.province, filters.town, filters.suburb, filters.type, filters]);
+  }, [filters, api]);
 
   const buildPageRange = (current, total) => {
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
