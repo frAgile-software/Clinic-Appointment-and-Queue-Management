@@ -219,7 +219,7 @@ function StaffDashboard() {
             {appointments.length > 0 ? appointments.map(appt => toAppointmentCard(appt)) : <></>}
           </ul>}
         </section>
-        <button className="next-action-btn">Next Appointment-&gt;</button>
+        {/* <button className="next-action-btn">Next Appointment-&gt;</button> */}
       </section>
 
       <section className="data-section">
@@ -229,10 +229,10 @@ function StaffDashboard() {
             {patientQueue.length > 0 ? patientQueue.map(patient => toQueueCard(patient)) : <></>}
           </ul>}
         </section>
-        <button className="next-action-btn">Next Queue Patient -&gt;</button>
+        {/* <button className="next-action-btn">Next Queue Patient -&gt;</button> */}
       </section>
 
-      <section className="data-section">
+      {/* <section className="data-section">
         <header className="data-section-header">Add Patient to Queue</header>
         <section className="add-queue-container">
           <form className="add-queue-form">
@@ -256,7 +256,7 @@ function StaffDashboard() {
             </section>
           </form>
         </section>
-      </section>
+      </section> */}
 
       {isModalOpen && (
         <section className="modal-overlay-canva" onClick={closeModal}>
