@@ -6,7 +6,7 @@ export class QueueService extends ResourceService {
   }
 
   getForPatient(patientAuth0Id) {
-    return this.priv.get(`${this.basePath}/patient/${patientAuth0Id}`, null);
+    return this.priv.get(`${this.basePath}/patient/${patientAuth0Id}`, {statuses: "Waiting"});
   }
 
   addPatient(clinicId, patientId, specialityName) {

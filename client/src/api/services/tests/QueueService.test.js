@@ -39,7 +39,7 @@ describe('QueueService', () => {
             service.getForPatient(patientAuth0Id);
             expect(mockPrivateClient.get).toHaveBeenCalledWith(
                 '/queues/patient/auth0|patient-123',
-                null
+                { statuses: "Waiting" }
             );
         });
     });
