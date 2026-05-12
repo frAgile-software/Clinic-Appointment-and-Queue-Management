@@ -20,6 +20,6 @@ export class SpecialityService extends ResourceService {
     }
 
     getForClinic(clinicId) {
-        return this.priv.get(`${this.basePath}/clinic/${clinicId}`);
+        return this.priv.get(`${this.basePath}/clinic/${clinicId}`, null);
     }
 }
