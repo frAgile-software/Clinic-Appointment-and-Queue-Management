@@ -16,7 +16,7 @@ router.get("/email/:email", async (req, res) => {
         
         if (!user) {
             console.log("User not found.");
-            return res.status(404).json({ message: "User not found." });
+            return res.status(200).json(null);
         }
 
         console.log("User found:", user);
