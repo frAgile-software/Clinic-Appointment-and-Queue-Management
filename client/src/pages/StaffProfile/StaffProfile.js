@@ -25,6 +25,10 @@ function StaffProfile() {
   void clinics;
   const staffId = user?.sub;
 
+  const emailtest = ()=> {
+    window.open('mailto:test@example.com');
+  }
+
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
@@ -190,7 +194,7 @@ return (
             <span className="clinic-type">Account Actions</span>
             <h3 className="clinic-name">Management Requests</h3>
             <div className="action-button-list">
-              <button className="action-item-btn">Request occupation change</button>
+              <button className="action-item-btn" onClick={emailtest}>Request occupation change</button>
               <button className="action-item-btn">Request clinic change</button>
               <button className="action-item-btn" onClick={toggleChangeDetailsModal}>Update personal details</button>
               <button className="action-item-btn action-item-btn--danger">Request dismissal</button>
