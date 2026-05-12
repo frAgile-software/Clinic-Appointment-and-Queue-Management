@@ -232,7 +232,7 @@ function StaffDashboard() {
         {/* <button className="next-action-btn">Next Queue Patient -&gt;</button> */}
       </section>
 
-      {/* <section className="data-section">
+      <section className="data-section">
         <header className="data-section-header">Add Patient to Queue</header>
         <section className="add-queue-container">
           <form className="add-queue-form">
@@ -256,7 +256,7 @@ function StaffDashboard() {
             </section>
           </form>
         </section>
-      </section> */}
+      </section>
 
       {isModalOpen && (
         <section className="modal-overlay-canva" onClick={closeModal}>
