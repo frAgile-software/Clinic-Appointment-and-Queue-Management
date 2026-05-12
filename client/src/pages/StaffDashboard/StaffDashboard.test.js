@@ -135,10 +135,10 @@ test('opens a patient modal when a queue item is clicked', async () => {
     expect(screen.getByText(/Reason:\s*Maternity/i)).toBeInTheDocument();
 });
 
-// test('shows add queue form fields', async () => {
-//     await renderDashboard();
+test('shows add queue form fields', async () => {
+    await renderDashboard();
 
-//     expect(screen.getByText(/Patient Name:/i)).toBeInTheDocument();
-//     expect(screen.getByText(/Arrival time:/i)).toBeInTheDocument();
-//     expect(screen.getByText(/Reason:/i)).toBeInTheDocument();
-// });
+    expect(screen.getByText(/Patient Name:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Arrival time:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Reason:/i)).toBeInTheDocument();
+});
