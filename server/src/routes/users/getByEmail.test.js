@@ -47,12 +47,12 @@ describe('GET /api/users/:auth0Id', () => {
         });
     });
 
-    test('Returns 404 if not found', async() => {
+    test('Returns 200 null if not found', async() => {
         User.findOne.mockResolvedValueOnce(null);
 
         const res = await request(app).get('/api/users/email/test@example.com');
 
-        expect(res.statusCode).toEqual(404);
+        expect(res.statusCode).toEqual(200);
     });
 
     test('Returns 500 for server failure', async () => {
