@@ -18,6 +18,7 @@ function StaffDashboard() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalDetails, setModalDetails] = useState({});
+  const [showAddToQueue, setShowAddToQueue] = useState(false);
 
   const debounceTimer = useRef(null);
 
@@ -139,8 +140,9 @@ function StaffDashboard() {
     } catch (error) {
       if (error.status === 409) {
         alert('This patient is already in a queue.');
+      } else {
+        console.error('Could not add patient to queue:', error);
       }
-      console.error('Could not add patient to queue:', error);
     } finally {
       setAddingToQueue(false);
     }
@@ -281,7 +283,18 @@ function StaffDashboard() {
       <section className="quick-actions-row">
         <article className="quick-action-card">
           <h3 className="quick-action-title">Add Patient to Queue</h3>
-          <button className="pill-btn-purple">ADD TO QUEUE</button>
+          <button className="pill-btn-purple" onClick={() => {
+              setShowAddToQueue(!showAddToQueue);
+              if (showAddToQueue) {
+                setPatientEmail('');
+                setSelectedSpeciality('');
+                setPatient(null);
+                setHasSearchedEmail(false);
+              }
+            }
+          }>
+            {showAddToQueue ? 'CLOSE' : 'ADD TO QUEUE'}
+          </button>
         </article>
 
         <article className="quick-action-card">
@@ -315,71 +328,75 @@ function StaffDashboard() {
         {/* <button className="next-action-btn">Next Queue Patient -&gt;</button> */}
       </section>
 
-      <section className="data-section">
-        <header className="data-section-header">Add Patient to Queue</header>
-        <section className="add-queue-container">
-          <form className="add-queue-form">
-            <fieldset className="form-group">
-              <label className="form-label">Patient Email:</label>
-              <section className="email-input-wrapper">
-                <input 
-                  type="text" 
-                  className="form-input-canva"
-                  value={patientEmail}
-                  onChange={(e) => setPatientEmail(e.target.value)}
-                />
-                {patientEmail.trim() && hasSearchedEmail && (
-                  <span className='email-search-indicator' aria-live='polite'>
-                    {loadingEmailSearch ? (
-                      <span className='spinner' aria-label='Searching' />
-                    ) : patient ? (
-                      <span className='indicator-tick' aria-label='Patient found'>✓</span>
-                    ) : (
-                      <span className='indicator-cross' aria-label='Patient not found'>✗</span>
-                    )}
+      {showAddToQueue && (
+        <section className="data-section">
+          <header className="data-section-header">Add Patient to Queue</header>
+          <section className="add-queue-container">
+            <form className="add-queue-form">
+              <fieldset className="form-group">
+                <label className="form-label" htmlFor="patient-email-input">Patient Email:</label>
+                <section className="email-input-wrapper">
+                  <input 
+                    type="text" 
+                    className="form-input-canva"
+                    value={patientEmail}
+                    onChange={(e) => setPatientEmail(e.target.value)}
+                    id="patient-email-input"
+                  />
+                  {patientEmail.trim() && hasSearchedEmail && (
+                    <span className='email-search-indicator' aria-live='polite'>
+                      {loadingEmailSearch ? (
+                        <span className='spinner' aria-label='Searching' />
+                      ) : patient ? (
+                        <span className='indicator-tick' aria-label='Patient found'>✓</span>
+                      ) : (
+                        <span className='indicator-cross' aria-label='Patient not found'>✗</span>
+                      )}
+                    </span>
+                  )}
+                </section>
+              </fieldset>
+
+              <fieldset className="form-group">
+                {patient && !loadingEmailSearch && (
+                  <span className="patient-found-name">
+                    Patient found: {patient.title} {patient.name} {patient.surname} - id: {patient._id}
                   </span>
                 )}
+              </fieldset>
+
+              <fieldset className="form-group">
+                <label className="form-label" htmlFor="service-select">Service:</label>
+                <select
+                  className="form-input-canva"
+                  value={selectedSpeciality}
+                  onChange={(e) => setSelectedSpeciality(e.target.value)}
+                  id="service-select"
+                >
+                  <option value="">Select a service...</option>
+                  {Object.entries(clinicSpecialities).map(([id, name]) => (
+                    <option key={id} value={name}>{name}</option>
+                  ))}
+                </select>
+              </fieldset>
+
+              <section className="form-submit-row">
+                <button type="button" disabled={!patient || !selectedSpeciality || addingToQueue} className="pill-btn-purple form-submit-btn" onClick={handleAddToQueue}>
+                  {addingToQueue ? (
+                    <>
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      Add to Queue
+                    </>
+                  )}
+                </button>
               </section>
-            </fieldset>
-
-            <fieldset className="form-group">
-              {patient && !loadingEmailSearch && (
-                <span className="patient-found-name">
-                  Patient found: {patient.title} {patient.name} {patient.surname} - id: {patient._id}
-                </span>
-              )}
-            </fieldset>
-
-            <fieldset className="form-group">
-              <label className="form-label">Service:</label>
-              <select
-                className="form-input-canva"
-                value={selectedSpeciality}
-                onChange={(e) => setSelectedSpeciality(e.target.value)}
-              >
-                <option value="">Select a service...</option>
-                {Object.entries(clinicSpecialities).map(([id, name]) => (
-                  <option key={id} value={name}>{name}</option>
-                ))}
-              </select>
-            </fieldset>
-
-            <section className="form-submit-row">
-              <button type="button" disabled={!patient || !selectedSpeciality || addingToQueue} className="pill-btn-purple form-submit-btn" onClick={handleAddToQueue}>
-                {addingToQueue ? (
-                  <>
-                    Adding...
-                  </>
-                ) : (
-                  <>
-                    Add to Queue
-                  </>
-                )}
-              </button>
-            </section>
-          </form>
+            </form>
+          </section>
         </section>
-      </section>
+      )}
 
       {isModalOpen && (
         <section className="modal-overlay-canva" onClick={closeModal}>
