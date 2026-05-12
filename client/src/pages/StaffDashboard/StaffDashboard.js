@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './StaffDashboard.css';
 import { LuUser } from "react-icons/lu";
 import { useAuth0 } from '@auth0/auth0-react';
@@ -19,6 +19,8 @@ function StaffDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalDetails, setModalDetails] = useState({});
 
+  const debounceTimer = useRef(null);
+
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
@@ -31,7 +33,14 @@ function StaffDashboard() {
   const [viewingHistory, setViewingHistory] = useState(false); // Ok, these state things are genuinely black magic
   const [loadingAppointments, setLoadingAppointments] = useState(false);
   const [loadingQueues, setLoadingQueues] = useState(false);
+  const [loadingEmailSearch, setLoadingEmailSearch] = useState(false);
+  const [hasSearchedEmail, setHasSearchedEmail] = useState(false);
+  const [patientEmail, setPatientEmail] = useState('');
+  const [patient, setPatient] = useState(null);
+
   const statusList = !viewingHistory ? activeStatus : inactiveStatus;
+
+  const [addingToQueue, setAddingToQueue] = useState(false);
 
   const handleCardClick = (details) => {
     setModalDetails(details);
@@ -94,6 +103,37 @@ function StaffDashboard() {
     }
     fetchAppointments();
   }, [staffId, api, statusList]);
+
+  useEffect(() => {
+    const email = patientEmail.trim();
+
+    if (!email) {
+      setPatient(null);
+      setHasSearchedEmail(false);
+      setLoadingEmailSearch(false);
+      return;
+    }
+
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(async () => {
+      setLoadingEmailSearch(true);
+      setHasSearchedEmail(true);
+      
+      try {
+        const user = await api.users.getByEmail(email, {role: "Patient"});
+        setPatient(user);
+      } catch (error) {
+        if (error.status !== 404) {
+          console.log(error);
+        }
+        setPatient(null); // set patient back to null
+      } finally {
+        setLoadingEmailSearch(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(debounceTimer.current);
+  }, [patientEmail, api]);
 
   const toAppointmentCard = (appointmentItem) => {
     const bookingDate = new Date(appointmentItem.BookingDateTime);
@@ -237,22 +277,45 @@ function StaffDashboard() {
         <section className="add-queue-container">
           <form className="add-queue-form">
             <fieldset className="form-group">
-              <label className="form-label">Patient Name:</label>
-              <input type="text" className="form-input-canva" />
+              <label className="form-label">Patient Email:</label>
+              <section className="email-input-wrapper">
+                <input 
+                  type="text" 
+                  className="form-input-canva"
+                  value={patientEmail}
+                  onChange={(e) => setPatientEmail(e.target.value)}
+                />
+                {patientEmail.trim() && hasSearchedEmail && (
+                  <span className='email-search-indicator' aria-live='polite'>
+                    {loadingEmailSearch ? (
+                      <span className='spinner' aria-label='Searching' />
+                    ) : patient ? (
+                      <span className='indicator-tick' aria-label='Patient found'>✓</span>
+                    ) : (
+                      <span className='indicator-cross' aria-label='Patient not found'>✗</span>
+                    )}
+                  </span>
+                )}
+              </section>
             </fieldset>
 
             <fieldset className="form-group">
-              <label className="form-label">Arrival time:</label>
-              <input type="text" className="form-input-canva" />
-            </fieldset>
-
-            <fieldset className="form-group">
-              <label className="form-label">Reason:</label>
+              <label className="form-label">Service:</label>
               <input type="text" className="form-input-canva" />
             </fieldset>
 
             <section className="form-submit-row">
-              <button type="button" className="pill-btn-purple form-submit-btn">ADD TO QUEUE</button>
+              <button type="button" className="pill-btn-purple form-submit-btn">
+                {addingToQueue ? (
+                  <>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    Add to Queue
+                  </>
+                )}
+              </button>
             </section>
           </form>
         </section>
