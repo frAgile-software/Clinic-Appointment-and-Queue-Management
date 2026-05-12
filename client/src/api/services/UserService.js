@@ -19,7 +19,7 @@ export class UserService extends ResourceService {
         return this.priv.get(`${this.basePath}/${auth0Id}`, null);
     }
 
-    getByEmail(email) {
-        return this.priv.get(`${this.basePath}/email/${encodeURIComponent(email)}`, null);
+    getByEmail(email, {role}) {
+        return this.priv.get(`${this.basePath}/email/${encodeURIComponent(email)}`, {role});
     }
 }

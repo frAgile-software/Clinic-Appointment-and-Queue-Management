@@ -5,9 +5,14 @@ const User = require("../../database/models/User");
 router.get("/email/:email", async (req, res) => {
     try {
         const { email } = req.params;
+        const { role } = req.query;
+
         console.log(`Searching for user by ${email}...`);
 
-        const user = await User.findOne({ email: email });
+        const query = {email};
+        if (role) query.role = role;
+
+        const user = await User.findOne(query);
         
         if (!user) {
             console.log("User not found.");
