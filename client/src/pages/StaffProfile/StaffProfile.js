@@ -26,10 +26,18 @@ function StaffProfile() {
   const [loading, setLoading] = useState(false);
   void clinics;
   const staffId = user?.sub;
-  const adminEmail = admins?.[0]?.email || 'support@example.com';
+  const adminEmail = admins?.[0]?.email;
+
+  const showNoAdminMessage = () => {
+    alert('No clinic administrator is assigned yet. Please contact support or wait until an administrator is added to your clinic.');
+  };
 
   const emailDismissal = () => {
-    const to = adminEmail;
+    if (!adminEmail) {
+      showNoAdminMessage();
+      return;
+    }
+
     const subject = encodeURIComponent('Request for staff dismissal');
     const body = encodeURIComponent(`Hello,
 
@@ -40,11 +48,15 @@ Current clinic: ${clinics?.practiceName || 'None'}
 Auth0 ID: ${staffId || ''}
 
 Thank you.`);
-    window.open(`mailto:${to}?subject=${subject}&body=${body}`);
+    window.open(`mailto:${adminEmail}?subject=${subject}&body=${body}`);
   };
 
   const emailClinicChange = () => {
-    const to = adminEmail;
+    if (!adminEmail) {
+      showNoAdminMessage();
+      return;
+    }
+
     const subject = encodeURIComponent('Request for clinic change');
     const body = encodeURIComponent(`Hello,
 
@@ -55,7 +67,7 @@ Current clinic: ${clinics?.practiceName || 'None'}
 Auth0 ID: ${staffId || ''}
 
 Thank you.`);
-    window.open(`mailto:${to}?subject=${subject}&body=${body}`);
+    window.open(`mailto:${adminEmail}?subject=${subject}&body=${body}`);
   };
   
   const logout = () => {
@@ -188,16 +200,6 @@ Thank you.`);
 
     fetchAdmins();
   }, [clinics, api]);
-
-
-const emailDismissal = () =>{
-    
-    window.open('mailto:${admin}?subject=subject&body=body');
-  }
-  const emailClinicChange = () =>{
-    window.open('mailto:test@example.com?subject=subject&body=body');
-  }
-
 
 return (
   <div className="landing"> 
