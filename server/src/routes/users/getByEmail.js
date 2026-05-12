@@ -5,12 +5,16 @@ const User = require("../../database/models/User");
 router.get("/email/:email", async (req, res) => {
     try {
         const { email } = req.params;
+        console.log(`Searching for user by ${email}...`);
+
         const user = await User.findOne({ email: email });
         
         if (!user) {
+            console.log("User not found.");
             return res.status(404).json({ message: "User not found." });
         }
 
+        console.log("User found:", user);
         res.status(200).json(user);
 
     } catch (error) {
