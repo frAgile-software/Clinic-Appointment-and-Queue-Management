@@ -139,6 +139,5 @@ test('shows add queue form fields', async () => {
     await renderDashboard();
 
     expect(screen.getByText(/Patient Name:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Arrival time:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Reason:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Service:/i)).toBeInTheDocument();
 });
