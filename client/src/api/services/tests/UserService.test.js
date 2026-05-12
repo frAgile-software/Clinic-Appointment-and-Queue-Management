@@ -99,8 +99,8 @@ describe('UserService', () => {
             const email = 'test@email.com';
             service.getByEmail(email);
             expect(mockPrivateClient.get).toHaveBeenCalledWith(
-                '/users/email/test@email.com',
-                null
+                '/users/email/test%40email.com',
+                { role: undefined }
             );
         });
     });
