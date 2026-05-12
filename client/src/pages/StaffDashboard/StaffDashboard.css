@@ -389,3 +389,9 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.patient-found-name {
+  color: #333;
+  font-style: italic;
+  align-items: center;
+}

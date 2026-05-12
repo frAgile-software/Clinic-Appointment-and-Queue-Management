@@ -300,6 +300,14 @@ function StaffDashboard() {
             </fieldset>
 
             <fieldset className="form-group">
+              {patient && !loadingEmailSearch && (
+                <span className="patient-found-name">
+                  Patient found: {patient.title} {patient.name} {patient.surname} - id: {patient._id}
+                </span>
+              )}
+            </fieldset>
+
+            <fieldset className="form-group">
               <label className="form-label">Service:</label>
               <input type="text" className="form-input-canva" />
             </fieldset>
