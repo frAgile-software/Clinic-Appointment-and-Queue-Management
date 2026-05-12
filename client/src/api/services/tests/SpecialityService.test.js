@@ -83,4 +83,15 @@ describe('SpecialityService', () => {
             );
         });
     });
+
+    describe('getForClinic', () => {
+        it('should call GET on the correct path', () => {
+            const clinicId = 'clnc1';
+            service.getForClinic(clinicId);
+            expect(mockPrivateClient.get).toHaveBeenCalledWith(
+                '/specialities/clinic/clnc1',
+                null
+            );
+        });
+    })
 });
