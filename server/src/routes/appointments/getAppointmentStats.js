@@ -9,7 +9,7 @@ const User = require("../../database/models/User");
 
 const DATE_SEARCH_FIELDS = ["createdAt", "updatedAt", "BookingDateTime"];
 
-router.get("/:clinicID/stats", async (req, res) => {
+router.get("/:clinicID", async (req, res) => {
     try {
         const { clinicID } = req.params;
         const {

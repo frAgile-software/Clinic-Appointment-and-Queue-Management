@@ -14,9 +14,9 @@ jest.mock("../../database/models/User");
 
 const app = express();
 app.use(express.json());
-app.use("/api/appointments", getAppointmentStatsRouter);
+app.use("/api/appointments/statistics", getAppointmentStatsRouter);
 
-describe("GET /api/appointments/:clinicID/stats", () => {
+describe("GET /api/appointments/statistics/:clinicID", () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -25,7 +25,7 @@ describe("GET /api/appointments/:clinicID/stats", () => {
         Clinic.findById.mockResolvedValue(null);
 
         const response = await request(app)
-            .get("/api/appointments/clinic123/stats")
+            .get("/api/appointments/statistics/clinic123")
             .query({ auth0Id: "auth0|admin" });
 
         expect(response.status).toBe(404);
@@ -38,7 +38,7 @@ describe("GET /api/appointments/:clinicID/stats", () => {
         User.findOne.mockResolvedValue({ _id: "userId", role: "Patient" });
 
         const response = await request(app)
-            .get("/api/appointments/clinic123/stats")
+            .get("/api/appointments/statistics/clinic123")
             .query({ auth0Id: "auth0|patient" });
 
         expect(response.status).toBe(403);
@@ -51,7 +51,7 @@ describe("GET /api/appointments/:clinicID/stats", () => {
         Staff.exists.mockResolvedValue(false);
 
         const response = await request(app)
-            .get("/api/appointments/clinic123/stats")
+            .get("/api/appointments/statistics/clinic123")
             .query({ auth0Id: "auth0|admin" });
 
         expect(response.status).toBe(403);
@@ -81,7 +81,7 @@ describe("GET /api/appointments/:clinicID/stats", () => {
         Appointment.find.mockReturnValueOnce(findChain);
 
         const response = await request(app)
-            .get("/api/appointments/clinic123/stats")
+            .get("/api/appointments/statistics/clinic123")
             .query({
                 auth0Id: "auth0|admin",
                 _fromdate: "2026-05-01",
@@ -115,7 +115,7 @@ describe("GET /api/appointments/:clinicID/stats", () => {
         Clinic.findById.mockRejectedValue(new Error("Database failure"));
 
         const response = await request(app)
-            .get("/api/appointments/clinic123/stats")
+            .get("/api/appointments/statistics/clinic123")
             .query({ auth0Id: "auth0|admin" });
 
         expect(response.status).toBe(500);
