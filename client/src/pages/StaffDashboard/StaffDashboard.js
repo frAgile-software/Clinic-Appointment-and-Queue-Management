@@ -37,6 +37,8 @@ function StaffDashboard() {
   const [hasSearchedEmail, setHasSearchedEmail] = useState(false);
   const [patientEmail, setPatientEmail] = useState('');
   const [patient, setPatient] = useState(null);
+  const [clinicSpecialities, setClinicSpecialities] = useState({});
+  const [selectedSpeciality, setSelectedSpeciality] = useState('');
 
   const statusList = !viewingHistory ? activeStatus : inactiveStatus;
 
@@ -105,6 +107,46 @@ function StaffDashboard() {
   }, [staffId, api, statusList]);
 
   useEffect(() => {
+    if (!clinics || clinics.length === 0) return;
+
+    async function getClinicSpecialities() {
+      try {
+        console.log("Finding clinic specialities...");
+        const specs = await api.specialities.getForClinic(clinics[0]._id);
+        console.log("Found clinic specialities:", specs);
+        setClinicSpecialities(specs);
+      } catch (error) {
+        console.log("Could not find clinic specialities:", error);
+        setClinicSpecialities({});
+      }
+    }
+    getClinicSpecialities();
+  }, [clinics, api]);
+
+  const handleAddToQueue = async () => {
+    try {
+      setAddingToQueue(true);
+      await api.queues.addPatient(
+        clinics[0]._id,
+        {patientId: patient._id},
+        selectedSpeciality,
+      );
+
+      setPatientEmail('');
+      setSelectedSpeciality('');
+      setPatient(null);
+      setHasSearchedEmail(false);
+    } catch (error) {
+      if (error.status === 409) {
+        alert('This patient is already in a queue.');
+      }
+      console.error('Could not add patient to queue:', error);
+    } finally {
+      setAddingToQueue(false);
+    }
+  };
+
+  useEffect(() => {
     const email = patientEmail.trim();
 
     if (!email) {
@@ -121,6 +163,7 @@ function StaffDashboard() {
       
       try {
         const user = await api.users.getByEmail(email, {role: "Patient"});
+        console.log("Fetched user:", user);
         setPatient(user);
       } catch (error) {
         if (error.status !== 404) {
@@ -309,11 +352,20 @@ function StaffDashboard() {
 
             <fieldset className="form-group">
               <label className="form-label">Service:</label>
-              <input type="text" className="form-input-canva" />
+              <select
+                className="form-input-canva"
+                value={selectedSpeciality}
+                onChange={(e) => setSelectedSpeciality(e.target.value)}
+              >
+                <option value="">Select a service...</option>
+                {Object.entries(clinicSpecialities).map(([id, name]) => (
+                  <option key={id} value={name}>{name}</option>
+                ))}
+              </select>
             </fieldset>
 
             <section className="form-submit-row">
-              <button type="button" className="pill-btn-purple form-submit-btn">
+              <button type="button" disabled={!patient || !selectedSpeciality || addingToQueue} className="pill-btn-purple form-submit-btn" onClick={handleAddToQueue}>
                 {addingToQueue ? (
                   <>
                     Adding...
