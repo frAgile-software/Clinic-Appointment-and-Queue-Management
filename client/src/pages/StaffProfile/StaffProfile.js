@@ -44,9 +44,9 @@ function StaffProfile() {
 
 I would like to request dismissal from my staff position.
 
-Staff name: ${profileData?.name || ''}
+Staff name: ${profileData?.name || ''} ${profileData?.surname|| ''}
 Current clinic: ${clinics?.practiceName || 'None'}
-Auth0 ID: ${staffId || ''}
+ID: ${profileData._id || ''}
 
 Thank you.`);
     window.open(`mailto:${adminEmail}?subject=${subject}&body=${body}`);
@@ -63,9 +63,9 @@ Thank you.`);
 
 I would like to request a clinic assignment change.
 
-Staff name: ${profileData?.name || ''}
+Staff name: ${profileData?.name || ''} ${profileData?.surname|| ''}
 Current clinic: ${clinics?.practiceName || 'None'}
-Auth0 ID: ${staffId || ''}
+ID: ${profileData._id || ''}
 
 Thank you.`);
     window.open(`mailto:${adminEmail}?subject=${subject}&body=${body}`);
