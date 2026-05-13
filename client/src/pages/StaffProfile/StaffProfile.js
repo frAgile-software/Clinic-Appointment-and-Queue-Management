@@ -33,6 +33,7 @@ function StaffProfile() {
   };
 
   const emailDismissal = () => {
+    
     if (!adminEmail) {
       showNoAdminMessage();
       return;
@@ -192,7 +193,7 @@ Thank you.`);
       try {
         const json = await api.clinics.getAdmins(clinics._id);
         console.log("Admins", json);
-        setAdmins(json);
+        setAdmins(json.users);
       } catch (error) {
         console.error("Could not fetch admins:", error);
       }
