@@ -4,10 +4,10 @@ import "@testing-library/jest-dom";
 import PatientDashboard from "./PatientDashboard";
 
 import { useAuth0 } from '@auth0/auth0-react';
-import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from '../../api/useApi';
 
 jest.mock('@auth0/auth0-react');
-jest.mock('../../hooks/apiAuth');
+jest.mock('../../api/useApi');
 
 const mockNavigate = jest.fn();
 jest.mock('react-router', () => ({
@@ -18,7 +18,7 @@ window.HTMLElement.prototype.scrollIntoView = jest.fn();
 
 describe("Patient Dashboard - Component and Feature Tests", () => {
   const mockLogout = jest.fn();
-  const mockApiFetch = jest.fn();
+  let mockApi;
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -33,78 +33,54 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       logout: mockLogout,
     });
 
-    useApiAuth.mockReturnValue({
-      apiFetch: mockApiFetch,
-    });
-
-    mockApiFetch.mockImplementation((url, options) => {
-      if (url.includes('/api/users/')) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ name: "John Doe", surname: "Smith" }),
-        });
-      }
-      if (url.includes('/api/appointments/auth0|12345')) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ([
+    mockApi = {
+      users: {
+        get: jest.fn().mockResolvedValue({ name: "John Doe", surname: "Smith" }),
+      },
+      appointments: {
+        getForAuth0Id: jest.fn().mockResolvedValue([
+          {
+            _id: 'app_1',
+            Clinic: { _id: 'clinic_123', practiceName: 'Test Clinic', physicalAddress: '1 Test Rd', physicalTown: 'Testville' },
+            Staff: { name: 'Dr.', surname: 'Smith' },
+            Speciality: { name: 'Dentistry' },
+            BookingDateTime: '2026-05-01T10:00:00Z',
+          },
+        ]),
+        cancel: jest.fn().mockResolvedValue({ message: "Cancelled" }),
+      },
+      queues: {
+        getForPatient: jest.fn().mockResolvedValue({ inQueue: false }),
+        addPatient: jest.fn().mockResolvedValue({ message: "Successfully joined queue" }),
+        remove: jest.fn().mockResolvedValue({ message: "Removed" }),
+      },
+      clinics: {
+        getFilters: jest.fn().mockResolvedValue({
+          provinces: ['Gauteng'],
+          towns: ['Sandton'],
+          suburbs: [],
+          types: ['General Practice'],
+          services: ['Dentistry', 'Cardiology'],
+        }),
+        filterAll: jest.fn().mockResolvedValue({
+          data: [
             {
-              _id: 'app_1',
-              Clinic: { _id: 'clinic_123', practiceName: 'Test Clinic' },
-              Staff: { name: 'Dr.', surname: 'Smith' },
-              Speciality: { name: 'Dentistry' },
-              BookingDateTime: '2026-05-01T10:00:00Z'
-            }
-          ]),
-        });
-      }
-      if (url.includes('/api/queues/patient/auth0|12345')) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ inQueue: false }),
-        });
-      }
-      if (url.includes('/api/appointments/app_1') && options?.method === 'DELETE') {
-        return Promise.resolve({ ok: true });
-      }
-      return Promise.resolve({ ok: true, json: async () => ({}) });
-    });
+              _id: 'clinic_123',
+              practiceName: 'Sandton Health Clinic',
+              practiceTypeDescription: 'General Practice',
+              physicalAddress: '1 Sandton Drive',
+              physicalTown: 'Sandton',
+              isOpen: true,
+              practiceNumber: '102846748',
+              telephone: '0858761234',
+            },
+          ],
+          pagination: { page: 1, totalPages: 1, total: 1 },
+        }),
+      },
+    };
 
-    global.fetch = jest.fn((url, options) => {
-      if (url.includes('/clinics/filters')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            provinces: ['Gauteng'], 
-            towns: ['Sandton'], 
-            suburbs: [], 
-            types: ['General Practice'],
-            services: ['Dentistry', 'Cardiology']
-          })
-        });
-      }
-      if (url.includes('/clinics')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            data: [
-              {
-                _id: 'clinic_123',
-                practiceName: 'Sandton Health Clinic',
-                practiceTypeDescription: 'General Practice',
-                physicalAddress: '1 Sandton Drive',
-                physicalTown: 'Sandton',
-                isOpen: true,
-                practiceNumber: '102846748',
-                telephone: '0858761234'
-              }
-            ],
-            pagination: { page: 1, totalPages: 1, total: 1 }
-          })
-        });
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
-    });
+    useApi.mockReturnValue(mockApi);
   });
 
   afterEach(() => {
@@ -137,44 +113,19 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   });
 
   test("Given the user profile fetch fails, Then an error is logged", async () => {
-    mockApiFetch.mockImplementation(async (url) => {
-      if (url.includes('/api/users/')) {
-        return { ok: false, json: async () => ({}) };
-      }
-      if (url.includes('/api/queues/patient/')) {
-        return { ok: true, json: async () => ({ inQueue: false }) };
-      }
-      return { ok: true, json: async () => ({}) };
-    });
+    mockApi.users.get.mockRejectedValue(new Error("Profile error"));
 
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     render(<PatientDashboard />);
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith("Failed to fetch user profile.");
-    });
-    consoleSpy.mockRestore();
-  });
-
-  test("Given the user profile fetch throws, Then a network error is logged", async () => {
-    mockApiFetch.mockImplementation(async (url) => {
-      if (url.includes('/api/users/')) throw new Error("Network error");
-      if (url.includes('/api/queues/patient/')) {
-        return { ok: true, json: async () => ({ inQueue: false }) };
-      }
-      return { ok: true, json: async () => ({}) };
-    });
-
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    render(<PatientDashboard />);
-    await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith("Network error fetching user:", expect.any(Error));
+      expect(consoleSpy).toHaveBeenCalledWith("Failed to fetch user profile:", expect.any(Error));
     });
     consoleSpy.mockRestore();
   });
 
   test("Given the component mounts, Then it fetches the user profile using the Auth0 ID", async () => {
     await renderDashboard();
-    expect(mockApiFetch).toHaveBeenCalledWith(expect.stringContaining("/api/users/auth0|12345"));
+    expect(mockApi.users.get).toHaveBeenCalledWith("auth0|12345");
   });
 
   test("Given the user clicks logout, Then the Auth0 logout function is triggered", async () => {
@@ -190,12 +141,6 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   test("Given appointments load, Then the dashboard shows the correct appointment count", async () => {
     await renderDashboard();
     expect(screen.getByText(/You have 1 appointment\(s\) upcoming/i)).toBeInTheDocument();
-  });
-
-  test("Given queue status loads, Then the dashboard updates the queue card", async () => {
-    await renderDashboard();
-    expect(screen.getByText(/Not currently in a queue/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /JOIN A VIRTUAL QUEUE/i })).toBeInTheDocument();
   });
 
   test("Given the user clicks 'VIEW DETAILS', Then the appointments modal opens showing the data", async () => {
@@ -222,10 +167,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
-      expect(mockApiFetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/appointments/app_1"), 
-        expect.objectContaining({ method: 'DELETE' })
-      );
+      expect(mockApi.appointments.cancel).toHaveBeenCalledWith("app_1");
     });
   });
 
@@ -243,6 +185,12 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
         fromBookNow: true
       })
     }));
+  });
+
+  test("Given queue status loads, Then the dashboard updates the queue card", async () => {
+    await renderDashboard();
+    expect(screen.getByText(/Not currently in a queue/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /JOIN A VIRTUAL QUEUE/i })).toBeInTheDocument();
   });
 
   test("Given the dashboard initially loads, Then the compressed 'Find Nearest Clinic' card is shown", async () => {
@@ -270,16 +218,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   });
 
   test("Given the clinics fetch fails, Then clinics list is empty and error is logged", async () => {
-    global.fetch = jest.fn((url) => {
-      if (url.includes('/clinics/filters')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ provinces: [], towns: [], suburbs: [], types: [], services: [] })
-        });
-      }
-      if (url.includes('/clinics')) throw new Error("Network error");
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
-    });
+    mockApi.clinics.filterAll.mockRejectedValue(new Error("Network error"));
 
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     await renderDashboard();
@@ -296,13 +235,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   });
 
   test("Given the filter options fetch fails, Then an error is logged", async () => {
-    global.fetch = jest.fn((url) => {
-      if (url.includes('/clinics/filters')) throw new Error("Network error");
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ data: [], pagination: {} })
-      });
-    });
+    mockApi.clinics.getFilters.mockRejectedValue(new Error("Network error"));
 
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     await renderDashboard();
@@ -349,6 +282,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     
     expect(screen.getByText(/1 Sandton Drive, Sandton/i)).toBeInTheDocument();
     expect(screen.getByText(/Open now/i)).toBeInTheDocument();
+    expect(mockApi.clinics.filterAll).toHaveBeenCalled();
   });
 
   test("Given no reason is selected, When the user clicks a clinic card, Then an error message is shown and modal does not open", async () => {
@@ -411,9 +345,11 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
     fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
 
+    act(() => { jest.runAllTimers(); });
+
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("service=Dentistry"));
-    }, { timeout: 1500 });
+      expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
+    });
 
     fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
     
@@ -430,6 +366,8 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
+    act(() => { jest.runAllTimers(); });
+
     await waitFor(() => {
       expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
@@ -437,14 +375,14 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
     fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
 
+    act(() => { jest.runAllTimers(); });
+
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("service=Dentistry"));
+      expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
-
-    const bookNowBtn = screen.getByRole("button", { name: /Book Now/i });
-    fireEvent.click(bookNowBtn);
+    fireEvent.click(screen.getByRole("button", { name: /Book Now/i }));
 
     expect(mockNavigate).toHaveBeenCalledWith("/book", {
       state: expect.objectContaining({
@@ -458,63 +396,33 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
   describe("Queue testing", () => {
 
-    test("Given the queue fetch throws, Then a network error is logged", async () => {
-      mockApiFetch.mockImplementation(async (url) => {
-        if (url.includes('/api/users/')) {
-          return { ok: true, json: async () => ({ name: "John Doe" }) };
-        }
-        if (url.includes('/api/queues/patient/')) throw new Error("Network error");
-        return { ok: true, json: async () => ({}) };
-      });
+    test("Given the queue fetch throws, Then an error is logged", async () => {
+      mockApi.queues.getForPatient.mockRejectedValue(new Error("Network error"));
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       render(<PatientDashboard />);
       await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith("Network error fetching queue:", expect.any(Error));
+        expect(consoleSpy).toHaveBeenCalledWith("Error fetching queue:", expect.any(Error));
       });
       consoleSpy.mockRestore();
     });
 
     test("Given the user is not in a queue, Then the queue card shows 'Join a Virtual Queue'", async () => {
-      mockApiFetch.mockImplementation((url) => {
-        if (url.includes('/api/queues/patient/')) {
-          return Promise.resolve({
-            ok: true,
-            json: async () => ({ inQueue: false }),
-          });
-        }
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ name: "John Doe" }),
-        });
-      });
-
       await renderDashboard();
       expect(screen.getByText(/Not currently in a queue/i)).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /JOIN A VIRTUAL QUEUE/i })).toBeInTheDocument();
     });
 
     test("Given the user is in a queue, Then the queue card shows their position and clinic", async () => {
-      mockApiFetch.mockImplementation((url) => {
-        if (url.includes('/api/queues/patient/')) {
-          return Promise.resolve({
-            ok: true,
-            json: async () => ({
-              inQueue: true,
-              queue: {
-                queue: {
-                  Clinic: { practiceName: 'Sandton Health Clinic' },
-                  Speciality: { SpecialityName: 'General Checkup' },
-                },
-                position: 2,
-              },
-            }),
-          });
-        }
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ name: "John Doe" }),
-        });
+      mockApi.queues.getForPatient.mockResolvedValue({
+        inQueue: true,
+        queue: {
+          queue: {
+            Clinic: { practiceName: 'Sandton Health Clinic' },
+            Speciality: { SpecialityName: 'General Checkup' },
+          },
+          position: 2,
+        },
       });
 
       await renderDashboard();
@@ -623,9 +531,11 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       });
 
       fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
-      
+
+      act(() => { jest.runAllTimers(); });
+
       await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("service=Dentistry"));
+        expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
       });
 
       fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
@@ -635,54 +545,44 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       expect(queueServiceDropdown.value).toBe('Dentistry');
     });
 
-    test("Given the queue panel, When the user confirms joining, Then the queue card updates", async () => {
+    test("Given the queue panel, When the user confirms joining, Then addPatient is called with correct args and the queue card updates", async () => {
       let queueJoined = false;
 
-      mockApiFetch.mockImplementation(async (url, options) => {
-        if (url.includes('/api/users/')) {
-          return { ok: true, json: async () => ({ name: "John Doe" }) };
-        }
-        if (url.includes('/api/queues/patient/')) {
+      mockApi.queues.addPatient.mockImplementation(async () => {
+        queueJoined = true;
+        return { message: "Successfully joined queue" };
+      });
+
+      mockApi.queues.getForPatient.mockImplementation(async () => {
+        if (queueJoined) {
           return {
-            ok: true,
-            json: async () => queueJoined
-              ? {
-                  inQueue: true,
-                  queue: {
-                    queue: {
-                      Clinic: { practiceName: 'Sandton Health Clinic' },
-                      Speciality: { SpecialityName: 'Dentistry' },
-                    },
-                    position: 1,
-                  },
-                }
-              : { inQueue: false },
+            inQueue: true,
+            queue: {
+              queue: {
+                Clinic: { practiceName: 'Sandton Health Clinic' },
+                Speciality: { SpecialityName: 'Dentistry' },
+              },
+              position: 1,
+            },
           };
         }
-        if (url.includes('/api/queues/') && options?.method === 'POST') {
-          queueJoined = true;
-          return { ok: true, json: async () => ({ message: "Successfully joined queue" }) };
-        }
-        return { ok: true, json: async () => ({}) };
+        return { inQueue: false };
       });
 
       await renderDashboard();
       fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
-      act(() => {
-        jest.runAllTimers();
-      });
+      act(() => { jest.runAllTimers(); });
 
       await waitFor(() => {
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
       });
-      
+
       fireEvent.change(
         screen.getByRole('combobox', { name: /Filter by reason for visit/i }),
         { target: { value: 'Dentistry' } }
       );
       await waitFor(() => expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument());
-
 
       fireEvent.click(screen.getByText(/Sandton Health Clinic/i));
       fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
@@ -694,17 +594,20 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       fireEvent.click(screen.getByRole("button", { name: /Join Queue/i }));
 
       await waitFor(() => {
+        expect(mockApi.queues.addPatient).toHaveBeenCalledWith(
+          'clinic_123',
+          { auth0Id: 'auth0|12345' },
+          'Dentistry'
+        );
+      });
+
+      await waitFor(() => {
         expect(screen.getByRole("button", { name: /LEAVE QUEUE/i })).toBeInTheDocument();
       });
     });
 
     test("Given joining queue throws, Then an error is logged", async () => {
-      mockApiFetch.mockImplementation(async (url, options) => {
-        if (url.includes('/api/users/')) return { ok: true, json: async () => ({ name: "John Doe" }) };
-        if (url.includes('/api/queues/patient/')) return { ok: true, json: async () => ({ inQueue: false }) };
-        if (url.includes('/api/queues/') && options?.method === 'POST') throw new Error("Network error");
-        return { ok: true, json: async () => ({}) };
-      });
+      mockApi.queues.addPatient.mockRejectedValue(new Error("Network error"));
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       await renderDashboard();

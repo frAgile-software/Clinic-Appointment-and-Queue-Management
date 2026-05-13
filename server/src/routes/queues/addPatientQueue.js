@@ -11,14 +11,14 @@ router.post("/", async (req, res) => {
     try {
         console.log("ADD TO QUEUE");
         console.log("Incoming Payload:", req.body);
-        const { clinicID, specialityName, auth0ID, patientId} = req.body;
+        const { clinicId, specialityName, auth0Id, patientId} = req.body;
         //Find user by auth0ID
 
         let user = null;
         if (patientId) {
             user = await User.findById( patientId ); 
         } else {
-            user = await User.findOne({ auth0Id: auth0ID }); 
+            user = await User.findOne({ auth0Id: auth0Id }); 
         }
         if (!user) {
             console.log("User profile not found.");
@@ -26,7 +26,7 @@ router.post("/", async (req, res) => {
         }
         
         // Get referenced clinic
-        const clinic = await Clinic.findOne({ _id: clinicID });
+        const clinic = await Clinic.findOne({ _id: clinicId });
         if (!clinic) {
             console.log("Clinic not found.");
             return res.status(404).json({ message: "Clinic not found" });

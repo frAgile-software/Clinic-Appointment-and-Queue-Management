@@ -4,13 +4,13 @@ import "./PatientDashboard.css";
 import { useAuth0 } from '@auth0/auth0-react';
 // import logo from './logo.svg';
 
-import { useApiAuth } from '../../hooks/apiAuth'; 
+import { useApi } from "../../api/useApi";
 
 const PAGE_LIMIT = 12;
 
 function PatientDashboard() {
   const { user, logout: auth0Logout } = useAuth0();
-  const { apiFetch } = useApiAuth();
+  const api = useApi();
   const navigate = useNavigate();
   
   const [patientName, setPatientName] = useState("");
@@ -56,75 +56,62 @@ function PatientDashboard() {
     const fetchUserData = async () => {
       if (user?.sub) {
         try {
-          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
-          if (response.ok) {
-            const data = await response.json();
-            setPatientName(data.name); 
-          } else {
-            console.error("Failed to fetch user profile.");
-          }
+          const data = await api.users.get(user.sub);
+          setPatientName(data.name);
         } catch (error) {
-          console.error("Network error fetching user:", error);
+          console.error("Failed to fetch user profile:", error);
         }
       }
     };
     fetchUserData();
-  }, [user, apiFetch]);
+  }, [user, api]);
 
   useEffect(() => {
     const fetchAppointments = async () => {
       if (user?.sub) {
+        setLoadingAppointments(true);
         try {
-          const res = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${user.sub}`);
-          if (res.ok) {
-            const data = await res.json();
-            setAppointments(data);
-          }
+          const data = await api.appointments.getForAuth0Id(user.sub);
+          setAppointments(data);
         } catch (error) {
-          console.error(error);
+          console.error("Error fetching appointments:", error);
         } finally {
           setLoadingAppointments(false);
         }
       }
     };
     fetchAppointments();
-  }, [user, apiFetch]);
+  }, [user, api]);
 
   useEffect(() => {
     const fetchPatientQueue = async () => {
       if (user?.sub) {
         try {
-          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/patient/${user.sub}`);
-          if (response.ok) {
-            const data = await response.json();
-            if (data.inQueue) setPatientQueue(data.queue);
+          const data = await api.queues.getForPatient(user.sub);
+          if (data.inQueue) {
+            setPatientQueue(data.queue);
+          } else {
+            setPatientQueue(null);
           }
         } catch (error) {
-          console.error("Network error fetching queue:", error);
+          console.error("Error fetching queue:", error);
         }
       }
     };
     fetchPatientQueue();
-  }, [user, apiFetch]);
+  }, [user, api]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
-      const params = new URLSearchParams();
-      if (filters.province) params.set('province', filters.province);
-      if (filters.town) params.set('town', filters.town);
-      if (filters.suburb) params.set('suburb', filters.suburb);
-      if (filters.type) params.set('type', filters.type);
-
       try {
-        const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
-        const json = await res.json();
+        const json = await api.clinics.getFilters(filters);
         setFilterOptions({ ...json, services: json.services || [] });
       } catch (error) {
         console.error("Couldn't fetch filter options:", error);
       }
     };
     if (showSearch) fetchFilterOptions();
-  }, [filters.province, filters.town, filters.suburb, filters.type, showSearch]);
+  }, [filters, showSearch, api]);
 
   useEffect(() => {
     if (!showSearch) return;
@@ -146,8 +133,7 @@ function PatientDashboard() {
         params.set("_page", page);
         params.set("_page_len", PAGE_LIMIT);
 
-        const res  = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
-        const json = await res.json();
+        const json  = await api.clinics.filterAll(filters);
 
         setClinics(json.data || []);
         setPagination({
@@ -164,7 +150,7 @@ function PatientDashboard() {
     }, 400);
 
     return () => clearTimeout(debounceTimer.current);
-  }, [search, filters, page, showSearch]);
+  }, [search, filters, page, showSearch, api]);
 
   const handleStartSearch = () => {
     setShowSearch(true);
@@ -179,23 +165,11 @@ function PatientDashboard() {
     setJoiningQueue(true);
 
     try {
-      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/`, {
-        method: 'POST',
-        body: JSON.stringify({
-          clinicID: selectedClinic._id,
-          specialityName: selectedService,
-          auth0ID: user.sub,
-        })
-      });
-
-      if (response.ok) {
-        const queueResponse = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/patient/${user.sub}`);
-        const data = await queueResponse.json();
-        if (data.inQueue) setPatientQueue(data.queue);
-        
-        setShowQueuePanel(false);
-        closePopup();
-      }
+      await api.queues.addPatient(selectedClinic._id, {auth0Id: user.sub}, selectedService);
+      const queueResponse = await api.queues.getForPatient(user.sub);
+      if (queueResponse.inQueue) setPatientQueue(queueResponse.queue);
+      setShowQueuePanel(false);
+      closePopup();
     } catch (error) {
       console.error("Failed to join queue:", error);
     } finally {
@@ -232,15 +206,11 @@ function PatientDashboard() {
   const handleConfirmCancel = async () => {
     if (!cancelAppId) return;
     try {
-      const res = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${cancelAppId}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        setAppointments(prev => prev.filter(a => a._id !== cancelAppId));
-        setCancelAppId(null);
-      }
+      await api.appointments.cancel(cancelAppId);                         // TODO: use update appointment with the new status "Cancelled"
+      setAppointments(prev => prev.filter(a => a._id !== cancelAppId));
+      setCancelAppId(null);
     } catch (err) {
-      console.error(err);
+      console.error("Error cancelling appointment:",err);
     }
   };
 
@@ -281,13 +251,8 @@ function PatientDashboard() {
   const handleLeaveQueue = async () => {
     try {
       console.log("Queue:", patientQueue);
-      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${patientQueue.queue._id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setPatientQueue(null);
-      }
+      await api.queues.remove(patientQueue.queue._id);
+      setPatientQueue(null);
     } catch (error) {
       console.log("Error leaving queue:", error);
     }
