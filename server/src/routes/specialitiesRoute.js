@@ -7,7 +7,9 @@ const removeSpecialityFromStaff = require("./specialities/removeSpecialityFromSt
 const getStaffSpecialities = require("./specialities/getStaffSpecialities");
 const getClinicSpecialities = require("./specialities/getClinicSpecialities");
 const createSpeciality = require("./specialities/createSpeciality");
+const listSpecialities = require("./specialities/listSpecialities");
 
+router.use("/specialities", listSpecialities);
 router.use("/api/specialities", requireAuth, createSpeciality);
 router.use("/api/specialities", requireAuth, addSpecialityToStaff);
 router.use("/api/specialities", requireAuth, removeSpecialityFromStaff);
