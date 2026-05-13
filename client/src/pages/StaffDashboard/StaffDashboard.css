@@ -97,7 +97,7 @@
   text-align: center;
   flex: 1;
   max-width: 300px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .quick-action-title {
@@ -262,7 +262,7 @@
   padding: 20px;
   border-radius: 20px;
   width: 400px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .modal-inner-box {
@@ -352,6 +352,10 @@
   background-color: #dc2626;
 }
 
+.btn-blue {
+  background-color: #2629dc;
+}
+
 .email-input-wrapper {
   position: relative;
   display: flex;
@@ -373,8 +377,13 @@
   font-weight: bold;
 }
 
-.indicator-tick { color: #1d8a4a; }
-.indicator-cross { color: #c8312b; }
+.indicator-tick {
+  color: #1d8a4a;
+}
+
+.indicator-cross {
+  color: #c8312b;
+}
 
 .spinner {
   width: 1rem;
@@ -387,7 +396,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .patient-found-name {
