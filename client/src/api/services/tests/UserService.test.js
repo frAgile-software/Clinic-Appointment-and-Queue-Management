@@ -93,4 +93,15 @@ describe('UserService', () => {
             );
         });
     });
+
+    describe('getByEmail', () => {
+        it('should call GET on the correct path', () => {
+            const email = 'test@email.com';
+            service.getByEmail(email);
+            expect(mockPrivateClient.get).toHaveBeenCalledWith(
+                '/users/email/test%40email.com',
+                { role: undefined }
+            );
+        });
+    });
 });

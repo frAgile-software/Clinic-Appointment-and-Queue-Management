@@ -18,4 +18,8 @@ export class SpecialityService extends ResourceService {
     getForStaff(staffId) {
         return this.pub.get(`${this.basePath}/staff/${staffId}`, null);
     }
+
+    getForClinic(clinicId) {
+        return this.priv.get(`${this.basePath}/clinic/${clinicId}`, null);
+    }
 }
