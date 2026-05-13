@@ -4,7 +4,7 @@ const router = express.Router();
 const Speciality = require("../../database/models/Speciality");
 router.get("/", async (req, res) => {
     try {
-        const specialities = await Speciality.find().sort({ name: 1 });
+        const specialities = await Speciality.find().sort({ SpecialityName: 1 });
         return res.status(200).json(specialities);
     } catch (error) {
         console.error("Error fetching specialities:", error);
