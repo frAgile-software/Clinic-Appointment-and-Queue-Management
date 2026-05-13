@@ -99,7 +99,7 @@ function PatientDashboard() {
       }
     };
     fetchPatientQueue();
-  }, [user, apiFetch]);
+  }, [user, api]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -150,7 +150,7 @@ function PatientDashboard() {
     }, 400);
 
     return () => clearTimeout(debounceTimer.current);
-  }, [search, filters, page, showSearch]);
+  }, [search, filters, page, showSearch, api]);
 
   const handleStartSearch = () => {
     setShowSearch(true);
@@ -165,24 +165,11 @@ function PatientDashboard() {
     setJoiningQueue(true);
 
     try {
-      //const response = await api.queues.addPatient(selectedClinic._id, )
-      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/`, { // TODO:
-        method: 'POST',
-        body: JSON.stringify({
-          clinicID: selectedClinic._id,
-          specialityName: selectedService,
-          auth0ID: user.sub,
-        })
-      });
-
-      if (response.ok) {
-        const queueResponse = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/patient/${user.sub}`); // TODO:
-        const data = await queueResponse.json();
-        if (data.inQueue) setPatientQueue(data.queue);
-        
-        setShowQueuePanel(false);
-        closePopup();
-      }
+      await api.queues.addPatient(selectedClinic._id, {auth0Id: user.sub}, selectedService);
+      const queueResponse = await api.queues.getForPatient(user.sub);
+      if (queueResponse.inQueue) setPatientQueue(queueResponse.queue);
+      setShowQueuePanel(false);
+      closePopup();
     } catch (error) {
       console.error("Failed to join queue:", error);
     } finally {
@@ -219,15 +206,11 @@ function PatientDashboard() {
   const handleConfirmCancel = async () => {
     if (!cancelAppId) return;
     try {
-      const res = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${cancelAppId}`, { // TODO:
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        setAppointments(prev => prev.filter(a => a._id !== cancelAppId));
-        setCancelAppId(null);
-      }
+      await api.appointments.cancel(cancelAppId);                         // TODO: use update appointment with the new status "Cancelled"
+      setAppointments(prev => prev.filter(a => a._id !== cancelAppId));
+      setCancelAppId(null);
     } catch (err) {
-      console.error(err);
+      console.error("Error cancelling appointment:",err);
     }
   };
 
@@ -268,13 +251,8 @@ function PatientDashboard() {
   const handleLeaveQueue = async () => {
     try {
       console.log("Queue:", patientQueue);
-      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${patientQueue.queue._id}`, { // TODO:
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setPatientQueue(null);
-      }
+      await api.queues.remove(patientQueue.queue._id);
+      setPatientQueue(null);
     } catch (error) {
       console.log("Error leaving queue:", error);
     }
