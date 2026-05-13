@@ -9,22 +9,22 @@ export class QueueService extends ResourceService {
     return this.priv.get(`${this.basePath}/patient/${patientAuth0Id}`, null);
   }
 
-  addPatient(clinicId, {patientId, auth0Id} = {}, specialityName) {
-    return this.pub.post(`${this.basePath}/`, {clinicID: clinicId, specialityName: specialityName,  ...(patientId ? { patientId } : { auth0Id })});
+  addPatient(clinicId, { patientId, auth0Id } = {}, specialityName) {
+    return this.pub.post(`${this.basePath}/`, { clinicID: clinicId, specialityName: specialityName, ...(patientId ? { patientId } : { auth0Id }) });
   }
 
   remove(queueId) {
     return this.priv.delete(`${this.basePath}/${queueId}`, null, null);
   }
 
-  update(queueId, {clinicId, specialityId, patientId, status, remarks}) {
-    return this.priv.put(`${this.basePath}/${queueId}`, {Clinic: clinicId, Speciality: specialityId, Patient: patientId, Status: status, Remarks: remarks}, null);
+  update(queueId, { clinicId, specialityId, patientId, status, remarks, timeSeen }) {
+    return this.priv.put(`${this.basePath}/${queueId}`, { Clinic: clinicId, Speciality: specialityId, Patient: patientId, Status: status, Remarks: remarks, TimeSeen: timeSeen }, null);
   }
 
   get(clinicId, { auth0Id, userId, specialityIDs, statuses }) {
     return this.priv.get(`${this.basePath}/${clinicId}`, {
-      auth0Id, 
-      userId, 
+      auth0Id,
+      userId,
       specialityIDs: Array.isArray(specialityIDs) ? specialityIDs.join(',') : specialityIDs,
       statuses: Array.isArray(statuses) ? statuses.join(',') : statuses
     });

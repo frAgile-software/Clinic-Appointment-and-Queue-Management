@@ -249,8 +249,12 @@ function StaffDashboard() {
 
     try {
 
-      if (isQueueItem)
-        await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
+      if (isQueueItem) {
+        if (newStatus in inactiveStatus && consultItem.Status in activeStatus)
+          await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks, timeSeen: new Date() });
+        else
+          await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
+      }
       else
         await api.appointments.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
 
