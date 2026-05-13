@@ -14,6 +14,10 @@ jest.mock("../../database/models/User");
 
 const app = express();
 app.use(express.json());
+app.use((req, res, next) => {
+    req.auth = { payload: { sub: "auth0|admin123" } };
+    next();
+});
 app.use("/api/appointments/statistics", getAppointmentStatsRouter);
 
 describe("GET /api/appointments/statistics/:clinicID", () => {
@@ -25,8 +29,7 @@ describe("GET /api/appointments/statistics/:clinicID", () => {
         Clinic.findById.mockResolvedValue(null);
 
         const response = await request(app)
-            .get("/api/appointments/statistics/clinic123")
-            .query({ auth0Id: "auth0|admin" });
+            .get("/api/appointments/statistics/clinic123");
 
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ message: "Clinic not found." });
@@ -38,8 +41,7 @@ describe("GET /api/appointments/statistics/:clinicID", () => {
         User.findOne.mockResolvedValue({ _id: "userId", role: "Patient" });
 
         const response = await request(app)
-            .get("/api/appointments/statistics/clinic123")
-            .query({ auth0Id: "auth0|patient" });
+            .get("/api/appointments/statistics/clinic123");
 
         expect(response.status).toBe(403);
         expect(response.body).toEqual({ message: "Unauthorized." });
@@ -51,8 +53,7 @@ describe("GET /api/appointments/statistics/:clinicID", () => {
         Staff.exists.mockResolvedValue(false);
 
         const response = await request(app)
-            .get("/api/appointments/statistics/clinic123")
-            .query({ auth0Id: "auth0|admin" });
+            .get("/api/appointments/statistics/clinic123");
 
         expect(response.status).toBe(403);
         expect(response.body).toEqual({ message: "Not authorized." });
@@ -83,7 +84,6 @@ describe("GET /api/appointments/statistics/:clinicID", () => {
         const response = await request(app)
             .get("/api/appointments/statistics/clinic123")
             .query({
-                auth0Id: "auth0|admin",
                 _fromdate: "2026-05-01",
                 _todate: "2026-05-31",
                 _order: "desc",
@@ -115,8 +115,7 @@ describe("GET /api/appointments/statistics/:clinicID", () => {
         Clinic.findById.mockRejectedValue(new Error("Database failure"));
 
         const response = await request(app)
-            .get("/api/appointments/statistics/clinic123")
-            .query({ auth0Id: "auth0|admin" });
+            .get("/api/appointments/statistics/clinic123");
 
         expect(response.status).toBe(500);
         expect(response.body).toEqual({ message: "Server error." });

@@ -13,7 +13,6 @@ router.get("/:clinicID", async (req, res) => {
     try {
         const { clinicID } = req.params;
         const {
-            auth0Id,
             date_search_field = "BookingDateTime",
             _fromdate,
             _todate,
@@ -21,6 +20,7 @@ router.get("/:clinicID", async (req, res) => {
         } = req.query;
         const specialityIDs = req.query.specialityIDs ? req.query.specialityIDs.split(",") : [];
         const statuses = req.query.statuses ? req.query.statuses.split(",") : [];
+        const auth0Id = req.auth.payload.sub;
 
         // Get referenced clinic
         const clinic = await Clinic.findById({ id: clinicID });
