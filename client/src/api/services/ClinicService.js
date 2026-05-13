@@ -53,4 +53,8 @@ export class ClinicService extends ResourceService {
     linkStaff(clinicId, {auth0Id, id, email}) { // usage: api.clinics.linkStaff(clinicId, {auth0Id: 'uhh', id: '123' });
         return this.priv.post(`${this.basePath}/${clinicId}/staff`, {id, email, auth0Id}, null);
     }
+    
+    getAdmins(clinicId) {
+    return this.priv.get(`${this.basePath}/${clinicId}/admins`, null);
+    }   
 }

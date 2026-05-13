@@ -21,18 +21,22 @@ export class AppointmentService extends ResourceService {
         }, null);
     }
 
-    getForAuth0Id(auth0Id) {
-        return this.priv.get(`${this.basePath}/${auth0Id}`, null);
+    getForAuth0Id(auth0Id, {statuses} = {}) {
+        return this.priv.get(`${this.basePath}/${auth0Id}`, {
+            statuses: Array.isArray(statuses) ? statuses.join(',') : statuses
+        });
     }
 
     // TODO: include description for updating
-    update(appointmentId, {patientUID, staffUID, clinicId, bookingDateTime, specialityId}) {
+    update(appointmentId, {patientUID, staffUID, clinicId, bookingDateTime, specialityId, status, remarks}) {
         return this.priv.put(`${this.basePath}/${appointmentId}`, {
             Patient: patientUID, 
             Staff: staffUID, 
             Clinic: clinicId, 
             BookingDateTime: bookingDateTime,
             Speciality: specialityId,
+            Status: status,
+            Remarks: remarks,
         }, null)
     }
 }
