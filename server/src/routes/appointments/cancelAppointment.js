@@ -15,14 +15,22 @@ router.delete('/:appointmentId', async (req, res) => {
 
         console.log("Appointment found.");
 
+        const appointmentTime = new Date(appointment.BookingDateTime).getTime();
+        const currentTime = Date.now();
+        const hoursDifference = (appointmentTime - currentTime) / (1000 * 60 * 60);
+
+        if (hoursDifference < 24) {
+            return res.status(400).json({ message: "Appointments cannot be cancelled less than 24 hours before the scheduled time." });
+        }
+
         const newPatientLog = new PatientLog({
             Speciality: appointment.Speciality,
             Patient: appointment.Patient,
             Staff: appointment.Staff,
             VisitType: "Appointment",
-            TimeIn: appointment.BookingDateTime, //stores the original booking date
+            TimeIn: appointment.BookingDateTime, 
             TimeOut: Date.now(),
-            TimeQStart: appointment.createdAt, //stores the time booking was made
+            TimeQStart: appointment.createdAt, 
             Status: "Cancelled",
         });
 
@@ -30,7 +38,7 @@ router.delete('/:appointmentId', async (req, res) => {
 
         console.log("Appointment logged as cancelled in PatientLog.");
 
-        await appointment.deleteOne();
+        await appointment.updateOne({ Status: "Cancelled" });
 
         res.status(200).json({message: "Appointment cancelled", patientLog: newPatientLog})
 

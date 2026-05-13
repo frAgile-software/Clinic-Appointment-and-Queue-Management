@@ -14,6 +14,7 @@ const getFilters = require("./clinics/getFilters");
 const removeStaff = require("./clinics/removeStaff");
 const getAdmins = require("./clinics/getAdmins"); //gets admins
 
+// Non-API routes
 router.use("/clinics/filters", getFilters);
 router.use("/clinics", filterClinics);
 router.use("/clinics", getClinic);
@@ -21,6 +22,8 @@ router.use("/clinics", getClinic);
 // API routes - specific routes first
 router.use("/api/clinics/assigned", requireAuth, listAssignedClinics);
 
+// ---> THE FIX: Catch the /api/clinics/filters route explicitly <---
+router.use("/api/clinics/filters", getFilters);
 
 // Other API clinic routes
 router.use("/api/clinics", requireAuth, createClinic);

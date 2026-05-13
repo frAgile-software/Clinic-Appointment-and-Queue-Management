@@ -7,7 +7,10 @@ const mockApiFetch = jest.fn();
 
 jest.mock('@auth0/auth0-react', () => ({
     useAuth0: () => ({
-        user: { sub: 'auth0|test-patient-123' },
+        user: { 
+            sub: 'auth0|test-patient-123',
+            picture: 'https://example.com/avatar.jpg'
+        },
         logout: jest.fn(),
     }),
 }));
@@ -75,6 +78,13 @@ describe('Render tests', () => {
         expect(screen.getByText('Doe')).toBeInTheDocument();
         expect(screen.getByText('Ms')).toBeInTheDocument();
         expect(screen.getByText('jane.doe@example.com')).toBeInTheDocument();
+    });
+
+    test('renders user profile picture if available', async () => {
+        renderComponent();
+        const avatar = await screen.findByAltText(/profile avatar/i);
+        expect(avatar).toBeInTheDocument();
+        expect(avatar).toHaveAttribute('src', 'https://example.com/avatar.jpg');
     });
 
     test('renders update account details button', async () => {

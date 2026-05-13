@@ -17,6 +17,9 @@ app.use(express.json());
 app.use("/api/appointments", updateAppointmentRouter);
 
 describe("PUT /api/appointments/:appointmentID", () => {
+    
+    const safeFutureDate = new Date(Date.now() + 48 * 60 * 60 * 1000);
+
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -42,9 +45,27 @@ describe("PUT /api/appointments/:appointmentID", () => {
         expect(Appointment.findById).toHaveBeenCalledWith("123456789012345678901234");
     });
 
+    test("should return 400 if appointment is within 24 hours", async () => {
+        const mockAppointment = {
+            _id: "123456789012345678901234",
+            BookingDateTime: new Date(Date.now() + 12 * 60 * 60 * 1000), 
+            save: jest.fn()
+        };
+
+        Appointment.findById.mockResolvedValue(mockAppointment);
+
+        const response = await request(app)
+            .put("/api/appointments/123456789012345678901234")
+            .send({ Status: "Completed" });
+
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({ message: "Appointments cannot be rescheduled or updated less than 24 hours before the scheduled time." });
+    });
+
     test("should return 400 if patient ID is invalid", async () => {
         const mockAppointment = {
             _id: "123456789012345678901234",
+            BookingDateTime: safeFutureDate,
             save: jest.fn()
         };
 
@@ -61,6 +82,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
     test("should return 404 if patient does not exist", async () => {
         const mockAppointment = {
             _id: "123456789012345678901234",
+            BookingDateTime: safeFutureDate,
             save: jest.fn()
         };
 
@@ -78,6 +100,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
     test("should return 400 if staff ID is invalid", async () => {
         const mockAppointment = {
             _id: "123456789012345678901234",
+            BookingDateTime: safeFutureDate,
             save: jest.fn()
         };
 
@@ -94,6 +117,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
     test("should return 404 if staff does not exist", async () => {
         const mockAppointment = {
             _id: "123456789012345678901234",
+            BookingDateTime: safeFutureDate,
             save: jest.fn()
         };
 
@@ -111,6 +135,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
     test("should return 400 if clinic ID is invalid", async () => {
         const mockAppointment = {
             _id: "123456789012345678901234",
+            BookingDateTime: safeFutureDate,
             save: jest.fn()
         };
 
@@ -127,6 +152,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
     test("should return 404 if clinic does not exist", async () => {
         const mockAppointment = {
             _id: "123456789012345678901234",
+            BookingDateTime: safeFutureDate,
             save: jest.fn()
         };
 
@@ -144,6 +170,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
     test("should return 400 if booking date is invalid", async () => {
         const mockAppointment = {
             _id: "123456789012345678901234",
+            BookingDateTime: safeFutureDate,
             save: jest.fn()
         };
 
@@ -160,6 +187,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
     test("should return 400 if speciality ID is invalid", async () => {
         const mockAppointment = {
             _id: "123456789012345678901234",
+            BookingDateTime: safeFutureDate,
             save: jest.fn()
         };
 
@@ -176,6 +204,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
     test("should return 404 if speciality does not exist", async () => {
         const mockAppointment = {
             _id: "123456789012345678901234",
+            BookingDateTime: safeFutureDate,
             save: jest.fn()
         };
 
@@ -191,12 +220,13 @@ describe("PUT /api/appointments/:appointmentID", () => {
     });
 
     test("should update appointment successfully", async () => {
+        const newDate = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
         const savedAppointment = {
             _id: "123456789012345678901234",
             Patient: "111111111111111111111111",
             Staff: "222222222222222222222222",
             Clinic: "333333333333333333333333",
-            BookingDateTime: "2026-05-01T10:30:00.000Z",
+            BookingDateTime: newDate,
             Speciality: "444444444444444444444444"
         };
 
@@ -205,7 +235,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
             Patient: "oldPatient",
             Staff: "oldStaff",
             Clinic: "oldClinic",
-            BookingDateTime: new Date("2026-04-01T08:00:00.000Z"),
+            BookingDateTime: safeFutureDate,
             Speciality: "oldSpeciality",
             save: jest.fn().mockResolvedValue(savedAppointment)
         };
@@ -223,7 +253,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
                 Patient: "111111111111111111111111",
                 Staff: "222222222222222222222222",
                 Clinic: "333333333333333333333333",
-                BookingDateTime: "2026-05-01T10:30:00.000Z",
+                BookingDateTime: newDate,
                 Speciality: "444444444444444444444444"
             });
 

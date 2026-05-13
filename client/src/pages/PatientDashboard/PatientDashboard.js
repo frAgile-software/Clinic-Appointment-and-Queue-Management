@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import "./PatientDashboard.css";
 import { useAuth0 } from '@auth0/auth0-react';
-// import logo from './logo.svg';
-
 import { useApi } from "../../api/useApi";
 
 const PAGE_LIMIT = 12;
@@ -20,7 +18,9 @@ function PatientDashboard() {
   const [cancelAppId, setCancelAppId] = useState(null);
   const [patientQueue, setPatientQueue] = useState(null);
 
-  // --- Search & Filter State ---
+  const [historyLogs, setHistoryLogs] = useState([]);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+
   const [showSearch, setShowSearch] = useState(false); 
   const [search, setSearch] = useState('');
   const [clinics, setClinics] = useState([]);
@@ -30,7 +30,6 @@ function PatientDashboard() {
   const [page, setPage] = useState(1);
   const [selectionError, setSelectionError] = useState("");
   
-  // --- Modal State ---
   const [selectedClinic, setSelectedClinic] = useState(null);
   const [showQueuePanel, setShowQueuePanel] = useState(false);
   const [selectedService, setSelectedService] = useState('');
@@ -39,7 +38,6 @@ function PatientDashboard() {
   const clinicsSectionRef = useRef(null);
   const debounceTimer = useRef(null);
 
-  // Added 'services' to store the list of specialities from the backend
   const [filterOptions, setFilterOptions] = useState({
     provinces: [], towns: [], suburbs: [], types: [], services: []
   });
@@ -72,7 +70,20 @@ function PatientDashboard() {
         setLoadingAppointments(true);
         try {
           const data = await api.appointments.getForAuth0Id(user.sub);
-          setAppointments(data);
+          
+          let appointmentsArray = [];
+          if (Array.isArray(data)) {
+            appointmentsArray = data;
+          } else if (data && typeof data === 'object') {
+            const possibleArrays = Object.values(data).filter(val => Array.isArray(val));
+            if (possibleArrays.length > 0) {
+              appointmentsArray = possibleArrays[0];
+            }
+          }
+
+          const activeAppointments = appointmentsArray.filter(app => app.Status === 'Waiting');
+          setAppointments(activeAppointments);
+
         } catch (error) {
           console.error("Error fetching appointments:", error);
         } finally {
@@ -88,7 +99,7 @@ function PatientDashboard() {
       if (user?.sub) {
         try {
           const data = await api.queues.getForPatient(user.sub);
-          if (data.inQueue) {
+          if (data && data.inQueue) {
             setPatientQueue(data.queue);
           } else {
             setPatientQueue(null);
@@ -99,6 +110,27 @@ function PatientDashboard() {
       }
     };
     fetchPatientQueue();
+  }, [user, api]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (user?.sub) {
+        try {
+          const data = await api.patientLogs.getForAuth0Id(user.sub);
+          let logsArray = [];
+          if (Array.isArray(data)) {
+            logsArray = data;
+          } else if (data && typeof data === 'object') {
+            const possibleArrays = Object.values(data).filter(val => Array.isArray(val));
+            if (possibleArrays.length > 0) logsArray = possibleArrays[0];
+          }
+          setHistoryLogs(logsArray);
+        } catch (error) {
+          console.error("Error fetching history:", error);
+        }
+      }
+    };
+    fetchHistory();
   }, [user, api]);
 
   useEffect(() => {
@@ -121,19 +153,12 @@ function PatientDashboard() {
       setLoadingList(true);
       setHasSearched(true);
       try {
-        const params = new URLSearchParams();
-        if (search.trim()) params.set('name', search.trim());
-        if (filters.province) params.set('province', filters.province);
-        if (filters.town) params.set('town', filters.town);
-        if (filters.suburb) params.set('suburb', filters.suburb);
-        if (filters.type) params.set('type', filters.type);
-        if (filters.service) params.set('service', filters.service); 
-        params.set('_orderby', filters._orderby);
-        params.set('_order', filters._order);
-        params.set("_page", page);
-        params.set("_page_len", PAGE_LIMIT);
+        const currentFilters = { ...filters };
+        if (search.trim()) currentFilters.name = search.trim();
+        currentFilters._page = page;
+        currentFilters._page_len = PAGE_LIMIT;
 
-        const json  = await api.clinics.filterAll(filters);
+        const json = await api.clinics.filterAll(currentFilters);
 
         setClinics(json.data || []);
         setPagination({
@@ -159,15 +184,16 @@ function PatientDashboard() {
     }, 100);
   };
 
-  const handleConfirmQueue =async () => {
+  const handleConfirmQueue = async () => {
     if (!selectedService) return;
 
     setJoiningQueue(true);
 
     try {
-      await api.queues.addPatient(selectedClinic._id, {auth0Id: user.sub}, selectedService);
+      await api.queues.addPatient(selectedClinic._id, { auth0Id: user.sub }, selectedService);
       const queueResponse = await api.queues.getForPatient(user.sub);
-      if (queueResponse.inQueue) setPatientQueue(queueResponse.queue);
+      if (queueResponse && queueResponse.inQueue) setPatientQueue(queueResponse.queue);
+      
       setShowQueuePanel(false);
       closePopup();
     } catch (error) {
@@ -206,9 +232,23 @@ function PatientDashboard() {
   const handleConfirmCancel = async () => {
     if (!cancelAppId) return;
     try {
-      await api.appointments.cancel(cancelAppId);                         // TODO: use update appointment with the new status "Cancelled"
+      await api.appointments.cancel(cancelAppId);
+      
       setAppointments(prev => prev.filter(a => a._id !== cancelAppId));
       setCancelAppId(null);
+
+      if (user?.sub) {
+        const data = await api.patientLogs.getForAuth0Id(user.sub);
+        let logsArray = [];
+        if (Array.isArray(data)) {
+          logsArray = data;
+        } else if (data && typeof data === 'object') {
+          const possibleArrays = Object.values(data).filter(val => Array.isArray(val));
+          if (possibleArrays.length > 0) logsArray = possibleArrays[0];
+        }
+        setHistoryLogs(logsArray);
+      }
+
     } catch (err) {
       console.error("Error cancelling appointment:",err);
     }
@@ -228,7 +268,6 @@ function PatientDashboard() {
     });
   };
 
-  // --- Navigates to booking page, passing the reason as a URL parameter ---
   const handleBookNow = () => {
     navigate('/book', {
       state: {
@@ -243,14 +282,12 @@ function PatientDashboard() {
   };
 
   const handleJoinQueue = () => {
-    //shows queue joining panel, and fills in service if selected
     setSelectedService(filters.service || '');
     setShowQueuePanel(true);
   };
   
   const handleLeaveQueue = async () => {
     try {
-      console.log("Queue:", patientQueue);
       await api.queues.remove(patientQueue.queue._id);
       setPatientQueue(null);
     } catch (error) {
@@ -265,6 +302,14 @@ function PatientDashboard() {
     return [1, '…', current - 1, current, current + 1, '…', total];
   };
   const pageRange = buildPageRange(pagination.page, pagination.totalPages);
+
+  const formatHistoryStatus = (status) => {
+    const s = status?.toLowerCase() || '';
+    if (s === 'in consult' || s === 'completed') return 'Attended';
+    if (s === 'cancelled') return 'Cancelled';
+    if (s === 'no-show') return 'You missed it';
+    return status;
+  };
 
   return (
     <section className="dashboard-container">
@@ -333,8 +378,8 @@ function PatientDashboard() {
             {patientQueue ? (
               <>
                 <h3>My Queue Status</h3>
-                <p>{patientQueue.queue.Clinic.practiceName}</p>
-                <p>{patientQueue.queue.Speciality.SpecialityName}</p>
+                <p>{patientQueue.queue.Clinic?.practiceName}</p>
+                <p>{patientQueue.queue.Speciality?.SpecialityName}</p>
                 <p>Position: <strong>{patientQueue.position}</strong></p>
                 <button className="card-btn" onClick={handleLeaveQueue}>LEAVE QUEUE</button>
               </>
@@ -345,6 +390,12 @@ function PatientDashboard() {
                 <button className="card-btn" onClick={handleStartSearch}>JOIN A VIRTUAL QUEUE</button>
               </>
             )}
+          </section>
+
+          <section className="grid-card">
+            <h3>My History</h3>
+            <p>You have {historyLogs.length} past record(s).</p>
+            <button className="card-btn" onClick={() => setShowHistoryModal(true)}>VIEW HISTORY</button>
           </section>
         </section>
 
@@ -362,7 +413,6 @@ function PatientDashboard() {
                 <p>Find a clinic near you by name or the reason for your visit.</p>
               </section>
               
-              {/* --- DUAL SEARCH BAR --- */}
               <form className="dashboard-dual-search" onSubmit={handleSearch} role="search">
                 <section className="search-input-group">
                   <input
@@ -410,7 +460,7 @@ function PatientDashboard() {
 
               <section className="clinics-section">
                 {selectionError && (
-                  <p style={{ color: '#b91c1c', backgroundColor: '#fee2e2', padding: '10px 14px', borderRadius: '6px', marginBottom: '16px', fontWeight: '500', fontSize: '14px' }} role="alert">
+                  <p style={{ color: '#b91c1c', backgroundColor: '#fee2e2', padding: '10px 14px', borderRadius: '6px', margin: '0 0 16px 0', fontWeight: '500', fontSize: '14px' }} role="alert">
                     {selectionError}
                   </p>
                 )}
@@ -494,7 +544,6 @@ function PatientDashboard() {
         </section>
       </section>
 
-      {/* --- MODAL RENDERING --- */}
       {selectedClinic && (
         <section className="clinic-modal-overlay" onClick={closePopup}>
           <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()}>
@@ -592,6 +641,7 @@ function PatientDashboard() {
         </section>
       )}
 
+      {/* --- APPOINTMENTS MODAL --- */}
       {showAppointmentsModal && (
         <section className="clinic-modal-overlay" onClick={() => setShowAppointmentsModal(false)}>
           <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
@@ -607,18 +657,88 @@ function PatientDashboard() {
                 ) : appointments.length === 0 ? (
                   <p>You have no upcoming appointments.</p>
                 ) : (
-                  appointments.map((app) => (
+                  appointments.map((app) => {
+                    const isWithin24Hours = (new Date(app.BookingDateTime).getTime() - Date.now()) < (24 * 60 * 60 * 1000);
+                    return (
                     <article key={app._id} style={{ border: '1px solid #e2e4e9', padding: '1rem', borderRadius: '8px', background: '#fff' }}>
                       <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{app.Clinic?.practiceName || 'Unknown Clinic'}</p>
                       <p>Doctor: {app.Staff?.name} {app.Staff?.surname}</p>
                       <p>Date: {new Date(app.BookingDateTime).toLocaleString('en-ZA')}</p>
                       
-                      <section style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                        <button className="clinic-modal-book-btn" onClick={() => handleReschedule(app)}>Reschedule</button>
-                        <button className="btn pagination__btn" style={{ color: '#b91c1c', borderColor: '#b91c1c' }} onClick={() => setCancelAppId(app._id)}>Cancel Appointment</button>
+                      <section style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        
+                        <button 
+                            className="clinic-modal-book-btn" 
+                            style={{ 
+                                backgroundColor: isWithin24Hours ? '#9ca3af' : '', 
+                                cursor: isWithin24Hours ? 'not-allowed' : 'pointer'
+                            }}
+                            disabled={isWithin24Hours}
+                            title={isWithin24Hours ? "Cannot reschedule within 24 hours of appointment" : "Reschedule Appointment"}
+                            onClick={() => handleReschedule(app)}
+                        >
+                            Reschedule
+                        </button>
+                        
+                        <button 
+                            className="btn pagination__btn" 
+                            style={{ 
+                                color: isWithin24Hours ? '#9ca3af' : '#b91c1c', 
+                                borderColor: isWithin24Hours ? '#9ca3af' : '#b91c1c',
+                                cursor: isWithin24Hours ? 'not-allowed' : 'pointer'
+                            }} 
+                            disabled={isWithin24Hours}
+                            title={isWithin24Hours ? "Cannot cancel within 24 hours of appointment" : "Cancel Appointment"}
+                            onClick={() => setCancelAppId(app._id)}
+                        >
+                            Cancel Appointment
+                        </button>
+                        {isWithin24Hours && <span style={{fontSize: '0.8rem', color: '#b91c1c'}}>* Too close to appointment time to modify.</span>}
                       </section>
                     </article>
-                  ))
+                  )})
+                )}
+              </section>
+            </section>
+          </section>
+        </section>
+      )}
+
+      {/* --- HISTORY MODAL --- */}
+      {showHistoryModal && (
+        <section className="clinic-modal-overlay" onClick={() => setShowHistoryModal(false)}>
+          <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+            <section className="clinic-modal-inner" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+              <section className="clinic-modal-header">
+                <h2>Your History</h2>
+                <button className="clinic-modal-close" onClick={() => setShowHistoryModal(false)}>X</button>
+              </section>
+              
+              <section className="clinic-modal-details" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {historyLogs.length === 0 ? (
+                  <p>You have no past records.</p>
+                ) : (
+                  historyLogs.map((log) => {
+                    const statusText = formatHistoryStatus(log.Status);
+                    let statusColor = '#374151'; 
+                    if (statusText === 'Attended') statusColor = '#15803d'; 
+                    if (statusText === 'Cancelled') statusColor = '#b91c1c'; 
+                    if (statusText === 'You missed it') statusColor = '#ea580c'; 
+
+                    return (
+                      <article key={log._id} style={{ border: '1px solid #e2e4e9', padding: '1rem', borderRadius: '8px', background: '#fff' }}>
+                        <p style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: statusColor, fontSize: '1.1rem' }}>
+                          {statusText}
+                        </p>
+                        <p>Speciality: {log.Speciality?.SpecialityName || 'General'}</p>
+                        {log.Staff && <p>Doctor: {log.Staff.name} {log.Staff.surname}</p>}
+                        <p>Date: {new Date(log.TimeIn).toLocaleString('en-ZA')}</p>
+                        <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem', fontStyle: 'italic' }}>
+                          Type: {log.VisitType}
+                        </p>
+                      </article>
+                    )
+                  })
                 )}
               </section>
             </section>

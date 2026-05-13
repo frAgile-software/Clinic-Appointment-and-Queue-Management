@@ -8,6 +8,7 @@ const schedulesRoute = require('./routes/schedulesRoute');
 const appointmentsRoute = require("./routes/appointmentsRoute");
 const queuesRoute = require("./routes/queuesRoute");
 const specialitiesRoute = require("./routes/specialitiesRoute");
+const patientLogsRoute = require("./routes/patientLogsRoute"); // ADDED THIS
 
 dbConnect();
 
@@ -28,13 +29,14 @@ server.use(schedulesRoute);
 server.use(appointmentsRoute);
 server.use(queuesRoute);
 server.use(specialitiesRoute);
+server.use(patientLogsRoute); 
 
 // hello mr api! :D
 server.get("/hello", (req, res) => {
     res.json({message : "Hello world!"});
 });
 
-/* istanbul ignore next */ //ignores this block in code coverage
+/* istanbul ignore next */ 
 if (require.main === module) {
     const port = process.env.PORT || 5000;
     const listener = server.listen(port, () => {

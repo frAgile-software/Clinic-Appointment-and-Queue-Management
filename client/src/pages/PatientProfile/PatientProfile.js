@@ -4,8 +4,9 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useApiAuth } from '../../hooks/apiAuth';
 import { useRef } from 'react';
+
 function PatientProfile() {
-    const nameRef = useRef(); //for changing of details
+    const nameRef = useRef(); 
     const surnameRef = useRef();
     const titleRef = useRef();
     const emailRef = useRef();
@@ -69,7 +70,6 @@ function PatientProfile() {
         };
     };
 
-    //fetch profile data
     useEffect(() => {
         if (!patientId) {
             console.log("No user, cannot find profile details.");
@@ -116,6 +116,16 @@ function PatientProfile() {
                             <h3 className='profile-subtitle'>Account Details</h3>
                             {profileData && (
                                 <section className='profile-display'>
+                                    {user?.picture && (
+                                        <div className="profile-avatar-container">
+                                            <img 
+                                                src={user.picture} 
+                                                alt="Profile Avatar" 
+                                                className="profile-avatar" 
+                                                referrerPolicy="no-referrer"
+                                            />
+                                        </div>
+                                    )}
                                     <div className='inline-components'>
                                         <label>Title</label>
                                         <p>{profileData?.title}</p>
