@@ -2,11 +2,13 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
 import { LuUser, LuBell } from "react-icons/lu";
 import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from '../../api/useApi';
 import './AdminDashboard.css';
 
 function AdminDashboard() {
     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
     const { apiFetch } = useApiAuth();
+    const api = useApi();
 
     const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -16,6 +18,11 @@ function AdminDashboard() {
     const [selectedClinic, setSelectedClinic] = useState(null);
     const [staffList, setStaffList] = useState([]);
     const [activeSection, setActiveSection] = useState(null);
+
+    const [allSpecialities, setAllSpecialities]= useState([]);
+    const [selectedSpecialityByStaff, setSelectedSpecialityByStaff]= useState({});
+    const [newSpecialityByStaff, setNewSpecialityByStaff]= useState({});
+
     const contentRef = useRef(null);
 
     useEffect(() => {
@@ -60,9 +67,23 @@ function AdminDashboard() {
                 console.error('Error fetching staff:', error);
             }
         };
-
+        
         fetchStaff();
-    }, [selectedClinic, user, apiFetch]);
+    },[selectedClinic, user, apiFetch]);
+
+    useEffect(() => {
+        const loadSpecialities = async () => {
+            try {
+                const specialities=await api.specialities.getAll();
+                setAllSpecialities(specialities || []);
+            } catch (error) {
+                console.error("Error loading specialities:", error);
+            }
+        };
+        loadSpecialities();
+    },[api]);
+        
+
 
     if (isLoading) {
         return <p>Loading dashboard...</p>;
@@ -75,6 +96,37 @@ function AdminDashboard() {
     const handleClinicChange = (clinic) => {
         setSelectedClinic(clinic);
         setActiveSection(null);
+    };
+
+    const handleAddSpeciality = async (staffId) => {
+        try {
+            let specialityId = selectedSpecialityByStaff[staffId];
+            const newSpecialityName = newSpecialityByStaff[staffId]?.trim();
+            if(!specialityId && newSpecialityName) {
+                const created=await api.specialities.create({SpecialityName: newSpecialityName});
+                specialityId=created.speciality._id;
+                const updatedSpecialities= await api.specialities.getAll();
+                setAllSpecialities(updatedSpecialities);
+            }
+            if(!specialityId) {
+                alert("Please select or enter a speciality to add.");
+                return;
+            }
+            
+            await api.specialities.addToStaff({staffId, specialityId});
+            setSelectedSpecialityByStaff((prev)=> ({
+                ...prev,
+                [staffId]: ""
+            }));
+            setNewSpecialityByStaff((prev)=> ({
+                ...prev,
+                [staffId]: ""
+            }));
+            alert("Speciality added successfully.");
+        } catch (error) {
+            console.error("Error adding speciality to staff:", error);
+            alert("Failed to add speciality. Please try again.");
+        }
     };
 
     const toggleSection = (sectionName) => {
@@ -170,7 +222,42 @@ function AdminDashboard() {
                                         <p>{member.speciality || 'General'}</p>
                                     </section>
                                     <section className="staff-actions">
-                                        <button className="pill-btn-purple">Add Speciality</button>
+                                        <section className="add-speciality-section">
+                                            <select 
+                                                value={selectedSpecialityByStaff[member.staffId] || ""} 
+                                                onChange={(e) =>
+                                                    setSelectedSpecialityByStaff((prev) => ({
+                                                        ...prev,
+                                                        [member.staffId]: e.target.value
+                                                    }))
+                                                }
+                                                >
+                                                <option value="">Choose Speciality</option>
+                                                {allSpecialities.map((speciality) => (
+                                                    <option key={speciality._id} value={speciality._id}>
+                                                        {speciality.SpecialityName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <input 
+                                                type="text" 
+                                                placeholder="enter new speciality"
+                                                value={newSpecialityByStaff[member.staffId] || ""}
+                                                onChange={(e) =>
+                                                    setNewSpecialityByStaff((prev) => ({
+                                                        ...prev,
+                                                        [member.staffId]: e.target.value
+                                                    }))
+                                                }
+                                            />
+                                            <button
+                                                className="pill-btn-purple"
+                                                onClick={() => handleAddSpeciality(member.staffId)}
+                                            >
+                                                Add Speciality
+                                            </button>
+                                        </section>
+
                                         <button className="pill-btn-purple">Remove Speciality</button>
                                         <button className="pill-btn-red">Fire</button>
                                     </section>

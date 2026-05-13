@@ -10,13 +10,11 @@ const createSpeciality = require("./specialities/createSpeciality");
 const listSpecialities = require("./specialities/listSpecialities");
 
 router.use("/specialities", listSpecialities);
+router.use("/specialities", getStaffSpecialities);
 router.use("/api/specialities", requireAuth, createSpeciality);
 router.use("/api/specialities", requireAuth, addSpecialityToStaff);
 router.use("/api/specialities", requireAuth, removeSpecialityFromStaff);
 router.use("/api/specialities", requireAuth, getStaffSpecialities);
 router.use("/api/specialities", requireAuth, getClinicSpecialities);
-
-
-router.use("/specialities", getStaffSpecialities);
 
 module.exports = router;
