@@ -5,11 +5,11 @@ import logo from './clinicLogo.png';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect } from 'react';
 
-import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from '../../api/useApi';
 
 function AdminDashboard() {
      const { user, logout: auth0Logout, isAuthenticated, isLoading} = useAuth0();
-    const { apiFetch } = useApiAuth();
+     const api = useApi();
     //const [dashboardData] = useState(adminDashboardStub);
    // const [selectedClinic, setSelectedClinic] = useState(adminDashboardStub.clinics[0]);
     const logout = () => {
@@ -18,17 +18,15 @@ function AdminDashboard() {
     const [clinics, setClinics] = useState([]);
     const [selectedClinic, setSelectedClinic] = useState(null);
     const [staffList, setStaffList] = useState([]);
+
     useEffect(() => {
         const fetchAssignedClinics = async () => {
             try {
                 if (!user?.sub) return;
 
-                const response = await apiFetch( 
-                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${encodeURIComponent(user.sub)}`
-                );
-                const data = await response.json();
+                const data = await api.clinics.getAssignedClinics(user.sub); 
 
-                if (response.ok && data.length > 0) {
+                if (data.length > 0) {
                     setClinics(data);
                     setSelectedClinic(data[0]);
                 }
@@ -39,28 +37,23 @@ function AdminDashboard() {
         if (!isLoading && isAuthenticated) {
             fetchAssignedClinics();
         }
-    }, [user, isAuthenticated, isLoading, apiFetch]);
+    }, [user, isAuthenticated, isLoading, api]);
 
     useEffect(() => {
         const fetchStaff = async () => {
             try {
-                 if (!selectedClinic || !user?.sub) return;
+                if (!selectedClinic) return;
 
-                const response = await apiFetch( 
-                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/${selectedClinic._id}/staff?auth0Id=${encodeURIComponent(user.sub)}`
-                );
-                const data = await response.json();
+                const data = await api.clinics.listStaff(selectedClinic._id); 
 
-                if (response.ok) {
-                    setStaffList(data.users);
-                }
+                setStaffList(data.users);
             } catch (error) {
                 console.error('Error fetching staff:', error);
             }
         };
 
         fetchStaff();
-    }, [selectedClinic, user,  apiFetch]);
+    }, [selectedClinic, api]);
 
     if (isLoading) {
     return <p>Loading dashboard...</p>;
