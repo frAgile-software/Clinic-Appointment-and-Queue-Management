@@ -31,7 +31,7 @@ export const useApi = () => {
       appointments: new AppointmentService(pub, priv),
       queues: new QueueService(pub, priv),
       specialities: new SpecialityService(pub, priv),
-      patientLogs: new PatientLogService(pub, priv), // ADDED THIS
+      patientLogs: new PatientLogService(pub, priv),
     };
     
   }, [getAccessTokenSilently]);
