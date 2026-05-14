@@ -12,26 +12,27 @@ const linkStaff = require("./clinics/linkStaff");
 const filterClinics = require("./clinics/filterClinics");
 const getFilters = require("./clinics/getFilters");
 const removeStaff = require("./clinics/removeStaff");
-const getAdmins = require("./clinics/getAdmins"); //gets admins
+const getAdmins = require("./clinics/getAdmins");
 
-router.use("/clinics/filters", getFilters);
-router.use("/clinics", filterClinics);
-router.use("/clinics", getClinic);
-
-// API routes - specific routes first
+// 1. Specific API routes FIRST (This prevents the dashboard bug)
 router.use("/api/clinics/assigned", requireAuth, listAssignedClinics);
+router.use("/api/clinics/filters", getFilters);
 
-
-// Other API clinic routes
+// 2. Base API routes
 router.use("/api/clinics", requireAuth, createClinic);
 router.use("/api/clinics", requireAuth, updateClinic);
 router.use("/api/clinics", requireAuth, removeStaff);
 router.use("/api/clinics", requireAuth, listStaff);
 router.use("/api/clinics", requireAuth, getAdmins);
 router.use("/api/clinics", requireAuth, linkStaff);
-router.use("/api/clinics", requireAuth, filterClinics);
 
-// Dynamic clinic route last
+// 3. Dynamic API routes LAST (Restored: This fixes your failing test!)
+router.use("/api/clinics", requireAuth, filterClinics);
 router.use("/api/clinics", requireAuth, getClinic);
+
+// 4. Public / Non-API routes
+router.use("/clinics/filters", getFilters);
+router.use("/clinics", filterClinics);
+router.use("/clinics", getClinic);
 
 module.exports = router;

@@ -1,12 +1,12 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
 import { LuUser, LuBell } from "react-icons/lu";
-import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from "../../api/useApi";  
 import './AdminDashboard.css';
 
 function AdminDashboard() {
     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
-    const { apiFetch } = useApiAuth();
+    const api = useApi(); 
 
     const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -18,21 +18,17 @@ function AdminDashboard() {
     const [activeSection, setActiveSection] = useState(null);
     const contentRef = useRef(null);
 
+
     useEffect(() => {
         const fetchAssignedClinics = async () => {
             try {
                 if (!user?.sub) return;
 
-                const response = await apiFetch(
-                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${encodeURIComponent(user.sub)}`
-                );
-                const data = await response.json();
+                const data = await api.clinics.getAssigned(user.sub);
 
-                if (response.ok && Array.isArray(data) && data.length > 0) {
+                if (Array.isArray(data) && data.length > 0) {
                     setClinics(data);
                     setSelectedClinic(data[0]);
-                } else {
-                    console.warn("Backend response was not ok, or array was empty:", data);
                 }
             } catch (error) {
                 console.error('Error fetching assigned clinics:', error);
@@ -41,19 +37,16 @@ function AdminDashboard() {
         if (!isLoading && isAuthenticated) {
             fetchAssignedClinics();
         }
-    }, [user, isAuthenticated, isLoading, apiFetch]);
+    }, [user, isAuthenticated, isLoading, api]);
 
     useEffect(() => {
         const fetchStaff = async () => {
             try {
                 if (!selectedClinic || !user?.sub) return;
 
-                const response = await apiFetch(
-                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/${selectedClinic._id}/staff?auth0Id=${encodeURIComponent(user.sub)}`
-                );
-                const data = await response.json();
+                const data = await api.clinics.getStaff(selectedClinic._id);
 
-                if (response.ok) {
+                if (data && data.users) {
                     setStaffList(data.users || []);
                 }
             } catch (error) {
@@ -62,7 +55,7 @@ function AdminDashboard() {
         };
 
         fetchStaff();
-    }, [selectedClinic, user, apiFetch]);
+    }, [selectedClinic, user, api]);
 
     if (isLoading) {
         return <p>Loading dashboard...</p>;
@@ -123,14 +116,14 @@ function AdminDashboard() {
                     {clinics.map((clinic) => (
                         <li 
                             key={clinic._id} 
-                            className={`clinic-card ${selectedClinic._id === clinic._id ? 'active' : ''}`}
+                            className={`admin-selection-card ${selectedClinic._id === clinic._id ? 'active' : ''}`}
                             onClick={() => handleClinicChange(clinic)}
                             role="button"
                             tabIndex={0}
                         >
-                            <h3 className="clinic-card-title">{clinic.practiceName}</h3>
-                            <p className="clinic-card-desc">{clinic.practiceTypeDescription || 'General Practice'}</p>
-                            <p className="clinic-card-address">{clinic.physicalAddress}</p>
+                            <h3 className="admin-card-title">{clinic.practiceName}</h3>
+                            <p className="admin-card-desc">{clinic.practiceTypeDescription || 'General Practice'}</p>
+                            <p className="admin-card-address">{clinic.physicalAddress}</p>
                         </li>
                     ))}
                 </ul>

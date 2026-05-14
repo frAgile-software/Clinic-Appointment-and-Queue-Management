@@ -57,11 +57,11 @@ describe('ClinicService', () => {
         });
     });
 
-    describe('getAssignedClinics', () => {
+    describe('getAssigned', () => {
         it('should call GET on the correct path with auth0Id as query param', () => {
             const auth0Id = 'auth0|user-123';
-            service.getAssignedClinics(auth0Id);
-            expect(mockPrivateClient.get).toHaveBeenCalledWith('/clinics/assigned/', { auth0Id });
+            service.getAssigned(auth0Id);
+            expect(mockPrivateClient.get).toHaveBeenCalledWith('/clinics/assigned', { auth0Id });
         });
     });
 
