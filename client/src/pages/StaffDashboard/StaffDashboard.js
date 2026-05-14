@@ -5,8 +5,16 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../../api/useApi';
 import { useNavigate } from 'react-router';
 
-const activeStatus = ["Waiting", "In Consult"];
-const inactiveStatus = ["Completed", "Cancelled", "No-show"];
+const status = {
+  WAITING: "Waiting",
+  BEING_SEEN: "In Consult",
+  CONCLUDED: "Completed",
+  CANCELLED: "Cancelled",
+  NO_SHOW: "No-show",
+}
+
+const activeStatus = [status.WAITING, status.BEING_SEEN];
+const inactiveStatus = [status.CONCLUDED, status.CANCELLED, status.NO_SHOW];
 
 function StaffDashboard() {
   const {
@@ -216,7 +224,7 @@ function StaffDashboard() {
         <span className="data-card-detail">ID: {patient._id}</span>
         <span className="data-card-detail">{bookingDate.toLocaleString()}</span>
         <span className="data-card-detail">{appointmentItem.ReasonDetails}</span>
-        <span className={`status-badge ${appointmentItem.Status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
+        <span className={`status-badge ${appointmentItem.Status === status.BEING_SEEN ? 'status-purple' : 'status-white'}`}>
           {appointmentItem.Status}
         </span>
       </li>
@@ -250,7 +258,7 @@ function StaffDashboard() {
     try {
 
       if (isQueueItem) {
-        if (newStatus in inactiveStatus && consultItem.Status in activeStatus)
+        if (newStatus === status.BEING_SEEN && consultItem.Status !== status.BEING_SEEN)
           await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks, timeSeen: new Date() });
         else
           await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
@@ -454,11 +462,11 @@ function StaffDashboard() {
               </section>
 
               <footer className="modal-actions-footer">
-                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "In Consult")}>Check in</button>
-                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "Waiting")}>Reset status</button>
-                <button className="modal-action-btn btn-green" onClick={() => updateConsult(modalDetails, "Completed")}>Conclude session</button>
-                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "Cancelled")}>Cancel</button>
-                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "No-show")}>No show</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, status.BEING_SEEN)}>Check in</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, status.WAITING)}>Reset status</button>
+                <button className="modal-action-btn btn-green" onClick={() => updateConsult(modalDetails, status.CONCLUDED)}>Conclude session</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, status.CANCELLED)}>Cancel</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, status.NO_SHOW)}>No show</button>
                 {modalDetails.type === 'Queue' ? <></> : <button
                   className="modal-action-btn btn-blue"
                   onClick={() => setIsRescheduleModalOpen(true)}>
