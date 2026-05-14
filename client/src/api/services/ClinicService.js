@@ -50,11 +50,11 @@ export class ClinicService extends ResourceService {
         and can be obtained through auth token 
         `const auth0Id = req.auth.payload.sub;` 
     */
-    linkStaff(clinicId, {auth0Id, id, email}) { // usage: api.clinics.linkStaff(clinicId, {auth0Id: 'uhh', id: '123' });
+    linkStaff(clinicId, {auth0Id, id, email}) {
         return this.priv.post(`${this.basePath}/${clinicId}/staff`, {id, email, auth0Id}, null);
     }
     
     getAdmins(clinicId) {
-    return this.priv.get(`${this.basePath}/${clinicId}/admins`, null);
+        return this.priv.get(`${this.basePath}/${clinicId}/admins`, null);
     }   
 }
