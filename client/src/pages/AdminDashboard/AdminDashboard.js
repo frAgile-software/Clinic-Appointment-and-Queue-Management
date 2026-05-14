@@ -43,7 +43,7 @@ function AdminDashboard() {
             try {
                 if (!selectedClinic || !user?.sub) return;
 
-                const data = await api.clinics.getStaff(selectedClinic._id);
+                const data = await api.clinics.listStaff(selectedClinic._id);
 
                 if (data && data.users) {
                     setStaffList(data.users || []);
