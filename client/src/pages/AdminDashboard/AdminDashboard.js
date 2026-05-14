@@ -18,13 +18,12 @@ function AdminDashboard() {
     const [activeSection, setActiveSection] = useState(null);
     const contentRef = useRef(null);
 
-
     useEffect(() => {
         const fetchAssignedClinics = async () => {
             try {
                 if (!user?.sub) return;
 
-                const data = await api.clinics.getAssigned(user.sub);
+                const data = await api.clinics.getAssignedClinics(user.sub);
 
                 if (Array.isArray(data) && data.length > 0) {
                     setClinics(data);
