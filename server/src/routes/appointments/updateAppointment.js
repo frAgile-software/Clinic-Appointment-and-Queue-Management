@@ -5,16 +5,19 @@ const mongoose = require('mongoose');
 const Appointment = require('../../database/models/Appointment');
 const User = require('../../database/models/User');
 
-router.patch('/:appointmentId', async (req, res) => {
+router.put('/:appointmentId', async (req, res) => {
     try {
         const appointmentId = req.params.appointmentId;
+
+        if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
+            return res.status(400).json({ message: "Invalid appointment ID." });
+        }
+
         const appointment = await Appointment.findById(appointmentId);
 
         if (!appointment) {
-            return res.status(404).json({message: "Not found."});
+            return res.status(404).json({message: "Appointment not found."});
         };
-
-        console.log("Appointment found.");
 
         // --- 24-HOUR RESTRICTION CHECK ---
         let isStaffOrAdmin = false;
@@ -33,24 +36,20 @@ router.patch('/:appointmentId', async (req, res) => {
             const hoursDifference = (appointmentTime - currentTime) / (1000 * 60 * 60);
 
             if (hoursDifference < 24) {
-                return res.status(400).json({ message: "Appointments cannot be cancelled less than 24 hours before the scheduled time." });
+                return res.status(400).json({ message: "Appointments cannot be updated less than 24 hours before the scheduled time." });
             }
         }
         // ---------------------------------
 
-        await Appointment.collection.updateOne(
-            { _id: new mongoose.Types.ObjectId(appointmentId) },
-            { $set: { Status: "Cancelled", type: "Consult" } }
-        );
+        Object.assign(appointment, req.body);
+        const savedAppointment = await appointment.save();
 
-        const updatedAppointment = await Appointment.findById(appointmentId);
-
-        console.log("Appointment logged as cancelled.");
-
-        res.status(200).json({message: "Appointment cancelled", appointment: updatedAppointment});
+        res.status(200).json({
+            message: "Appointment updated successfully.", 
+            appointment: savedAppointment
+        });
 
     } catch (error) {
-        console.log("Cancel appointment error:",error);
         res.status(500).json({message: "Server error."});
     };
 });

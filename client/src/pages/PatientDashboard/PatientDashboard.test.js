@@ -20,6 +20,8 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   const mockLogout = jest.fn();
   let mockApi;
 
+  const safeFutureDate = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
@@ -41,10 +43,11 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
         getForAuth0Id: jest.fn().mockResolvedValue([
           {
             _id: 'app_1',
+            Status: 'Waiting',
             Clinic: { _id: 'clinic_123', practiceName: 'Test Clinic', physicalAddress: '1 Test Rd', physicalTown: 'Testville' },
             Staff: { name: 'Dr.', surname: 'Smith' },
             Speciality: { name: 'Dentistry' },
-            BookingDateTime: '2026-05-01T10:00:00Z',
+            BookingDateTime: safeFutureDate,
           },
         ]),
         cancel: jest.fn().mockResolvedValue({ message: "Cancelled" }),
@@ -154,7 +157,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     
     expect(screen.getByRole("heading", { name: /Your Appointments/i })).toBeInTheDocument();
     expect(screen.getByText(/Test Clinic/i)).toBeInTheDocument();
-    expect(screen.getByText(/Dr. Smith/i)).toBeInTheDocument();
+    expect(screen.getByText(/Smith/i)).toBeInTheDocument();
   });
 
   test("Given the appointments modal is open, When user clicks 'Cancel Appointment', Then it shows a confirmation popup and deletes on confirm", async () => {

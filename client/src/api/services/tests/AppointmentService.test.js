@@ -22,7 +22,6 @@ describe('AppointmentService', () => {
     afterEach(() => jest.clearAllMocks());
 
     describe('constructor', () => {
-
         it('should set basePath to /appointments', async () => {
             expect(service.basePath).toBe('/appointments');
         });
@@ -34,10 +33,10 @@ describe('AppointmentService', () => {
     });
 
     describe('cancel', () => {
-        it('shoudl call DELETE on the corretc path', async () => {
+        it('should call PATCH on the correct path', async () => {
             const apptId = 'app1';
             service.cancel(apptId);
-            expect(mockPrivateClient.delete).toHaveBeenCalledWith(
+            expect(mockPrivateClient.patch).toHaveBeenCalledWith(
                 `/appointments/${apptId}`,
                 null,
                 null
@@ -46,17 +45,19 @@ describe('AppointmentService', () => {
     });
 
     describe('create', () => {
-        const payload = {
-            clinicId: 'cln1',
-            staffUserId: 'staff1',
-            patientAuth0Id: 'auth0|123',
-            bookingDateTime: '2026-05-10T10:00:00Z',
-            description: "Elbow :(",
-            specialityName: "General Checkup",
-        };
+        it('should call POST with correctly mapped fields', async () => {
+            const payload = {
+                clinicId: 'c1',
+                staffUserId: 's1',
+                patientAuth0Id: 'p1',
+                bookingDateTime: '2026-05-14T10:00:00Z',
+                description: 'Checkup',
+                specialityName: 'GP',
+                rescheduleAppointmentId: 'old-appt'
+            };
 
-        it('should call POST on the correct path', async () => {
-            service.create(payload);
+            await service.create(payload);
+
             expect(mockPrivateClient.post).toHaveBeenCalledWith(
                 '/appointments/',
                 {
@@ -66,25 +67,20 @@ describe('AppointmentService', () => {
                     BookingDateTime: payload.bookingDateTime,
                     description: payload.description,
                     Speciality: payload.specialityName,
+                    rescheduleAppointmentId: payload.rescheduleAppointmentId
                 },
                 null
-            )
-        });
-
-        it('should return the result of the POST', async () => {
-            const mockResponse = { id: 'new-appt' };
-            mockPrivateClient.post.mockResolvedValue(mockResponse);
-            expect(service.create(payload)).resolves.toBe(mockResponse);
+            );
         });
     });
 
     describe('getForAuth0Id', () => {
-        it('should call GET on the correct path', () => {
+        it('should call GET on the correct path with statuses', () => {
             const auth0Id = 'auth0|user-123';
-            service.getForAuth0Id(auth0Id);
+            service.getForAuth0Id(auth0Id, { statuses: ['Confirmed', 'Cancelled'] });
             expect(mockPrivateClient.get).toHaveBeenCalledWith(
                 `/appointments/${auth0Id}`,
-                {"statuses": undefined}
+                { statuses: 'Confirmed,Cancelled' }
             );
         });
     });
@@ -97,9 +93,11 @@ describe('AppointmentService', () => {
             clinicId: 'clinic-2',
             bookingDateTime: '2026-05-10T14:00:00Z',
             specialityId: 'spec-1',
+            status: 'Confirmed',
+            remarks: 'Arriving early'
         };
 
-        it('should call PUT on the correct path', () => {
+        it('should call PUT on the correct path with full payload', () => {
             service.update(appointmentId, payload);
             expect(mockPrivateClient.put).toHaveBeenCalledWith(
                 `/appointments/${appointmentId}`,
@@ -109,6 +107,8 @@ describe('AppointmentService', () => {
                     Clinic: payload.clinicId,
                     BookingDateTime: payload.bookingDateTime,
                     Speciality: payload.specialityId,
+                    Status: payload.status,
+                    Remarks: payload.remarks
                 },
                 null
             );

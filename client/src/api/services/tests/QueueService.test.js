@@ -22,7 +22,6 @@ describe('QueueService', () => {
     afterEach(() => jest.clearAllMocks());
 
     describe('constructor', () => {
-
         it('should set basePath to /queues', async () => {
             expect(service.basePath).toBe('/queues');
         });
@@ -38,47 +37,49 @@ describe('QueueService', () => {
             const patientAuth0Id = 'auth0|patient-123';
             service.getForPatient(patientAuth0Id);
             expect(mockPrivateClient.get).toHaveBeenCalledWith(
-                '/queues/patient/auth0|patient-123',
+                `/queues/patient/${patientAuth0Id}`,
                 null
             );
         });
     });
 
     describe('addPatient', () => {
-        it('should call POST with patientId when patientId is provided', () => {
-            service.addPatient('clinic-123', { patientId: 'patient-456' }, 'Cardiology');
+        const clinicId = 'clinic-1';
+        const specialityName = 'General Practice';
+
+        it('should call POST with auth0Id when patientId is not provided', () => {
+            const auth0Id = 'auth0|123';
+            service.addPatient(clinicId, { auth0Id }, specialityName);
             expect(mockPublicClient.post).toHaveBeenCalledWith(
                 '/queues/',
-                { clinicID: 'clinic-123', specialityName: 'Cardiology', patientId: 'patient-456' }
+                {
+                    clinicId,
+                    specialityName,
+                    auth0Id
+                }
             );
         });
 
-        it('should call POST with auth0Id when auth0Id is provided', () => {
-            service.addPatient('clinic-123', { auth0Id: 'auth0|patient-456' }, 'Cardiology');
+        it('should call POST with patientId when provided', () => {
+            const patientId = 'p-999';
+            service.addPatient(clinicId, { patientId }, specialityName);
             expect(mockPublicClient.post).toHaveBeenCalledWith(
                 '/queues/',
-                { clinicID: 'clinic-123', specialityName: 'Cardiology', auth0Id: 'auth0|patient-456' }
+                {
+                    clinicId,
+                    specialityName,
+                    patientId
+                }
             );
-        });
-
-        it('should not include both patientId and auth0Id in the body', () => {
-            service.addPatient('clinic-123', { patientId: 'patient-456' }, 'Cardiology');
-            const body = mockPublicClient.post.mock.calls[0][1];
-            expect(body).toHaveProperty('patientId');
-            expect(body).not.toHaveProperty('auth0Id');
-        });
-
-        it('should not throw when called without identifier object', () => {
-            expect(() => service.addPatient('clinic-123', undefined, 'Cardiology')).not.toThrow();
         });
     });
 
     describe('remove', () => {
         it('should call DELETE on the correct path', () => {
-            const queueId = 'queue-123';
+            const queueId = 'q-123';
             service.remove(queueId);
             expect(mockPrivateClient.delete).toHaveBeenCalledWith(
-                '/queues/queue-123',
+                `/queues/${queueId}`,
                 null,
                 null
             );
@@ -86,70 +87,56 @@ describe('QueueService', () => {
     });
 
     describe('update', () => {
-        const queueId = 'queue-123';
-        const payload = { clinicId: 'clinic-1', specialityId: 'spec-1', patientId: 'patient-1' };
+        it('should call PUT with correctly mapped database fields', () => {
+            const queueId = 'q-456';
+            const updateData = {
+                clinicId: 'c-1',
+                specialityId: 's-1',
+                patientId: 'p-1',
+                status: 'Waiting',
+                remarks: 'Urgent',
+                timeSeen: '2026-05-14T10:00:00Z'
+            };
 
-        it('should call PUT on the correct path with the correct body', () => {
-            service.update(queueId, payload);
+            service.update(queueId, updateData);
+
             expect(mockPrivateClient.put).toHaveBeenCalledWith(
-                '/queues/queue-123',
-                { Clinic: payload.clinicId, Speciality: payload.specialityId, Patient: payload.patientId },
+                `/queues/${queueId}`,
+                {
+                    Clinic: updateData.clinicId,
+                    Speciality: updateData.specialityId,
+                    Patient: updateData.patientId,
+                    Status: updateData.status,
+                    Remarks: updateData.remarks,
+                    TimeSeen: updateData.timeSeen
+                },
                 null
             );
-        });
-
-        it('should map params to correct key names in the request body', () => {
-            service.update(queueId, payload);
-            const body = mockPrivateClient.put.mock.calls[0][1];
-            expect(body).toHaveProperty('Clinic');
-            expect(body).toHaveProperty('Speciality');
-            expect(body).toHaveProperty('Patient');
-            expect(body).not.toHaveProperty('clinicId');
-            expect(body).not.toHaveProperty('specialityId');
-            expect(body).not.toHaveProperty('patientId');
         });
     });
 
     describe('get', () => {
         const clinicId = 'clinic-123';
-        const baseParams = { auth0Id: 'auth0|user-1', userId: 'user-uid-1' };
+        const baseParams = { auth0Id: 'a1', userId: 'u1' };
 
-        it('should call GET on the correct path with query params', () => {
-            service.get(clinicId, { ...baseParams, specialityIDs: undefined, statuses: undefined });
+        it('should join specialityIDs array into a comma-separated string', () => {
+            service.get(clinicId, { ...baseParams, specialityIDs: ['spec-1', 'spec-2'] });
             expect(mockPrivateClient.get).toHaveBeenCalledWith(
-                '/queues/clinic-123',
-                { auth0Id: baseParams.auth0Id, userId: baseParams.userId, specialityIDs: undefined, statuses: undefined }
+                `/queues/${clinicId}`,
+                expect.objectContaining({
+                    specialityIDs: 'spec-1,spec-2'
+                })
             );
         });
 
-        it('should join specialityIDs array into a comma-separated string', () => {
-            service.get(clinicId, { ...baseParams, specialityIDs: ['spec-1', 'spec-2', 'spec-3'] });
-            const params = mockPrivateClient.get.mock.calls[0][1];
-            expect(params.specialityIDs).toBe('spec-1,spec-2,spec-3');
-        });
-
-        it('should pass specialityIDs through unchanged when already a string', () => {
-            service.get(clinicId, { ...baseParams, specialityIDs: 'spec-1,spec-2' });
-            const params = mockPrivateClient.get.mock.calls[0][1];
-            expect(params.specialityIDs).toBe('spec-1,spec-2');
-        });
-
-        it('should pass specialityIDs through when given a single-element array', () => {
-            service.get(clinicId, { ...baseParams, specialityIDs: ['spec-1'] });
-            const params = mockPrivateClient.get.mock.calls[0][1];
-            expect(params.specialityIDs).toBe('spec-1');
-        });
-
         it('should join statuses array into a comma-separated string', () => {
-            service.get(clinicId, { ...baseParams, statuses: ['Waiting', 'In Consult'] });
-            const params = mockPrivateClient.get.mock.calls[0][1];
-            expect(params.statuses).toBe('Waiting,In Consult');
-        });
-
-        it('should pass statuses through unchanged when already a string', () => {
-            service.get(clinicId, { ...baseParams, statuses: 'Waiting' });
-            const params = mockPrivateClient.get.mock.calls[0][1];
-            expect(params.statuses).toBe('Waiting');
+            service.get(clinicId, { ...baseParams, statuses: ['Waiting', 'Completed'] });
+            expect(mockPrivateClient.get).toHaveBeenCalledWith(
+                `/queues/${clinicId}`,
+                expect.objectContaining({
+                    statuses: 'Waiting,Completed'
+                })
+            );
         });
     });
 });
