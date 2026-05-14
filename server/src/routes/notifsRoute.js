@@ -7,5 +7,4 @@ const deleteSeen = require("./notifs/deleteSeen");
 router.use("/api/notifs", requireAuth, getNotifs);
 router.use("/api/notifs", requireAuth, deleteSeen);
 
-module.exports = router;
-            
+module.exports = router;          
