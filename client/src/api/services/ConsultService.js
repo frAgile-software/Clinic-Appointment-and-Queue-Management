@@ -1,8 +1,8 @@
 import { ResourceService } from '../ResourceService';
 
-export class PatientLogService extends ResourceService {
+export class ConsultService extends ResourceService {
     constructor(publicClient, privateClient) {
-        super(publicClient, privateClient, '/patientLogs');
+        super(publicClient, privateClient, '/consults');
     }
 
     getForAuth0Id(auth0Id) {

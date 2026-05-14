@@ -41,11 +41,10 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
         getForAuth0Id: jest.fn().mockResolvedValue([
           {
             _id: 'app_1',
-            Status: 'Waiting',
             Clinic: { _id: 'clinic_123', practiceName: 'Test Clinic', physicalAddress: '1 Test Rd', physicalTown: 'Testville' },
             Staff: { name: 'Dr.', surname: 'Smith' },
             Speciality: { name: 'Dentistry' },
-            BookingDateTime: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), 
+            BookingDateTime: '2026-05-01T10:00:00Z',
           },
         ]),
         cancel: jest.fn().mockResolvedValue({ message: "Cancelled" }),
@@ -55,7 +54,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
         addPatient: jest.fn().mockResolvedValue({ message: "Successfully joined queue" }),
         remove: jest.fn().mockResolvedValue({ message: "Removed" }),
       },
-      patientLogs: {
+      consults: {
         getForAuth0Id: jest.fn().mockResolvedValue([]),
       },
       clinics: {
@@ -172,10 +171,6 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
     await waitFor(() => {
       expect(mockApi.appointments.cancel).toHaveBeenCalledWith("app_1");
-    });
-    
-    await waitFor(() => {
-      expect(mockApi.patientLogs.getForAuth0Id).toHaveBeenCalledWith("auth0|12345");
     });
   });
 

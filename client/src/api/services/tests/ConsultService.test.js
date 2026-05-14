@@ -1,13 +1,13 @@
-import { PatientLogService } from "../PatientLogService";
+import { ConsultService } from "../ConsultService";
 import { ResourceService } from "../../ResourceService";
 
 describe('Inheritance', () => {
     it('should extend ResourceService', async () => {
-        expect(PatientLogService.prototype).toBeInstanceOf(ResourceService);
+        expect(ConsultService.prototype).toBeInstanceOf(ResourceService);
     });
 });
 
-describe('PatientLogService', () => {
+describe('ConsultService', () => {
     let service;
     let mockPrivateClient;
     let mockPublicClient;
@@ -16,14 +16,14 @@ describe('PatientLogService', () => {
         mockPrivateClient = { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn(), patch: jest.fn() };
         mockPublicClient = { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn(), patch: jest.fn() };
 
-        service = new PatientLogService(mockPublicClient, mockPrivateClient);
+        service = new ConsultService(mockPublicClient, mockPrivateClient);
     });
 
     afterEach(() => jest.clearAllMocks());
 
     describe('constructor', () => {
-        it('should set basePath to /patientLogs', async () => {
-            expect(service.basePath).toBe('/patientLogs');
+        it('should set basePath to /consults', async () => {
+            expect(service.basePath).toBe('/consults');
         });
 
         it('should assign public and private clients', async () => {
@@ -38,12 +38,12 @@ describe('PatientLogService', () => {
             service.getForAuth0Id(auth0Id);
             
             expect(mockPrivateClient.get).toHaveBeenCalledWith(
-                `/patientLogs/auth0%7Cuser-123`
+                `/consults/auth0%7Cuser-123`
             );
         });
 
         it('should return the result of the GET call', () => {
-            const mockResponse = [{ _id: 'log1', Status: 'Completed' }];
+            const mockResponse = [{ _id: 'consult1', Status: 'Completed' }];
             mockPrivateClient.get.mockResolvedValue(mockResponse);
             
             expect(service.getForAuth0Id('auth0|123')).resolves.toBe(mockResponse);

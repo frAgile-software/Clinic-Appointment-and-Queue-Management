@@ -56,13 +56,12 @@ describe("PUT /api/appointments/:appointmentID", () => {
 
         const response = await request(app)
             .put("/api/appointments/123456789012345678901234")
-            .send({ BookingDateTime: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString() }); // Sending a core detail to trigger the block
+            .send({ BookingDateTime: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString() }); 
 
         expect(response.status).toBe(400);
         expect(response.body).toEqual({ message: "Appointments cannot be rescheduled or updated less than 24 hours before the scheduled time." });
     });
     
-
     test("should return 400 if patient ID is invalid", async () => {
         const mockAppointment = {
             _id: "123456789012345678901234",
@@ -236,7 +235,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
             Patient: "oldPatient",
             Staff: "oldStaff",
             Clinic: "oldClinic",
-            BookingDateTime: safeFutureDate,
+            BookingDateTime: safeFutureDate, 
             Speciality: "oldSpeciality",
             save: jest.fn().mockResolvedValue(savedAppointment)
         };

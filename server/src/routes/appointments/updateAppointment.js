@@ -1,113 +1,58 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const mongoose = require("mongoose");
-const User = require("../../database/models/User");
-const Appointment = require("../../database/models/Appointment");
-const Clinic = require("../../database/models/Clinic");
-//const Staff = require("../../database/models/Staff");
-const Speciality = require("../../database/models/Speciality");
+const mongoose = require('mongoose');
 
-router.put("/:appointmentID", async (req, res) => {
-    try{
-        const { appointmentID } = req.params;
-        const { Patient, Staff, Clinic: clinicId, BookingDateTime, Speciality: specialityId, Status: status, Remarks: remarks } = req.body;
-        
-        if(!mongoose.Types.ObjectId.isValid(appointmentID)) {
-            return res.status(400).json({ message: "Invalid appointment ID." });
-        }
-        
-        const appointment = await Appointment.findById(appointmentID);
-        if(!appointment) {
-            return res.status(404).json({ message: "Appointment not found." });
-        }
+const Appointment = require('../../database/models/Appointment');
+const User = require('../../database/models/User');
+
+router.patch('/:appointmentId', async (req, res) => {
+    try {
+        const appointmentId = req.params.appointmentId;
+        const appointment = await Appointment.findById(appointmentId);
+
+        if (!appointment) {
+            return res.status(404).json({message: "Not found."});
+        };
+
+        console.log("Appointment found.");
 
         // --- 24-HOUR RESTRICTION CHECK ---
-        const updateKeys = Object.keys(req.body);
-        const isModifyingCoreDetails = updateKeys.some(key => 
-            ['BookingDateTime', 'Clinic', 'Speciality', 'Patient', 'Staff'].includes(key)
-        );
+        let isStaffOrAdmin = false;
+        const requesterAuth0Id = req.auth?.payload?.sub;
+        
+        if (requesterAuth0Id) {
+            const requester = await User.findOne({ auth0Id: requesterAuth0Id });
+            if (requester && (requester.role === 'Staff' || requester.role === 'Admin')) {
+                isStaffOrAdmin = true;
+            }
+        }
 
-        if (isModifyingCoreDetails) {
+        if (!isStaffOrAdmin) {
             const appointmentTime = new Date(appointment.BookingDateTime).getTime();
             const currentTime = Date.now();
             const hoursDifference = (appointmentTime - currentTime) / (1000 * 60 * 60);
 
             if (hoursDifference < 24) {
-                return res.status(400).json({ message: "Appointments cannot be rescheduled or updated less than 24 hours before the scheduled time." });
+                return res.status(400).json({ message: "Appointments cannot be cancelled less than 24 hours before the scheduled time." });
             }
         }
         // ---------------------------------
 
-        if(Patient !== undefined) {
-            if(!mongoose.Types.ObjectId.isValid(Patient)) {
-                return res.status(400).json({ message: "Invalid patient ID." });
-            }
-            const patientUser = await User.findById(Patient);
-            if(!patientUser){
-                return res.status(404).json({ message: "Patient not found." });
-            }
-            appointment.Patient = Patient;
-        }
+        await Appointment.collection.updateOne(
+            { _id: new mongoose.Types.ObjectId(appointmentId) },
+            { $set: { Status: "Cancelled", type: "Consult" } }
+        );
 
-        if (Staff !== undefined) {
-            if (!mongoose.Types.ObjectId.isValid(Staff)) {
-                return res.status(400).json({ message: "Invalid staff ID." });
-            }
+        const updatedAppointment = await Appointment.findById(appointmentId);
 
-            const staffUser = await User.findById(Staff);
-            if (!staffUser) {
-                return res.status(404).json({ message: "Staff member not found." });
-            }
+        console.log("Appointment logged as cancelled.");
 
-            appointment.Staff = Staff;
-        }
+        res.status(200).json({message: "Appointment cancelled", appointment: updatedAppointment});
 
-        if (clinicId !== undefined) {
-            if (!mongoose.Types.ObjectId.isValid(clinicId)) {
-                return res.status(400).json({ message: "Invalid clinic ID." });
-            }
-
-            const clinic = await Clinic.findById(clinicId);
-            if (!clinic) {
-                return res.status(404).json({ message: "Clinic not found." });
-            }
-
-            appointment.Clinic = clinicId;
-        }
-
-        if(BookingDateTime !== undefined) {
-            const bookingDate = new Date(BookingDateTime);
-            if(isNaN(bookingDate.getTime())) {
-                return res.status(400).json({ message: "Invalid booking date." });
-            }
-            appointment.BookingDateTime = bookingDate;
-        }
-
-        if(specialityId !== undefined) {
-            if (!mongoose.Types.ObjectId.isValid(specialityId)) {
-                return res.status(400).json({ message: "Invalid speciality ID." });
-            }
-            const speciality = await Speciality.findById(specialityId);
-            if (!speciality) {
-                return res.status(404).json({ message: "Speciality not found." });
-            }
-            appointment.Speciality = specialityId;
-        }
-
-        if (status !== undefined) {
-            appointment.Status = status;
-        }
-        if (remarks !== undefined) {
-            appointment.Remarks = remarks;
-        }
-
-        const updatedAppointment = await appointment.save();
-        res.status(200).json({ message: "Appointment updated successfully.", appointment: updatedAppointment });
-
-    }catch(error) {
-        console.error("Error updating appointment:", error);
-        res.status(500).json({ message: "Server error." });
-    }
+    } catch (error) {
+        console.log("Cancel appointment error:",error);
+        res.status(500).json({message: "Server error."});
+    };
 });
 
 module.exports = router;

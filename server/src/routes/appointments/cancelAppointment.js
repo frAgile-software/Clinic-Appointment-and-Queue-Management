@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 
 const Appointment = require('../../database/models/Appointment');
-const PatientLog = require('../../database/models/PatientLog');
+const User = require('../../database/models/User');
 
-router.delete('/:appointmentId', async (req, res) => {
+router.patch('/:appointmentId', async (req, res) => {
     try {
         const appointmentId = req.params.appointmentId;
         const appointment = await Appointment.findById(appointmentId);
@@ -15,32 +16,38 @@ router.delete('/:appointmentId', async (req, res) => {
 
         console.log("Appointment found.");
 
-        const appointmentTime = new Date(appointment.BookingDateTime).getTime();
-        const currentTime = Date.now();
-        const hoursDifference = (appointmentTime - currentTime) / (1000 * 60 * 60);
-
-        if (hoursDifference < 24) {
-            return res.status(400).json({ message: "Appointments cannot be cancelled less than 24 hours before the scheduled time." });
+        // --- 24-HOUR RESTRICTION CHECK ---
+        let isStaffOrAdmin = false;
+        const requesterAuth0Id = req.auth?.payload?.sub;
+        
+        if (requesterAuth0Id) {
+            const requester = await User.findOne({ auth0Id: requesterAuth0Id });
+            if (requester && (requester.role === 'Staff' || requester.role === 'Admin')) {
+                isStaffOrAdmin = true;
+            }
         }
 
-        const newPatientLog = new PatientLog({
-            Speciality: appointment.Speciality,
-            Patient: appointment.Patient,
-            Staff: appointment.Staff,
-            VisitType: "Appointment",
-            TimeIn: appointment.BookingDateTime, //stores the original booking date
-            TimeOut: Date.now(),
-            TimeQStart: appointment.createdAt, //stores the time booking was made
-            Status: "Cancelled",
-        });
+        if (!isStaffOrAdmin) {
+            const appointmentTime = new Date(appointment.BookingDateTime).getTime();
+            const currentTime = Date.now();
+            const hoursDifference = (appointmentTime - currentTime) / (1000 * 60 * 60);
 
-        await newPatientLog.save();
+            if (hoursDifference < 24) {
+                return res.status(400).json({ message: "Appointments cannot be cancelled less than 24 hours before the scheduled time." });
+            }
+        }
+        // ---------------------------------
 
-        console.log("Appointment logged as cancelled in PatientLog.");
+        await Appointment.collection.updateOne(
+            { _id: new mongoose.Types.ObjectId(appointmentId) },
+            { $set: { Status: "Cancelled", type: "Consult" } }
+        );
 
-        await appointment.updateOne({ Status: "Cancelled" });
+        const updatedAppointment = await Appointment.findById(appointmentId);
 
-        res.status(200).json({message: "Appointment cancelled", patientLog: newPatientLog})
+        console.log("Appointment logged as cancelled.");
+
+        res.status(200).json({message: "Appointment cancelled", appointment: updatedAppointment});
 
     } catch (error) {
         console.log("Cancel appointment error:",error);

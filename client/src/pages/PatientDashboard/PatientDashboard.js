@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import "./PatientDashboard.css";
 import { useAuth0 } from '@auth0/auth0-react';
 // import logo from './logo.svg';
+
 import { useApi } from "../../api/useApi";
 
 const PAGE_LIMIT = 12;
@@ -74,20 +75,8 @@ function PatientDashboard() {
         setLoadingAppointments(true);
         try {
           const data = await api.appointments.getForAuth0Id(user.sub);
-          
-          let appointmentsArray = [];
-          if (Array.isArray(data)) {
-            appointmentsArray = data;
-          } else if (data && typeof data === 'object') {
-            const possibleArrays = Object.values(data).filter(val => Array.isArray(val));
-            if (possibleArrays.length > 0) {
-              appointmentsArray = possibleArrays[0];
-            }
-          }
-
-          const activeAppointments = appointmentsArray.filter(app => app.Status === 'Waiting');
+          const activeAppointments = Array.isArray(data) ? data.filter(app => app.Status !== 'Cancelled') : data;
           setAppointments(activeAppointments);
-
         } catch (error) {
           console.error("Error fetching appointments:", error);
         } finally {
@@ -103,7 +92,7 @@ function PatientDashboard() {
       if (user?.sub) {
         try {
           const data = await api.queues.getForPatient(user.sub);
-          if (data && data.inQueue) {
+          if (data.inQueue) {
             setPatientQueue(data.queue);
           } else {
             setPatientQueue(null);
@@ -120,15 +109,8 @@ function PatientDashboard() {
     const fetchHistory = async () => {
       if (user?.sub) {
         try {
-          const data = await api.patientLogs.getForAuth0Id(user.sub);
-          let logsArray = [];
-          if (Array.isArray(data)) {
-            logsArray = data;
-          } else if (data && typeof data === 'object') {
-            const possibleArrays = Object.values(data).filter(val => Array.isArray(val));
-            if (possibleArrays.length > 0) logsArray = possibleArrays[0];
-          }
-          setHistoryLogs(logsArray);
+          const data = await api.consults.getForAuth0Id(user.sub);
+          setHistoryLogs(Array.isArray(data) ? data : []);
         } catch (error) {
           console.error("Error fetching history:", error);
         }
@@ -157,12 +139,19 @@ function PatientDashboard() {
       setLoadingList(true);
       setHasSearched(true);
       try {
-        const currentFilters = { ...filters };
-        if (search.trim()) currentFilters.name = search.trim();
-        currentFilters._page = page;
-        currentFilters._page_len = PAGE_LIMIT;
+        const params = new URLSearchParams();
+        if (search.trim()) params.set('name', search.trim());
+        if (filters.province) params.set('province', filters.province);
+        if (filters.town) params.set('town', filters.town);
+        if (filters.suburb) params.set('suburb', filters.suburb);
+        if (filters.type) params.set('type', filters.type);
+        if (filters.service) params.set('service', filters.service); 
+        params.set('_orderby', filters._orderby);
+        params.set('_order', filters._order);
+        params.set("_page", page);
+        params.set("_page_len", PAGE_LIMIT);
 
-        const json = await api.clinics.filterAll(currentFilters);
+        const json  = await api.clinics.filterAll(filters);
 
         setClinics(json.data || []);
         setPagination({
@@ -188,16 +177,15 @@ function PatientDashboard() {
     }, 100);
   };
 
-  const handleConfirmQueue = async () => {
+  const handleConfirmQueue =async () => {
     if (!selectedService) return;
 
     setJoiningQueue(true);
 
     try {
-      await api.queues.addPatient(selectedClinic._id, { auth0Id: user.sub }, selectedService);
+      await api.queues.addPatient(selectedClinic._id, {auth0Id: user.sub}, selectedService);
       const queueResponse = await api.queues.getForPatient(user.sub);
-      if (queueResponse && queueResponse.inQueue) setPatientQueue(queueResponse.queue);
-      
+      if (queueResponse.inQueue) setPatientQueue(queueResponse.queue);
       setShowQueuePanel(false);
       closePopup();
     } catch (error) {
@@ -237,22 +225,13 @@ function PatientDashboard() {
     if (!cancelAppId) return;
     try {
       await api.appointments.cancel(cancelAppId);
-      
       setAppointments(prev => prev.filter(a => a._id !== cancelAppId));
       setCancelAppId(null);
 
       if (user?.sub) {
-        const data = await api.patientLogs.getForAuth0Id(user.sub);
-        let logsArray = [];
-        if (Array.isArray(data)) {
-          logsArray = data;
-        } else if (data && typeof data === 'object') {
-          const possibleArrays = Object.values(data).filter(val => Array.isArray(val));
-          if (possibleArrays.length > 0) logsArray = possibleArrays[0];
-        }
-        setHistoryLogs(logsArray);
+        const data = await api.consults.getForAuth0Id(user.sub);
+        setHistoryLogs(Array.isArray(data) ? data : []);
       }
-
     } catch (err) {
       console.error("Error cancelling appointment:",err);
     }
@@ -294,6 +273,7 @@ function PatientDashboard() {
   
   const handleLeaveQueue = async () => {
     try {
+      console.log("Queue:", patientQueue);
       await api.queues.remove(patientQueue.queue._id);
       setPatientQueue(null);
     } catch (error) {
@@ -384,8 +364,8 @@ function PatientDashboard() {
             {patientQueue ? (
               <>
                 <h3>My Queue Status</h3>
-                <p>{patientQueue.queue.Clinic?.practiceName}</p>
-                <p>{patientQueue.queue.Speciality?.SpecialityName}</p>
+                <p>{patientQueue.queue.Clinic.practiceName}</p>
+                <p>{patientQueue.queue.Speciality.SpecialityName}</p>
                 <p>Position: <strong>{patientQueue.position}</strong></p>
                 <button className="card-btn" onClick={handleLeaveQueue}>LEAVE QUEUE</button>
               </>
@@ -467,7 +447,7 @@ function PatientDashboard() {
 
               <section className="clinics-section">
                 {selectionError && (
-                  <p style={{ color: '#b91c1c', backgroundColor: '#fee2e2', padding: '10px 14px', borderRadius: '6px', margin: '0 0 16px 0', fontWeight: '500', fontSize: '14px' }} role="alert">
+                  <p style={{ color: '#b91c1c', backgroundColor: '#fee2e2', padding: '10px 14px', borderRadius: '6px', marginBottom: '16px', fontWeight: '500', fontSize: '14px' }} role="alert">
                     {selectionError}
                   </p>
                 )}
@@ -740,9 +720,9 @@ function PatientDashboard() {
                         </p>
                         <p>Speciality: {log.Speciality?.SpecialityName || 'General'}</p>
                         {log.Staff && <p>Doctor: {log.Staff.name} {log.Staff.surname}</p>}
-                        <p>Date: {new Date(log.TimeIn).toLocaleString('en-ZA')}</p>
+                        <p>Date: {new Date(log.createdAt).toLocaleString('en-ZA')}</p>
                         <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                          Type: {log.VisitType}
+                          Type: {log.type || 'Consult'}
                         </p>
                       </article>
                     )

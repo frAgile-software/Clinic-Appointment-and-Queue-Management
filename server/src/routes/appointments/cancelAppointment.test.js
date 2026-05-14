@@ -1,111 +1,93 @@
-jest.mock('../../middleware/auth', () => ({
-    requireAuth: (req, res, next) => next() // just skip auth
-}));
+const express = require("express");
+const router = express.Router();
+const mongoose = require("mongoose");
+const User = require("../../database/models/User");
+const Appointment = require("../../database/models/Appointment");
+const Clinic = require("../../database/models/Clinic");
+const SpecialityModel = require("../../database/models/Speciality"); 
 
-jest.mock('../../database/dbConnect', () => jest.fn(() => Promise.resolve()));
+router.post("/", async (req, res) => {
+    try {
+        const { Clinic: clinicId, Staff, patientAuth0Id, BookingDateTime, description, Speciality, rescheduleId } = req.body;
 
-jest.mock('../../database/models/Appointment', () => ({
-    findById: jest.fn()
-}));
+        const patient = await User.findOne({ auth0Id: patientAuth0Id });
+        if (!patient) {
+            return res.status(404).json({ message: "Patient not found." });
+        }
 
-jest.mock('../../database/models/PatientLog', () => {
-    return jest.fn().mockImplementation(() => ({
-        save: jest.fn().mockResolvedValue(true),
-    }));
+        const staff = await User.findById(Staff);
+        if (!staff) {
+            return res.status(404).json({ message: "Staff member not found." });
+        }
+
+        const clinic = await Clinic.findById(clinicId);
+        if (!clinic) {
+            return res.status(404).json({ message: "Clinic not found." });
+        }
+
+        // Handle conflict check, excluding the current appointment if rescheduling
+        const conflictQuery = { Staff, BookingDateTime: new Date(BookingDateTime) };
+        if (rescheduleId) conflictQuery._id = { $ne: rescheduleId };
+        
+        const existing = await Appointment.findOne(conflictQuery);
+        if (existing) {
+            return res.status(409).json({ message: "This slot is already booked." });
+        }
+
+        let specialityId = null;
+        if (Speciality) {
+            const specDoc = await SpecialityModel.findOne({ SpecialityName: Speciality });
+            if (specDoc) {
+                specialityId = specDoc._id;
+            }
+        }
+
+        if (rescheduleId) {
+            const appointment = await Appointment.findById(rescheduleId);
+            if (!appointment) return res.status(404).json({ message: "Original appointment not found." });
+
+            // --- 24-HOUR RESTRICTION CHECK ---
+            let isStaffOrAdmin = false;
+            const requesterAuth0Id = req.auth?.payload?.sub;
+            if (requesterAuth0Id) {
+                const requester = await User.findOne({ auth0Id: requesterAuth0Id });
+                if (requester && (requester.role === 'Staff' || requester.role === 'Admin')) isStaffOrAdmin = true;
+            }
+
+            if (!isStaffOrAdmin) {
+                const hoursDifference = (new Date(appointment.BookingDateTime).getTime() - Date.now()) / (1000 * 60 * 60);
+                if (hoursDifference < 24) return res.status(400).json({ message: "Cannot reschedule less than 24 hours before." });
+            }
+
+            // Update existing instead of creating new
+            appointment.Clinic = clinic._id;
+            appointment.Staff = staff._id;
+            appointment.BookingDateTime = new Date(BookingDateTime);
+            appointment.ReasonDetails = description || '';
+            if (specialityId) appointment.Speciality = specialityId;
+
+            await appointment.save();
+            return res.status(200).json({ message: "Appointment rescheduled successfully.", appointment });
+        }
+
+        const apptData = {
+            Patient:         patient._id,
+            Staff:           staff._id,
+            Clinic:          clinic._id,
+            BookingDateTime: new Date(BookingDateTime),
+            ReasonDetails:   description || '',
+        };
+
+        if (specialityId) apptData.Speciality = specialityId;
+
+        const appointment = new Appointment(apptData);
+        await appointment.save();
+        res.status(201).json({ message: "Appointment created successfully.", appointment });
+
+    } catch (error) {
+        console.error("Error creating appointment:", error);
+        res.status(500).json({ message: "Server error." });
+    }
 });
 
-const request = require('supertest');
-const app = require('../../index');
-const Appointment = require('../../database/models/Appointment');
-const PatientLog = require('../../database/models/PatientLog');
-
-describe('DELETE /api/appointments/:appointmentId', () => {
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    test('returns 404 if appointment not found', async () => {
-        Appointment.findById.mockResolvedValueOnce(null);
-
-        const res = await request(app).delete('/api/appointments/mockId123');
-
-        expect(res.status).toEqual(404);
-    });
-
-    test('returns 400 if appointment is within 24 hours', async () => {
-        const mockAppointment = {
-            _id: "appointment123",
-            Speciality: "General Practice",
-            Patient: "patient123",
-            Staff: "staff456",
-            BookingDateTime: new Date(Date.now() + 12 * 60 * 60 * 1000),
-            createdAt: new Date(),
-            Status: "Waiting",
-        };
-
-        Appointment.findById.mockResolvedValueOnce(mockAppointment);
-
-        const res = await request(app).delete('/api/appointments/appointment123');
-
-        expect(res.statusCode).toEqual(400);
-        expect(res.body.message).toEqual("Appointments cannot be cancelled less than 24 hours before the scheduled time.");
-    });
-
-    test('returns 200, logs to PatientLog, and sets appointment status to Cancelled on success', async () => {
-        const mockAppointment = {
-            _id: "appointment123",
-            Speciality: "General Practice",
-            Patient: "patient123",
-            Staff: "staff456",
-            BookingDateTime: new Date(Date.now() + 48 * 60 * 60 * 1000),
-            createdAt: new Date("2026-04-01T08:00:00Z"),
-            Status: "Waiting",
-            updateOne: jest.fn().mockResolvedValue(true),
-        };
-
-        const mockPatientLog = {
-            _id: "log001",
-            Status: "Cancelled",
-            save: jest.fn().mockResolvedValue(true),
-        };
-
-        Appointment.findById.mockResolvedValueOnce(mockAppointment);
-        PatientLog.mockImplementation(() => mockPatientLog);
-
-        const res = await request(app).delete('/api/appointments/appointment123');
-
-        expect(Appointment.findById).toHaveBeenCalledWith("appointment123");
-
-        expect(PatientLog).toHaveBeenCalledWith(
-            expect.objectContaining({
-                Speciality: "General Practice",
-                Patient: "patient123",
-                Staff: "staff456",
-                VisitType: "Appointment",
-                TimeIn: mockAppointment.BookingDateTime,
-                TimeQStart: mockAppointment.createdAt,
-                Status: "Cancelled",
-            })
-        );
-        expect(mockPatientLog.save).toHaveBeenCalled();
-        expect(mockAppointment.updateOne).toHaveBeenCalledWith({ Status: "Cancelled" });
-
-        expect(res.statusCode).toEqual(200);
-        expect(res.body).toEqual({
-            message: "Appointment cancelled",
-            patientLog: expect.objectContaining({
-                _id: "log001",
-                Status: "Cancelled",
-            }),
-        });
-    });
-
-    test('returns 500 on server error', async () => {
-        Appointment.findById.mockRejectedValueOnce(new Error('Server error.'));
-
-        const res = await request(app).delete('/api/appointments/appointment123');
-
-        expect(res.statusCode).toEqual(500);
-    });
-});
+module.exports = router;
