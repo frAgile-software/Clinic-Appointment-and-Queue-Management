@@ -29,4 +29,11 @@ export class QueueService extends ResourceService {
       statuses: Array.isArray(statuses) ? statuses.join(',') : statuses
     });
   }
+
+  getAverageWaitTime(clinicId, { specialityIDs }) {
+    const specIDs = specialityIDs 
+                ?  {specialityIDs: Array.isArray(specialityIDs) ? specialityIDs.join(',') : specialityIDs}
+                : {};
+    return this.pub.get(`${this.basePath}/estimate/${clinicId}`, specIDs);
+  }
 }
