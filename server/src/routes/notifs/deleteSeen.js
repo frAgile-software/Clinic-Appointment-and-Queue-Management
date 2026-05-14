@@ -8,11 +8,11 @@ router.delete("/:staffId", async (req, res) => {
         console.log("1. Incoming request:", req.params);
         const {staffId} = req.params;
         
-        if (!mongoose.Types.ObjectId.isValid(queueId)) {
+        if (!mongoose.Types.ObjectId.isValid(staffId)) {
             return res.status(400).json({ error: "Invalid queue ID" });
         }
 
-        const notifs= await Notifs.findAndDelete({
+        const notifs= await Notifs.deleteMany({
             Recipient: staffId,
             Seen: true
     });
