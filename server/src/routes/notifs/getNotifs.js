@@ -1,25 +1,23 @@
 const express = require("express");
 const router = express.Router();
-const Notifs = require("../../database/models/Notifs");
+const Notif = require("../../database/models/Notif");
 const mongoose = require("mongoose");
 
 router.get("/:userId", async (req, res) => {
     try {
         console.log("1. Incoming request:", req.params);
-        const { userId} = req.params;
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-                    return res.status(400).json({ error: "Invalid user ID" });
-                }
+        //get userId
+        const {userId} = req.params;
         // Database lookup 
-        const notifs= await Notifs.find({Recipient: userId});
+        const notif = await Notif.find({Recipient: userId});
 
         //No notifications
-        if (!notifs) {
+        if (!notif || notif.length === 0) {
             console.log("No notifications for user id:", userId);
             return res.status(200).json({ message: "No notifications to show" });
         }
         console.log("Notifications found");
-        res.status(200).json(notifs);
+        res.status(200).json(notif);
 
     } catch (error) {
         if (error.name === "CastError") {
