@@ -30,10 +30,9 @@ export class QueueService extends ResourceService {
     });
   }
 
-  getAverageWaitTime(clinicId, { specialityIDs }) {
-    const specIDs = specialityIDs 
-                ?  {specialityIDs: Array.isArray(specialityIDs) ? specialityIDs.join(',') : specialityIDs}
-                : {};
-    return this.pub.get(`${this.basePath}/estimate/${clinicId}`, specIDs);
+  getAverageWaitTime(clinicId, { specialityIDs, _fromdate, _todate }) {
+    const params = {_fromdate, _todate};
+    if (specialityIDs) params.specialityIDs = Array.isArray(specialityIDs) ? specialityIDs.join(',') : specialityIDs;
+    return this.pub.get(`${this.basePath}/estimate/${clinicId}`, params);
   }
 }
