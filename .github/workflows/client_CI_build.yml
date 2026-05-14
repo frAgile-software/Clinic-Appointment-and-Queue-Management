@@ -4,8 +4,7 @@
 name: Client CI
 
 on:
-  push:
-    branches-ignore: [ "main" ]
+  pull_request:
     paths: [ "client/**" ]
   workflow_dispatch:
 
