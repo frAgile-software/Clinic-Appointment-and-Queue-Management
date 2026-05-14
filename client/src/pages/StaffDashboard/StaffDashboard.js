@@ -240,7 +240,7 @@ function StaffDashboard() {
         <span className="data-card-detail">ID: {patient._id}</span>
         <span className="data-card-detail">{queueTime.toLocaleTimeString()}</span>
         <span className="data-card-detail">{queueItem.Speciality.SpecialityName}</span>
-        <span className="status-badge status-white">
+        <span className={`status-badge ${appointmentItem.Status === status.BEING_SEEN ? 'status-purple' : 'status-white'}`}>
           {queueItem.Status}
         </span>
       </li>
