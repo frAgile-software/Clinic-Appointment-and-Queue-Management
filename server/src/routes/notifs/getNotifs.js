@@ -1,13 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const Notifs = require("../../database/models/Notifs");
+const mongoose = require("mongoose");
 
 router.get("/:userId", async (req, res) => {
     try {
         console.log("1. Incoming request:", req.params);
         const { userId} = req.params;
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+                    return res.status(400).json({ error: "Invalid user ID" });
+                }
         // Database lookup 
-        const notifs= await Notifs.find(userId);
+        const notifs= await Notifs.find({Recipient: userId});
 
         //No notifications
         if (!notifs) {

@@ -17,7 +17,7 @@ router.delete("/:userId", async (req, res) => {
             Seen: true
     });
 
-        if (!notifs) {
+        if (notifs.deletedCount===0) {
             console.log("No notifications deleted");
             return res.status(200).json({ message: "No notifications deleted" });
         }
