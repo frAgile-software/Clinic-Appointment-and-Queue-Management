@@ -454,19 +454,17 @@ function StaffDashboard() {
               </section>
 
               <footer className="modal-actions-footer">
-                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "Waiting")}>Set waiting</button>
                 <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "In Consult")}>Check in</button>
-                <button className="modal-action-btn btn-green" onClick={() => updateConsult(modalDetails, "Completed")}>Done</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "Waiting")}>Reset status</button>
+                <button className="modal-action-btn btn-green" onClick={() => updateConsult(modalDetails, "Completed")}>Conclude session</button>
                 <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "Cancelled")}>Cancel</button>
                 <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "No-show")}>No show</button>
                 {modalDetails.type === 'Queue' ? <></> : <button
                   className="modal-action-btn btn-blue"
-                  onClick={() => setIsRescheduleModalOpen(true)}
-                >
+                  onClick={() => setIsRescheduleModalOpen(true)}>
                   Reschedule
                 </button>}
               </footer>
-
 
             </section>
           </article>
