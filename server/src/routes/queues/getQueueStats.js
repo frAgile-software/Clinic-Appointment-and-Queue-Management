@@ -15,6 +15,9 @@ router.get("/:clinicID", async (req, res) => {
         } = req.query;
         const specialityIDs = req.query.specialityIDs ? req.query.specialityIDs.split(",") : [];
 
+        console.log("QUEUE STATS");
+        console.log("specIDs:", specialityIDs);
+
         const clinic = await Clinic.findById(clinicID);
         if (!clinic)
             return res.status(404).json({ message: "Clinic not found." });
@@ -22,7 +25,7 @@ router.get("/:clinicID", async (req, res) => {
         const startDateParam = !_fromdate ? {} : { $gte: new Date(_fromdate) };
         const endDateParam = !_todate ? {} : { $lt: new Date(_todate) };
         const dateRangeParam = !_fromdate && !_todate
-            ? { createdAt: { $gte: new Date(referenceDateTime - 7 * 24 * 60 * 60 * 1000) } }
+            ? { createdAt: { $gte: new Date(referenceDateTime - 30 * 24 * 60 * 60 * 1000) } } // default averages last 30 days
             : { createdAt: { ...startDateParam, ...endDateParam } };
         const specialitiesParam = specialityIDs.length === 0 ? {} : { Speciality: { $in: specialityIDs } };
 
@@ -32,6 +35,7 @@ router.get("/:clinicID", async (req, res) => {
         }
 
         const referenceDayOfWeek = referenceDate.getUTCDay() + 1; // +1 since mongo uses different indexing
+        const referenceMinutes = referenceDate.getUTCHours() * 60 + referenceDate.getUTCMinutes();
 
         const filteredQueues = await Queue.aggregate([
             {
@@ -53,9 +57,18 @@ router.get("/:clinicID", async (req, res) => {
             },
             {
                 $match: {
-                    createdAt: {
-                        $gte: new Date(referenceDate.getTime() - 30 * 60 * 1000),
-                        $lte: new Date(referenceDate.getTime() + 30 * 60 * 1000)
+                    $expr: {
+                        $lte: [
+                            {
+                                $abs: {
+                                    $subtract: [
+                                        { $add: [{ $multiply: [{ $hour: "$createdAt" }, 60] }, { $minute: "$createdAt" }] },
+                                        referenceMinutes
+                                    ]
+                                }
+                            },
+                            60
+                        ]
                     }
                 }
             },
@@ -82,7 +95,8 @@ router.get("/:clinicID", async (req, res) => {
             },
         ]);
 
-        const result = filteredQueues.length > 0 ? filteredQueues[0] : { averageWaitTime: null };
+        const result = filteredQueues.length > 0 ? filteredQueues[0] : { averageWaitTime: 0 };
+        console.log("Average Wait:", result.averageWaitTime);
         res.status(200).json({ averageWaitTime: result.averageWaitTime });
 
     } catch (error) {
