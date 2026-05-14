@@ -52,7 +52,11 @@ describe('QueueService', () => {
             service.addPatient(clinicId, { auth0Id }, specialityName);
             expect(mockPublicClient.post).toHaveBeenCalledWith(
                 '/queues/',
-                { clinicId: 'clinic-123', specialityName: 'Cardiology', patientId: 'patient-456' }
+                {
+                    clinicId,
+                    specialityName,
+                    auth0Id
+                }
             );
         });
 
@@ -61,7 +65,11 @@ describe('QueueService', () => {
             service.addPatient(clinicId, { patientId }, specialityName);
             expect(mockPublicClient.post).toHaveBeenCalledWith(
                 '/queues/',
-                { clinicId: 'clinic-123', specialityName: 'Cardiology', auth0Id: 'auth0|patient-456' }
+                {
+                    clinicId,
+                    specialityName,
+                    patientId
+                }
             );
         });
     });
