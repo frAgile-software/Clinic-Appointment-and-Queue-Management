@@ -9,5 +9,5 @@ const notifSchema = new Schema({
     Seen: {type: Boolean, required: true, default: false},
 }, { timestamps: true });
 
-const Consult = mongoose.model('Consult', consultSchema);
+const notif = mongoose.model('Consult', notifSchema);
 module.exports = Notifs;
