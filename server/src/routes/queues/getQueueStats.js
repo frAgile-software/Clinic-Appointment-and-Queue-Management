@@ -37,6 +37,14 @@ router.get("/:clinicID", async (req, res) => {
         const referenceDayOfWeek = referenceDate.getUTCDay() + 1; // +1 since mongo uses different indexing
         const referenceMinutes = referenceDate.getUTCHours() * 60 + referenceDate.getUTCMinutes();
 
+        
+        console.log('Filtering on:', {
+            referenceDate: referenceDate.toISOString(),
+            referenceDayOfWeek,
+            referenceMinutes,
+            specialitiesParam,
+        });
+
         const filteredQueues = await Queue.aggregate([
             {
                 $match: {
