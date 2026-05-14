@@ -6,6 +6,7 @@ import { useApiAuth } from '../../hooks/apiAuth';
 import { useRef } from 'react';
 
 function PatientProfile() {
+    //for changing of details
     const nameRef = useRef(); 
     const surnameRef = useRef();
     const titleRef = useRef();
@@ -70,6 +71,7 @@ function PatientProfile() {
         };
     };
 
+    //fetch profile data
     useEffect(() => {
         if (!patientId) {
             console.log("No user, cannot find profile details.");

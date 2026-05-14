@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const User = require("../../database/models/User");
 const Appointment = require("../../database/models/Appointment");
 const Clinic = require("../../database/models/Clinic");
+//const Staff = require("../../database/models/Staff");
 const Speciality = require("../../database/models/Speciality");
 
 router.put("/:appointmentID", async (req, res) => {
@@ -21,12 +22,19 @@ router.put("/:appointmentID", async (req, res) => {
         }
 
         // --- 24-HOUR RESTRICTION CHECK ---
-        const appointmentTime = new Date(appointment.BookingDateTime).getTime();
-        const currentTime = Date.now();
-        const hoursDifference = (appointmentTime - currentTime) / (1000 * 60 * 60);
+        const updateKeys = Object.keys(req.body);
+        const isModifyingCoreDetails = updateKeys.some(key => 
+            ['BookingDateTime', 'Clinic', 'Speciality', 'Patient', 'Staff'].includes(key)
+        );
 
-        if (hoursDifference < 24) {
-            return res.status(400).json({ message: "Appointments cannot be rescheduled or updated less than 24 hours before the scheduled time." });
+        if (isModifyingCoreDetails) {
+            const appointmentTime = new Date(appointment.BookingDateTime).getTime();
+            const currentTime = Date.now();
+            const hoursDifference = (appointmentTime - currentTime) / (1000 * 60 * 60);
+
+            if (hoursDifference < 24) {
+                return res.status(400).json({ message: "Appointments cannot be rescheduled or updated less than 24 hours before the scheduled time." });
+            }
         }
         // ---------------------------------
 
@@ -96,7 +104,7 @@ router.put("/:appointmentID", async (req, res) => {
         const updatedAppointment = await appointment.save();
         res.status(200).json({ message: "Appointment updated successfully.", appointment: updatedAppointment });
 
-    } catch(error) {
+    }catch(error) {
         console.error("Error updating appointment:", error);
         res.status(500).json({ message: "Server error." });
     }

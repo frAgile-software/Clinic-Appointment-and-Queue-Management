@@ -22,7 +22,6 @@ router.use("/clinics", getClinic);
 // API routes - specific routes first
 router.use("/api/clinics/assigned", requireAuth, listAssignedClinics);
 
-// ---> THE FIX: Catch the /api/clinics/filters route explicitly <---
 router.use("/api/clinics/filters", getFilters);
 
 // Other API clinic routes

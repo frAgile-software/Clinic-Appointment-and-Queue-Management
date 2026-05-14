@@ -8,7 +8,7 @@ const schedulesRoute = require('./routes/schedulesRoute');
 const appointmentsRoute = require("./routes/appointmentsRoute");
 const queuesRoute = require("./routes/queuesRoute");
 const specialitiesRoute = require("./routes/specialitiesRoute");
-const patientLogsRoute = require("./routes/patientLogsRoute"); // ADDED THIS
+const patientLogsRoute = require("./routes/patientLogsRoute"); 
 
 dbConnect();
 
@@ -36,7 +36,7 @@ server.get("/hello", (req, res) => {
     res.json({message : "Hello world!"});
 });
 
-/* istanbul ignore next */ 
+/* istanbul ignore next */ //ignores this block in code coverage
 if (require.main === module) {
     const port = process.env.PORT || 5000;
     const listener = server.listen(port, () => {

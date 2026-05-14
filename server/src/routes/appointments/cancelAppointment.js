@@ -28,9 +28,9 @@ router.delete('/:appointmentId', async (req, res) => {
             Patient: appointment.Patient,
             Staff: appointment.Staff,
             VisitType: "Appointment",
-            TimeIn: appointment.BookingDateTime, 
+            TimeIn: appointment.BookingDateTime, //stores the original booking date
             TimeOut: Date.now(),
-            TimeQStart: appointment.createdAt, 
+            TimeQStart: appointment.createdAt, //stores the time booking was made
             Status: "Cancelled",
         });
 

@@ -1,5 +1,5 @@
 jest.mock('../../middleware/auth', () => ({
-    requireAuth: (req, res, next) => next() 
+    requireAuth: (req, res, next) => next() // just skip auth
 }));
 
 jest.mock('../../database/dbConnect', () => jest.fn(() => Promise.resolve()));
@@ -39,7 +39,7 @@ describe('DELETE /api/appointments/:appointmentId', () => {
             Speciality: "General Practice",
             Patient: "patient123",
             Staff: "staff456",
-            BookingDateTime: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12 hours from now
+            BookingDateTime: new Date(Date.now() + 12 * 60 * 60 * 1000),
             createdAt: new Date(),
             Status: "Waiting",
         };
@@ -58,7 +58,7 @@ describe('DELETE /api/appointments/:appointmentId', () => {
             Speciality: "General Practice",
             Patient: "patient123",
             Staff: "staff456",
-            BookingDateTime: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 hours from now
+            BookingDateTime: new Date(Date.now() + 48 * 60 * 60 * 1000),
             createdAt: new Date("2026-04-01T08:00:00Z"),
             Status: "Waiting",
             updateOne: jest.fn().mockResolvedValue(true),

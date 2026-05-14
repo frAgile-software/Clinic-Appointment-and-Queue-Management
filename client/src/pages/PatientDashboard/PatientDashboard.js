@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import "./PatientDashboard.css";
 import { useAuth0 } from '@auth0/auth0-react';
+// import logo from './logo.svg';
 import { useApi } from "../../api/useApi";
 
 const PAGE_LIMIT = 12;
@@ -21,6 +22,7 @@ function PatientDashboard() {
   const [historyLogs, setHistoryLogs] = useState([]);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
+  // --- Search & Filter State ---
   const [showSearch, setShowSearch] = useState(false); 
   const [search, setSearch] = useState('');
   const [clinics, setClinics] = useState([]);
@@ -30,6 +32,7 @@ function PatientDashboard() {
   const [page, setPage] = useState(1);
   const [selectionError, setSelectionError] = useState("");
   
+  // --- Modal State ---
   const [selectedClinic, setSelectedClinic] = useState(null);
   const [showQueuePanel, setShowQueuePanel] = useState(false);
   const [selectedService, setSelectedService] = useState('');
@@ -38,6 +41,7 @@ function PatientDashboard() {
   const clinicsSectionRef = useRef(null);
   const debounceTimer = useRef(null);
 
+  // Added 'services' to store the list of specialities from the backend
   const [filterOptions, setFilterOptions] = useState({
     provinces: [], towns: [], suburbs: [], types: [], services: []
   });
@@ -268,6 +272,7 @@ function PatientDashboard() {
     });
   };
 
+  // --- Navigates to booking page, passing the reason as a URL parameter ---
   const handleBookNow = () => {
     navigate('/book', {
       state: {
@@ -282,6 +287,7 @@ function PatientDashboard() {
   };
 
   const handleJoinQueue = () => {
+    //shows queue joining panel, and fills in service if selected
     setSelectedService(filters.service || '');
     setShowQueuePanel(true);
   };
@@ -413,6 +419,7 @@ function PatientDashboard() {
                 <p>Find a clinic near you by name or the reason for your visit.</p>
               </section>
               
+              {/* --- DUAL SEARCH BAR --- */}
               <form className="dashboard-dual-search" onSubmit={handleSearch} role="search">
                 <section className="search-input-group">
                   <input
@@ -544,6 +551,7 @@ function PatientDashboard() {
         </section>
       </section>
 
+      {/* --- MODAL RENDERING --- */}
       {selectedClinic && (
         <section className="clinic-modal-overlay" onClick={closePopup}>
           <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()}>

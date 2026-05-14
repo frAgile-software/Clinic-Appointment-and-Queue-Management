@@ -45,7 +45,7 @@ describe("PUT /api/appointments/:appointmentID", () => {
         expect(Appointment.findById).toHaveBeenCalledWith("123456789012345678901234");
     });
 
-    test("should return 400 if appointment is within 24 hours", async () => {
+    test("should return 400 if appointment is within 24 hours and core details are modified", async () => {
         const mockAppointment = {
             _id: "123456789012345678901234",
             BookingDateTime: new Date(Date.now() + 12 * 60 * 60 * 1000), 
@@ -56,11 +56,12 @@ describe("PUT /api/appointments/:appointmentID", () => {
 
         const response = await request(app)
             .put("/api/appointments/123456789012345678901234")
-            .send({ Status: "Completed" });
+            .send({ BookingDateTime: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString() }); // Sending a core detail to trigger the block
 
         expect(response.status).toBe(400);
         expect(response.body).toEqual({ message: "Appointments cannot be rescheduled or updated less than 24 hours before the scheduled time." });
     });
+    
 
     test("should return 400 if patient ID is invalid", async () => {
         const mockAppointment = {
