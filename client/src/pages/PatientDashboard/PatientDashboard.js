@@ -89,6 +89,10 @@ function PatientDashboard() {
         try {
           const data = await api.queues.getForPatient(user.sub);
           if (data.inQueue) {
+            const response = await api.queues.getAverageWaitTime(data.queue.queue.Clinic._id, {
+              specialityIDs: data.queue.queue.Speciality._id,
+            });
+            data.queue.averageWaitTime = response.averageWaitTime;
             setPatientQueue(data.queue);
           } else {
             setPatientQueue(null);
