@@ -6,8 +6,10 @@ const mongoose = require("mongoose");
 router.get("/:userId", async (req, res) => {
     try {
         console.log("1. Incoming notification request:", req.params);
+        
         //get userId
         const {userId} = req.params;
+         console.log("Searching notifications for Recipient:", userId); 
         // Database lookup 
         const notif = await Notif.find({Recipient: userId});
 

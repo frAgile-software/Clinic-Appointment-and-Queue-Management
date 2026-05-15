@@ -156,11 +156,11 @@ useEffect(() => {
   async function fetchNotifications() {
     try {
       console.log("Fetching notifications for Recipient:", profileData?._id);
-      const data = await api.notifications.getNotifs(profileData?._id);
-
+      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/notif/${profileData?._id}`);
+      const data = await response.json();
       console.log("Raw Notification Data:", data);
-         
-      setNotifications(data);
+      
+      setNotifications(Array.isArray(data)? data: []);
     } catch (error) {
       console.error("Could not fetch notifications:", error);
     }
