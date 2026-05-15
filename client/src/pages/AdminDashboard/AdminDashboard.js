@@ -16,7 +16,22 @@ function AdminDashboard() {
     const [selectedClinic, setSelectedClinic] = useState(null);
     const [staffList, setStaffList] = useState([]);
     const [activeSection, setActiveSection] = useState(null);
+    const [adminName, setAdminName] = useState("");
     const contentRef = useRef(null);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (user?.sub) {
+            try {
+                const data = await api.users.get(user.sub);
+                setAdminName(data.name);
+            } catch (error) {
+                console.error("Failed to fetch user profile:", error);
+            }
+            }
+        };
+        fetchUserData();
+    }, [user, api]);
 
     useEffect(() => {
         const fetchAssignedClinics = async () => {
@@ -60,10 +75,6 @@ function AdminDashboard() {
         return <p>Loading dashboard...</p>;
     }
 
-    if (!selectedClinic) {
-        return <p>No assigned clinics found.</p>;
-    }
-
     const handleClinicChange = (clinic) => {
         setSelectedClinic(clinic);
         setActiveSection(null);
@@ -94,7 +105,7 @@ function AdminDashboard() {
             <section className="purple-banner-container">
                 <section className="top-section">
                     <section className="welcome-area">
-                        <h1 className="welcome-title-canva">Welcome Back, {user?.name || 'Admin'}!</h1>
+                        <h1 className="welcome-title-canva">Welcome Back, {adminName || 'Admin'}!</h1>
                     </section>
 
                     <section className="notifications-card">
@@ -109,6 +120,12 @@ function AdminDashboard() {
                 </section>
             </section>
 
+            {!clinics || clinics.length === 0 ? (
+                <section className="clinic-selection-area">
+                    <header className="selection-header">You are not assigned to any clinics yet.</header>
+                </section>
+            ) : (
+            <section>
             <section className="clinic-selection-area">
                 <header className="selection-header">Select your Clinic</header>
                 <ul className="clinic-cards-list">
@@ -207,6 +224,9 @@ function AdminDashboard() {
                     </article>
                 )}
             </section>
+            </section>
+            )}
+            
         </main>
     );
 }
