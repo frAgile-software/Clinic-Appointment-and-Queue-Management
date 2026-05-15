@@ -7,7 +7,7 @@ export class SpecialityService extends ResourceService {
 
     
     getAll() {
-        return this.pub.get(this.basePath);
+        return this.pub.get(`${this.basePath}/`);
     }
 
     // TODO: should accept a list of specialityIds (maybe in body)

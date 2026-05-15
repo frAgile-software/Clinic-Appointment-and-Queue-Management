@@ -19,11 +19,11 @@ describe("GET /specialities", () => {
         const mockSpecialities = [
             {
                 _id: "111111111111111111111111",
-                name: "General Checkup"
+                SpecialityName: "General Checkup"
             },
             {
                 _id: "222222222222222222222222",
-                name: "Dentistry"
+                SpecialityName: "Dentistry"
             }
         ];
 
