@@ -282,11 +282,11 @@ function AdminDashboard() {
                                 ) : stats && selectedStat === STATS.QUEUE_WAIT ? (
                                     <>
                                         <h2 className="chart-title">Average Queue Wait Time</h2>
+                                        <nav className="granularity-toggle">
+                                            <button className={queueGranularity === 'day' ? 'active' : ''} onClick={() => setQueueGranularity('day')}>Per Day</button>
+                                            <button className={queueGranularity === 'hour' ? 'active' : ''} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
+                                        </nav>
                                         <ResponsiveContainer width="100%" height={300}>
-                                            <nav className="granularity-toggle">
-                                                <button className={queueGranularity === 'day' ? 'active' : ''} onClick={() => setQueueGranularity('day')}>Per Day</button>
-                                                <button className={queueGranularity === 'hour' ? 'active' : ''} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
-                                            </nav>
                                             <BarChart data={stats}>
                                                 <CartesianGrid strokeDasharray="3 3" />
                                                 <XAxis dataKey="label" />
