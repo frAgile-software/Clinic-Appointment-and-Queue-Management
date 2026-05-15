@@ -216,6 +216,7 @@ function AdminDashboard() {
                                 <button className="stat-btn">Staff<br/>Off Days</button>
                                 <button className="stat-btn">Cancelled<br/>Appointments</button>
                                 <button className="stat-btn">Appointments<br/>Made</button>
+                                <button className="stat-btn">Queue<br/>Waits</button>
                             </nav>
                             <section className="graph-placeholder">
                                 <span className="graph-icon">📈</span>
