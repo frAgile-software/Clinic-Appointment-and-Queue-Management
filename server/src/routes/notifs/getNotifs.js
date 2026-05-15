@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 
 router.get("/:userId", async (req, res) => {
     try {
-        console.log("1. Incoming request:", req.params);
+        console.log("1. Incoming notification request:", req.params);
         //get userId
         const {userId} = req.params;
         // Database lookup 

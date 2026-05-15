@@ -159,8 +159,8 @@ useEffect(() => {
       const data = await api.notifications.getNotifs(profileData?._id);
 
       console.log("Raw Notification Data:", data);
-      const finalNotifs = Array.isArray(data) ? data : (data.Message || []);      
-      setNotifications(finalNotifs);
+         
+      setNotifications(data);
     } catch (error) {
       console.error("Could not fetch notifications:", error);
     }

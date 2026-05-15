@@ -8,7 +8,7 @@ const schedulesRoute = require('./routes/schedulesRoute');
 const appointmentsRoute = require("./routes/appointmentsRoute");
 const queuesRoute = require("./routes/queuesRoute");
 const specialitiesRoute = require("./routes/specialitiesRoute");
-const notifRoute = require("./routes/notifsRoute");
+const notifsRoute = require("./routes/notifsRoute");
 
 dbConnect();
 
@@ -29,7 +29,7 @@ server.use(schedulesRoute);
 server.use(appointmentsRoute);
 server.use(queuesRoute);
 server.use(specialitiesRoute);
-server.use(notifRoute);
+server.use(notifsRoute);
 
 // hello mr api! :D
 server.get("/hello", (req, res) => {
