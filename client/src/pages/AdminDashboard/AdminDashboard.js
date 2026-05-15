@@ -2,6 +2,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
 import { LuUser, LuBell } from "react-icons/lu";
 import { useApi } from "../../api/useApi";  
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './AdminDashboard.css';
 
 function AdminDashboard() {
@@ -18,6 +19,13 @@ function AdminDashboard() {
     const [activeSection, setActiveSection] = useState(null);
     const [adminName, setAdminName] = useState("");
     const contentRef = useRef(null);
+    const [stats, setStats] = useState(null);
+    const [statsCache, setStatsCache] = useState({});
+    const [selectedStat, setSelectedStat] = useState('');
+    const [loadingStats, setLoadingStats] = useState(false);
+    const [queueGranularity, setQueueGranularity] = useState('day');
+
+    const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED: 'apps-cancelled', DAYS_OFF: 'days-off'}
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -70,6 +78,56 @@ function AdminDashboard() {
 
         fetchStaff();
     }, [selectedClinic, user, api]);
+
+    // creates a cache key for a stats query
+    const buildCacheKey = (clinicId, stat, params = {}) => {
+        const paramStr = Object.values(params).join('-');
+        return paramStr ? `${clinicId}-${stat}-${paramStr}` : `${clinicId}-${stat}`;
+    }
+
+    useEffect(() => {
+        if (activeSection === 'view-stats' && selectedClinic) {
+            const fetchStats = async () => {
+
+                // Cache stats (so we dont refetch them on every button click)
+                const cacheKey = buildCacheKey(selectedClinic._id, selectedStat,
+                    selectedStat === STATS.QUEUE_WAIT ? {granularity: queueGranularity } : {}
+                );
+
+                if (statsCache[cacheKey]) {
+                    setStats(statsCache[cacheKey]);
+                    return;
+                }
+
+                setLoadingStats(true);
+                try {
+                    switch(selectedStat) {
+                        case STATS.QUEUE_WAIT:
+                            console.log("Queue waits:");
+                            const data = await api.queues.getAverageWaitTime(selectedClinic._id, {_groupby: queueGranularity});
+                            setStats(data.data);
+                            setStatsCache( prev => ({...prev, [cacheKey]: data.data } ));
+                            break;
+                        case STATS.APPS_MADE:
+                            console.log("Appoitments made:");
+                            break;
+                        case STATS.APPS_CANCELLED:
+                            console.log("Appoitments cancelled:");
+                            break;
+                        case STATS.DAYS_OFF:
+                            console.log("Staff days off:");
+                            break;
+                    }
+                } catch (error) {
+                    console.log("Error fetching stats:", error);
+                    setStats(null);
+                } finally {
+                    setLoadingStats(false);
+                }
+            }
+            fetchStats();
+        }
+    }, [activeSection, selectedClinic, queueGranularity, selectedStat]);
 
     if (isLoading) {
         return <p>Loading dashboard...</p>;
@@ -213,13 +271,17 @@ function AdminDashboard() {
                         <header className="block-header">Clinic Stats</header>
                         <section className="block-body">
                             <nav className="stats-nav">
-                                <button className="stat-btn">Staff<br/>Off Days</button>
-                                <button className="stat-btn">Cancelled<br/>Appointments</button>
-                                <button className="stat-btn">Appointments<br/>Made</button>
-                                <button className="stat-btn">Queue<br/>Waits</button>
+                                <button className="stat-btn" onClick={() => setSelectedStat("days-off")}>Staff<br/>Off Days</button>
+                                <button className="stat-btn" onClick={() => setSelectedStat("apps-cancelled")}>Cancelled<br/>Appointments</button>
+                                <button className="stat-btn" onClick={() => setSelectedStat("apps-made")}>Appointments<br/>Made</button>
+                                <button className="stat-btn" onClick={() => setSelectedStat("queue-waits")}>Queue<br/>Waits</button>
                             </nav>
-                            <section className="graph-placeholder">
-                                <span className="graph-icon">📈</span>
+                            <section className="stats-graph">
+                                { loadingStats ? (
+                                    <span>Loading {selectedStat}...</span>
+                                ) : (
+                                    <span className="graph-icon">📈</span>
+                                )}
                             </section>
                         </section>
                     </article>
