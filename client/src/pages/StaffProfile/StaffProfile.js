@@ -41,7 +41,7 @@ function StaffProfile() {
     setIsChangeDetailsModalOpen(!isChangeDetailsModalOpen);
   };
 
-  const toggleClinicDetailsModal = () => {
+  const toggleClinicDetailsModal = async () => {
     setIsClinicDetailsModalOpen(!isClinicDetailsModalOpen);
   };
 
