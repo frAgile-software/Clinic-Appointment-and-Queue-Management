@@ -213,7 +213,10 @@ useEffect(() => {
 
   
 return (
-  <div className="landing"> 
+  <div
+    className="landing profile-page-container"
+    style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/bg2.png)` }}
+  > 
     <nav className="landing-nav" aria-label="Main navigation">
       <button
   className="btn-secondary"
@@ -260,6 +263,9 @@ return (
                 <div key={n._id} className={`notif-item ${n.Seen ? '' : 'unseen'}`}>
                   <p>{n.Message}</p>
                   <small>{new Date(n.Time).toLocaleString([],{
+                    weekday: 'long',
+                    month: 'short',  
+                    day: 'numeric',   
                     hour: '2-digit', 
                     minute: '2-digit', 
                     hour12: true
