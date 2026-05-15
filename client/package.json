@@ -15,6 +15,7 @@
     "react-icons": "^5.6.0",
     "react-router": "^7.14.0",
     "react-scripts": "5.0.1",
+    "recharts": "^3.8.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -44,13 +45,13 @@
   },
   "jest": {
     "coveragePathIgnorePatterns": [
-        "/node_modules/",
-        "src/index.js",
-        "src/reportWebVitals.js",
-        "src/hooks/apiAuth.js",
-        "src/api/ApiClient.js",
-        "src/api/ResourceService.js",
-        "src/api/useApi.js"
+      "/node_modules/",
+      "src/index.js",
+      "src/reportWebVitals.js",
+      "src/hooks/apiAuth.js",
+      "src/api/ApiClient.js",
+      "src/api/ResourceService.js",
+      "src/api/useApi.js"
     ]
   }
 }
