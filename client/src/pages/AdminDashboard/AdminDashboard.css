@@ -396,3 +396,20 @@
   font-size: 100px;
   color: #6b1fad; 
 }
+
+.custom-tooltip {
+    background: white;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.custom-tooltip .tooltip-label {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.custom-tooltip .tooltip-value {
+    font-size: 12px;
+}
