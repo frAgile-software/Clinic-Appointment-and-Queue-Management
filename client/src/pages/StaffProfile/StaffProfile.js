@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './StaffProfile.css'; 
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
+import { useApi } from '../../api/useApi';
 import { useApiAuth } from '../../hooks/apiAuth';
 import { useRef } from 'react';
 function StaffProfile() {
@@ -9,12 +10,15 @@ function StaffProfile() {
   const surnameRef = useRef();
   const titleRef = useRef();
   const emailRef = useRef();
-  
+  const api = useApi();
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+
 
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
   const {apiFetch} = useApiAuth();
 
+  const [notifications, setNotifications] = useState(null);
   const [profileData, setProfileData] = useState(null);
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [isClinicDetailsModalOpen, setIsClinicDetailsModalOpen] = useState(false);
@@ -24,6 +28,10 @@ function StaffProfile() {
   const [loading, setLoading] = useState(false);
   void clinics;
   const staffId = user?.sub;
+  
+  const toggleNotifs = () => {
+    setIsNotifOpen(!isNotifOpen);
+  };
 
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -90,6 +98,7 @@ function StaffProfile() {
         const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`);
         const data = await response.json();
         console.log("User data", data);
+       
         setProfileData(data);
       } catch (error) {
         console.error("Could not fetch profile data:", error);
@@ -138,6 +147,27 @@ function StaffProfile() {
 
   }, [staffId, apiFetch]);
 
+  //fetch notifications
+ 
+useEffect(() => {
+  
+  if (!profileData?._id) return;
+
+  async function fetchNotifications() {
+    try {
+      console.log("Fetching notifications for Recipient:", profileData?._id);
+      const data = await api.notifications.getNotifs(profileData?._id);
+
+      console.log("Raw Notification Data:", data);
+      const finalNotifs = Array.isArray(data) ? data : (data.Message || []);      
+      setNotifications(finalNotifs);
+    } catch (error) {
+      console.error("Could not fetch notifications:", error);
+    }
+  }
+
+  fetchNotifications();
+}, [apiFetch, profileData?._id]); 
   
 
 return (
@@ -147,6 +177,33 @@ return (
       <section className="landing-nav-btns">
         <button className="btn" onClick={logout}>Logout</button>
         <button className="btn btn-primary" onClick={() => navigate('/dashboard/staff')}>Back</button>
+        <div className="notif-wrapper" style={{ position: 'relative' }}>
+  <button className="btn" onClick={toggleNotifs}>
+        Notifications {notifications?.length > 0 && <span className="notif-badge">{notifications.length}</span>}
+      </button>
+
+      {isNotifOpen && (
+        <div className="notif-dropdown">
+          <div className="notif-header">
+            <h4>Notifications</h4>
+            <button className="btn-text" onClick={() => {/* logic to deleteSeen */}}>Clear All</button>
+          </div>
+          
+          <div className="notif-list">
+            {notifications && notifications.length > 0 ? (
+              notifications.map((n) => (
+                <div key={n._id} className={`notif-item ${n.Seen ? '' : 'unseen'}`}>
+                  <p>{n.Message}</p>
+                  <small>{new Date(n.Time).toLocaleString()}</small>
+                </div>
+              ))
+            ) : (
+              <p className="notif-empty">No new notifications</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
       </section>
     </nav>
 
