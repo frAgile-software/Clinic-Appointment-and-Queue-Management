@@ -187,7 +187,7 @@ Base path: `/queues`.
 | `getForPatient(patientAuth0Id)` | Private | `GET /api/queues/patient/:auth0Id` |
 | `addPatient(clinicId, patientId, specialityName)` | Public | `POST /queues/` |
 | `remove(queueId)` | Private | `DELETE /api/queues/:queueId` |
-| `update(queueId, {clinicId, specialityId, patientId, status, remarks})` | Private | `PUT /api/queues/:queueId` |
+| `update(queueId, {clinicId, specialityId, patientId, status, remarks, timeSeen})` | Private | `PUT /api/queues/:queueId` |
 | `get(clinicId, {auth0Id, userId, specialityIDs, statuses})` | Private | `GET /api/queues/:clinicId?statuses=...` with <br> `&auth0Id=..`,  `&userId=..`, or `&specialityIDs=spec1,spec2...`|
 
 
