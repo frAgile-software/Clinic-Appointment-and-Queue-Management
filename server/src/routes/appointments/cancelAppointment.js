@@ -38,9 +38,9 @@ router.patch('/:appointmentId', async (req, res) => {
         }
         // ---------------------------------
 
-        await Appointment.collection.updateOne(
-            { _id: new mongoose.Types.ObjectId(appointmentId) },
-            { $set: { Status: "Cancelled", type: "Consult" } }
+        await Appointment.updateOne(
+            { _id: appointmentId },
+            { Status: "Cancelled" }
         );
 
         const updatedAppointment = await Appointment.findById(appointmentId);
