@@ -192,6 +192,25 @@ useEffect(() => {
 return (
   <div className="landing"> 
     <nav className="landing-nav" aria-label="Main navigation">
+      <button
+  className="btn-secondary"
+  onClick={async () => {
+    if (!profileData?._id) return;
+
+    try {
+      const notif = await api.notifications.createNotif(
+        profileData._id,
+        `Test notification created at ${new Date().toLocaleTimeString()}`
+      );
+
+      setNotifications((prev) => [...prev, notif]);
+    } catch (error) {
+      console.error("Could not create test notification:", error);
+    }
+  }}
+>
+  Create Test Notification
+</button>
       <span className="landing-logo">Clinics and Qs</span>
       <section className="landing-nav-btns">
         <button className="btn" onClick={logout}>Logout</button>

@@ -231,8 +231,25 @@
 
 .notif-list {
   max-height: 360px;
-  overflow-y: auto;
+  overflow-y: scroll;
   padding: 6px;
+}
+
+.notif-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.notif-list::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.notif-list::-webkit-scrollbar-thumb {
+  background: #c4b5d6;
+  border-radius: 999px;
+}
+
+.notif-list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand);
 }
 
 .notif-item {
@@ -240,6 +257,13 @@
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   background: var(--color-surface);
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.notif-item:hover {
+  border-color: rgba(107, 47, 160, 0.34);
+  background: #faf7ff;
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.08);
 }
 
 .notif-item + .notif-item {
@@ -249,6 +273,11 @@
 .notif-item.unseen {
   border-color: rgba(107, 47, 160, 0.22);
   background: var(--color-brand-light);
+}
+
+.notif-item.unseen:hover {
+  border-color: var(--color-brand);
+  background: #eee1fb;
 }
 
 .notif-item p {
