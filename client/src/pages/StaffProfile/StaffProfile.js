@@ -18,7 +18,9 @@ function StaffProfile() {
   const navigate = useNavigate();
   const {apiFetch} = useApiAuth();
 
-  const [notifications, setNotifications] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState("");
   const [profileData, setProfileData] = useState(null);
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [isClinicDetailsModalOpen, setIsClinicDetailsModalOpen] = useState(false);
@@ -43,6 +45,19 @@ function StaffProfile() {
 
   const toggleClinicDetailsModal = async () => {
     setIsClinicDetailsModalOpen(!isClinicDetailsModalOpen);
+  };
+
+  const handleClearSeen = async () => {
+    if (!profileData?._id) return;
+
+    try {
+      setNotificationsError("");
+      await api.notifications.deleteSeen(profileData._id);
+      setNotifications((prev) => prev.filter((notification) => !notification.Seen));
+    } catch (error) {
+      console.error("Could not clear seen notifications:", error);
+      setNotificationsError("Could not clear notifications.");
+    }
   };
 
   const handleUpdate = async () => {
@@ -155,17 +170,23 @@ useEffect(() => {
 
   async function fetchNotifications() {
     try {
+      setNotificationsLoading(true);
+      setNotificationsError("");
       console.log("Fetching notifications for Recipient:", profileData?._id);
       const data = await api.notifications.getNotifs(profileData._id);
       setNotifications(Array.isArray(data) ? data : []);
       console.log("Raw Notification Data:", data);
     } catch (error) {
       console.error("Could not fetch notifications:", error);
+      setNotifications([]);
+      setNotificationsError("Could not load notifications.");
+    } finally {
+      setNotificationsLoading(false);
     }
   }
 
   fetchNotifications();
-}, [apiFetch, profileData?._id, api.notifications]); 
+}, [api, profileData?._id]); 
   
 
 return (
@@ -177,18 +198,22 @@ return (
         <button className="btn btn-primary" onClick={() => navigate('/dashboard/staff')}>Back</button>
         <div className="notif-wrapper" style={{ position: 'relative' }}>
   <button className="btn" onClick={toggleNotifs}>
-        Notifications {notifications?.length > 0 && <span className="notif-badge">{notifications.length}</span>}
+        Notifications {notifications.length > 0 && <span className="notif-badge">{notifications.length}</span>}
       </button>
 
       {isNotifOpen && (
         <div className="notif-dropdown">
           <div className="notif-header">
             <h4>Notifications</h4>
-            <button className="btn-text" onClick={() => {/* logic to deleteSeen */}}>Clear All</button>
+            <button className="btn-text" onClick={handleClearSeen}>Clear Seen</button>
           </div>
           
           <div className="notif-list">
-            {notifications && notifications.length > 0 ? (
+            {notificationsLoading ? (
+              <p className="notif-empty">Loading notifications...</p>
+            ) : notificationsError ? (
+              <p className="notif-empty">{notificationsError}</p>
+            ) : notifications.length > 0 ? (
               notifications.map((n) => (
                 <div key={n._id} className={`notif-item ${n.Seen ? '' : 'unseen'}`}>
                   <p>{n.Message}</p>
