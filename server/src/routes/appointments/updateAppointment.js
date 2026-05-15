@@ -106,9 +106,6 @@ router.put("/:appointmentID", async (req, res) => {
         }
         if (status !== undefined) {
             appointment.Status = status;
-            if (status === 'Completed' || status === 'Cancelled' || status === 'No-show') {
-                appointment.type = "Consult";
-            }
         }
         if (remarks !== undefined) {
             appointment.Remarks = remarks;
