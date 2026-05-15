@@ -5,6 +5,8 @@ import { useApi } from "../../api/useApi";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './AdminDashboard.css';
 
+const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED: 'apps-cancelled', DAYS_OFF: 'days-off'}
+
 function AdminDashboard() {
     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
     const api = useApi(); 
@@ -24,8 +26,6 @@ function AdminDashboard() {
     const [selectedStat, setSelectedStat] = useState('');
     const [loadingStats, setLoadingStats] = useState(false);
     const [queueGranularity, setQueueGranularity] = useState('day');
-
-    const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED: 'apps-cancelled', DAYS_OFF: 'days-off'}
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -117,6 +117,8 @@ function AdminDashboard() {
                         case STATS.DAYS_OFF:
                             console.log("Staff days off:");
                             break;
+                        default:
+                            console.log("No stat selected.");
                     }
                 } catch (error) {
                     console.log("Error fetching stats:", error);
@@ -127,7 +129,7 @@ function AdminDashboard() {
             }
             fetchStats();
         }
-    }, [activeSection, selectedClinic, queueGranularity, selectedStat]);
+    }, [activeSection, selectedClinic, queueGranularity, selectedStat, api, statsCache]);
 
     if (isLoading) {
         return <p>Loading dashboard...</p>;
