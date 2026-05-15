@@ -256,13 +256,14 @@
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
-  background: var(--color-surface);
+  background: #f3f4f6;
+  opacity: 0.72;
   transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
 .notif-item:hover {
-  border-color: rgba(107, 47, 160, 0.34);
-  background: #faf7ff;
+  border-color: #d1d5db;
+  background: #eef0f3;
   box-shadow: 0 4px 12px rgba(17, 24, 39, 0.08);
 }
 
@@ -273,6 +274,7 @@
 .notif-item.unseen {
   border-color: rgba(107, 47, 160, 0.22);
   background: var(--color-brand-light);
+  opacity: 1;
 }
 
 .notif-item.unseen:hover {

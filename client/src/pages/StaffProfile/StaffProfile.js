@@ -30,6 +30,10 @@ function StaffProfile() {
   const [loading, setLoading] = useState(false);
   void clinics;
   const staffId = user?.sub;
+
+  const sortNotifications = (items) => {
+    return [...items].sort((a, b) => new Date(b.Time) - new Date(a.Time));
+  };
   
   const toggleNotifs = () => {
     setIsNotifOpen(!isNotifOpen);
@@ -104,6 +108,22 @@ function StaffProfile() {
     }
   };
 
+  const handleMarkSeen = async () => {
+    if (!profileData?._id) return;
+
+      try {
+      setNotificationsError("");
+      await api.notifications.markSeen(profileData._id);
+      setNotifications((prev) => prev.map((notification) => ({
+        ...notification,
+        Seen: true
+      })));
+    } catch (error) {
+      console.error("Could not mark seen notifications:", error);
+      setNotificationsError("Could not mark notifications.");
+    }
+  };
+
   //fetch profile data
   useEffect(() => {
     if (!staffId) return;
@@ -141,6 +161,7 @@ function StaffProfile() {
     fetchSpecialities();
   }, [apiFetch, staffId, profileData]);
 
+  //fetch clinics
     useEffect(() => {
     if (!staffId) return;
     async function fetchClinics() {
@@ -174,7 +195,7 @@ useEffect(() => {
       setNotificationsError("");
       console.log("Fetching notifications for Recipient:", profileData?._id);
       const data = await api.notifications.getNotifs(profileData._id);
-      setNotifications(Array.isArray(data) ? data : []);
+      setNotifications(Array.isArray(data) ? sortNotifications(data) : []);
       console.log("Raw Notification Data:", data);
     } catch (error) {
       console.error("Could not fetch notifications:", error);
@@ -205,7 +226,7 @@ return (
         `Test notification created at ${new Date().toLocaleTimeString()}`
       );
 
-      setNotifications((prev) => [...prev, notif]);
+      setNotifications((prev) => sortNotifications([...prev, notif]));
     } catch (error) {
       console.error("Could not create test notification:", error);
     }
@@ -226,7 +247,7 @@ return (
         <div className="notif-dropdown">
           <div className="notif-header">
             <h4>Notifications</h4>
-            <button className="btn-text" onClick={handleClearSeen}>Clear Seen</button>
+            <button className="btn-text" onClick={handleMarkSeen}>Mark all as seen</button>
           </div>
           
           <div className="notif-list">
@@ -238,7 +259,11 @@ return (
               notifications.map((n) => (
                 <div key={n._id} className={`notif-item ${n.Seen ? '' : 'unseen'}`}>
                   <p>{n.Message}</p>
-                  <small>{new Date(n.Time).toLocaleString()}</small>
+                  <small>{new Date(n.Time).toLocaleString([],{
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    hour12: true
+                  })}</small>
                 </div>
               ))
             ) : (

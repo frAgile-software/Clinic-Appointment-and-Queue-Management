@@ -12,6 +12,10 @@ export class NotifService extends ResourceService {
         return this.priv.delete(`${this.basePath}/${userId}`, null);
     }
 
+    markSeen(userId){
+        return this.priv.patch(`${this.basePath}/${userId}`, null);
+    }
+
     createNotif(recipient, message, {time}={}){
         return this.priv.post(this.basePath, {
             recipient: recipient,
