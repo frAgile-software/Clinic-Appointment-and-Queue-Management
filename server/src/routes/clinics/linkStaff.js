@@ -4,46 +4,37 @@ const User = require("../../database/models/User");
 const Clinic = require("../../database/models/Clinic");
 const Staff = require("../../database/models/Staff");
 
-router.post("/:clinicID/staff", async (req, res) => {
+// POST /clinics/:clinicId/staff
+// Links an unassigned staff member to the specified clinic
+router.post("/:clinicId/staff", async (req, res) => {
     try {
-        const { clinicID } = req.params;
-        const { id, email, auth0Id } = req.body;
-        
-        // Get referenced clinic
-        const clinic = await Clinic.exists({ id: clinicID });
-        if (!clinic) 
+        const { clinicId } = req.params;
+        const { auth0Id } = req.body;
+
+        const clinic = await Clinic.findById(clinicId);
+        if (!clinic)
             return res.status(404).json({ message: "Clinic not found." });
 
+        // Check the user being added is a Staff member
+        const staffUser = await User.findOne({ auth0Id, role: "Staff" });
+        if (!staffUser)
+            return res.status(404).json({ message: "No staff account found." });
 
-        // Check if allowed
-        const sender = await User.findOne({ auth0Id });
-        if (!sender || sender.role != "Admin") 
-            return res.status(403).json({ message: "Unauthorized." });
+        // Check they aren't already linked to any clinic
+        const alreadyLinked = await Staff.findOne({ User: staffUser._id });
+        if (alreadyLinked)
+            return res.status(409).json({ message: "Staff member is already linked to a clinic." });
 
-        const senderStaff = await Staff.exists({ Clinic: clinic._id, User: sender._id });
-        if (!senderStaff) 
-            return res.status(403).json({ message: "Not authorized." });
-
-
-        // Check if possible
-        const user = await User.findOne({ $or: [{ id }, { email }] });
-              
-        if (!user || !user.role || user.role == "Patient") 
-            return res.status(404).json({ message: "User not found." });
-        
-        
-        // Link the staff
-        const staff = new Staff({
+        // Link them
+        const newLink = await Staff.create({
+            User: staffUser._id,
             Clinic: clinic._id,
-            User: user._id
         });
 
-        const savedStaff = await staff.save();
-
-        res.status(201).json({ message: "Staff linked successfully.", staffID: savedStaff.id });
+        res.status(201).json({ message: "Staff linked successfully.", staffId: newLink._id });
 
     } catch (error) {
-        console.error("User lookup error:", error);
+        console.error("Link staff error:", error);
         res.status(500).json({ message: "Server error." });
     }
 });
