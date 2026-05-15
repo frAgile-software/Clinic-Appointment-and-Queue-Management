@@ -271,14 +271,31 @@ function AdminDashboard() {
                         <header className="block-header">Clinic Stats</header>
                         <section className="block-body">
                             <nav className="stats-nav">
-                                <button className="stat-btn" onClick={() => setSelectedStat("days-off")}>Staff<br/>Off Days</button>
-                                <button className="stat-btn" onClick={() => setSelectedStat("apps-cancelled")}>Cancelled<br/>Appointments</button>
-                                <button className="stat-btn" onClick={() => setSelectedStat("apps-made")}>Appointments<br/>Made</button>
-                                <button className="stat-btn" onClick={() => setSelectedStat("queue-waits")}>Queue<br/>Waits</button>
+                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : ''}`} onClick={() => setSelectedStat("days-off")}>Staff<br/>Off Days</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPS_CANCELLED ? 'active' : ''}`} onClick={() => setSelectedStat("apps-cancelled")}>Cancelled<br/>Appointments</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPS_MADE ? 'active' : ''}`} onClick={() => setSelectedStat("apps-made")}>Appointments<br/>Made</button>
+                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : ''}`} onClick={() => setSelectedStat("queue-waits")}>Queue<br/>Waits</button>
                             </nav>
                             <section className="stats-graph">
                                 { loadingStats ? (
                                     <span>Loading {selectedStat}...</span>
+                                ) : stats && selectedStat === STATS.QUEUE_WAIT ? (
+                                    <>
+                                        <h2 className="chart-title">Average Queue Wait Time</h2>
+                                        <ResponsiveContainer width="100%" height={300}>
+                                            <nav className="granularity-toggle">
+                                                <button className={queueGranularity === 'day' ? 'active' : ''} onClick={() => setQueueGranularity('day')}>Per Day</button>
+                                                <button className={queueGranularity === 'hour' ? 'active' : ''} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
+                                            </nav>
+                                            <BarChart data={stats}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="label" />
+                                                <YAxis unit=" min" />
+                                                <Tooltip />
+                                                <Bar dataKey="avgWait" fill="#6b1fad" radius={[4, 4, 0, 0]}/>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </>
                                 ) : (
                                     <span className="graph-icon">📈</span>
                                 )}
