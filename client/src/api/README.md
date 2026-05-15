@@ -236,6 +236,9 @@ await api.specialities.removeFromStaff({staffId: "staff123", specialityId: "spc1
 
 // get a list of staff specialities
 const staffSpecs = await api.specialities.getForStaff("staff123");
+
+//get a list of all specialitities
+const specialities = await api.specialities.getAll();
 ```
 
 ---
