@@ -297,7 +297,7 @@ function AdminDashboard() {
             <section className="purple-banner-container">
                 <section className="top-section">
                     <section className="welcome-area">
-                        <h1 className="welcome-title-canva">Welcome Back, {user?.name || 'Admin'}!</h1>
+                        <h1 className="welcome-title-canva">Welcome Back, {adminName || 'Admin'}!</h1>
                     </section>
 
                     <section className="notifications-card">
