@@ -1,61 +1,33 @@
 import { Link } from 'react-router';
 import './AdminDashboard.css';
+import bell from './bell.png';
 import logo from './clinicLogo.png';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useState, useEffect } from 'react';
 
-import NotificationCenter from '../../components/NotificationCenter';
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from "react-router";
-import { LuUser, LuBell } from "react-icons/lu";
-import { useApi } from "../../api/useApi";  
-import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import './AdminDashboard.css';
-
-const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED: 'apps-cancelled', DAYS_OFF: 'days-off'}
 
 function AdminDashboard() {
-    const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
-    const api = useApi(); 
-    const navigate = useNavigate();
+     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
 
+    //const [dashboardData] = useState(adminDashboardStub);
+   // const [selectedClinic, setSelectedClinic] = useState(adminDashboardStub.clinics[0]);
     const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
     };
-
     const [clinics, setClinics] = useState([]);
     const [selectedClinic, setSelectedClinic] = useState(null);
     const [staffList, setStaffList] = useState([]);
-    const [activeSection, setActiveSection] = useState(null);
-    const [adminName, setAdminName] = useState("");
-    const contentRef = useRef(null);
-    const [stats, setStats] = useState(null);
-    const [statsCache, setStatsCache] = useState({});
-    const [selectedStat, setSelectedStat] = useState('');
-    const [loadingStats, setLoadingStats] = useState(false);
-    const [queueGranularity, setQueueGranularity] = useState('day');
-
-    useEffect(() => {
-        const fetchUserData = async () => {
-            if (user?.sub) {
-            try {
-                const data = await api.users.get(user.sub);
-                setAdminName(data.name);
-            } catch (error) {
-                console.error("Failed to fetch user profile:", error);
-            }
-            }
-        };
-        fetchUserData();
-    }, [user, api]);
-
     useEffect(() => {
         const fetchAssignedClinics = async () => {
             try {
                 if (!user?.sub) return;
 
-                const data = await api.clinics.getAssignedClinics(user.sub);
+                const response = await fetch(
+                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${encodeURIComponent(user.sub)}`
+                );
+                const data = await response.json();
 
-                if (Array.isArray(data) && data.length > 0) {
+                if (response.ok && data.length > 0) {
                     setClinics(data);
                     setSelectedClinic(data[0]);
                 }
@@ -66,17 +38,20 @@ function AdminDashboard() {
         if (!isLoading && isAuthenticated) {
             fetchAssignedClinics();
         }
-    }, [user, isAuthenticated, isLoading, api]);
+    }, [user, isAuthenticated, isLoading]);
 
     useEffect(() => {
         const fetchStaff = async () => {
             try {
                 if (!selectedClinic || !user?.sub) return;
 
-                const data = await api.clinics.listStaff(selectedClinic._id);
+                const response = await fetch(
+                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/${selectedClinic._id}/staff?auth0Id=${encodeURIComponent(user.sub)}`
+                );
+                const data = await response.json();
 
-                if (data && data.users) {
-                    setStaffList(data.users || []);
+                if (response.ok) {
+                    setStaffList(data.users);
                 }
             } catch (error) {
                 console.error('Error fetching staff:', error);
@@ -84,277 +59,126 @@ function AdminDashboard() {
         };
 
         fetchStaff();
-    }, [selectedClinic, user, api]);
-
-    // creates a cache key for a stats query
-    const buildCacheKey = (clinicId, stat, params = {}) => {
-        const paramStr = Object.values(params).join('-');
-        return paramStr ? `${clinicId}-${stat}-${paramStr}` : `${clinicId}-${stat}`;
-    }
-
-    useEffect(() => {
-        if (activeSection === 'view-stats' && selectedClinic) {
-            const fetchStats = async () => {
-
-                // Cache stats (so we dont refetch them on every button click)
-                const cacheKey = buildCacheKey(selectedClinic._id, selectedStat,
-                    selectedStat === STATS.QUEUE_WAIT ? {granularity: queueGranularity } : {}
-                );
-
-                if (statsCache[cacheKey]) {
-                    setStats(statsCache[cacheKey]);
-                    return;
-                }
-
-                setLoadingStats(true);
-                try {
-                    switch(selectedStat) {
-                        case STATS.QUEUE_WAIT:
-                            console.log("Queue waits:");
-                            const data = await api.queues.getAverageWaitTime(selectedClinic._id, {_groupby: queueGranularity});
-                            setStats(data.data);
-                            setStatsCache( prev => ({...prev, [cacheKey]: data.data } ));
-                            break;
-                        case STATS.APPS_MADE:
-                            console.log("Appoitments made:");
-                            break;
-                        case STATS.APPS_CANCELLED:
-                            console.log("Appoitments cancelled:");
-                            break;
-                        case STATS.DAYS_OFF:
-                            console.log("Staff days off:");
-                            break;
-                        default:
-                            console.log("No stat selected.");
-                    }
-                } catch (error) {
-                    console.log("Error fetching stats:", error);
-                    setStats(null);
-                } finally {
-                    setLoadingStats(false);
-                }
-            }
-            fetchStats();
-        }
-    }, [activeSection, selectedClinic, queueGranularity, selectedStat, api, statsCache]);
+    }, [selectedClinic, user]);
 
     if (isLoading) {
-        return <p>Loading dashboard...</p>;
+    return <p>Loading dashboard...</p>;
     }
+
+    if (!selectedClinic) {
+    return <p>No assigned clinics found.</p>;
+    }
+        
+
+
 
     const handleClinicChange = (clinic) => {
         setSelectedClinic(clinic);
-        setActiveSection(null);
     };
 
-    const toggleSection = (sectionName) => {
-        setActiveSection(activeSection === sectionName ? null : sectionName);
-        setTimeout(() => {
-            contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-    };
-
-    const QueueTooltip = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            const hour = Math.floor(label)
-            const formatLabel = queueGranularity === 'hour' ? `${String(hour).padStart(2, '0')}:00-${String(hour).padStart(2, '0')}:59` : label;
-            return (
-                <section className='custom-tooltip'>
-                    <p className='tooltip-label'>{formatLabel}</p>
-                    <p className='tooltip-label'>{payload[0].value} min</p>
-                </section>
-            )
-        }
-        return null;
-    }
-
-    // data is returned per hour i.e. 08:00 is the wait time for 08:00-08:59
-    // this func shifts those values for display purposes (line graph)
-    const shiftHours = !stats ? [] : stats.map(item => ({
-        ...item,
-        hourNum: parseInt(item.label) + 0.5,
-    }));
-
-    return (
-        <main className="admin-dashboard-wrapper">
-            <header className="admin-header-canva">
-                <section className="brand-section">
-                    <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
-                    <h2 className="brand-title">Clinics and Qs</h2>
-                </section>
-                <nav className="header-nav-canva">
-                    <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/admin/profile')}>
-                        <LuUser />
-                    </button>
-                    <button className="logout-btn-canva" onClick={logout}>Logout</button>
-                </nav>
-            </header>
-
-            <section className="purple-banner-container">
-                <section className="top-section">
-                    <section className="welcome-area">
-                        <h1 className="welcome-title-canva">Welcome Back, {adminName || 'Admin'}!</h1>
-                    </section>
-
-                    <section className="notifications-card">
-                        <section className="notif-header">
-                            <h3>Notifications</h3>
-                            <LuBell className="bell-icon" />
-                        </section>
-                        <section className="notifications-list">
-                            <p style={{ marginTop: '1rem', fontSize: '14px', fontWeight: 'bold' }}>3 New Notifications</p>
-                        </section>
-                    </section>
-                </section>
-            </section>
-
-            {!clinics || clinics.length === 0 ? (
-                <section className="clinic-selection-area">
-                    <header className="selection-header">You are not assigned to any clinics yet.</header>
-                </section>
-            ) : (
-            <section>
-            <section className="clinic-selection-area">
-                <header className="selection-header">Select your Clinic</header>
-                <ul className="clinic-cards-list">
-                    {clinics.map((clinic) => (
-                        <li 
-                            key={clinic._id} 
-                            className={`admin-selection-card ${selectedClinic._id === clinic._id ? 'active' : ''}`}
-                            onClick={() => handleClinicChange(clinic)}
-                            role="button"
-                            tabIndex={0}
-                        >
-                            <h3 className="admin-card-title">{clinic.practiceName}</h3>
-                            <p className="admin-card-desc">{clinic.practiceTypeDescription || 'General Practice'}</p>
-                            <p className="admin-card-address">{clinic.physicalAddress}</p>
-                        </li>
-                    ))}
-                </ul>
-            </section>
-
-            <nav className="admin-action-buttons">
-                <button className="action-btn-large" onClick={() => toggleSection('manage-clinic')}>Manage Clinic</button>
-                <button className="action-btn-large" onClick={() => toggleSection('manage-staff')}>Manage Staff</button>
-                <button className="action-btn-large" onClick={() => toggleSection('add-staff')}>Add Staff</button>
-                <button className="action-btn-large" onClick={() => toggleSection('view-stats')}>View Stats</button>
-            </nav>
-
-            <section className="dynamic-content-area" ref={contentRef}>
-                {activeSection === 'manage-clinic' && (
-                    <article className="content-block">
-                        <header className="block-header">Manage {selectedClinic.practiceName}</header>
-                        <section className="block-body">
-                            <p>Practice Type: {selectedClinic.practiceTypeDescription || 'General Practice'}</p>
-                            <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalSuburb}, {selectedClinic.physicalTown}</p>
-                            <p>Practice Number: {selectedClinic.practiceNumber}</p>
-                            <p>Contact Number: {selectedClinic.contactNumber}</p>
-                            <p>Times: {selectedClinic.practiceTimes?.open || '08:00'} - {selectedClinic.practiceTimes?.close || '17:00'}</p>
-                            <p>Services: {selectedClinic.services?.join(', ') || ''}</p>
-                            <button className="pill-btn-purple edit-times-btn">Edit Clinic Times</button>
-                        </section>
-                    </article>
-                )}
-
-                {activeSection === 'manage-staff' && (
-                    <article className="content-block">
-                        <header className="block-header">Manage Clinic Staff</header>
-                        <section className="block-body flex-list">
-                            {staffList.length === 0 ? <p>No staff found.</p> : staffList.map((member) => (
-                                <article key={member._id} className="staff-card">
-                                    <section className="staff-info">
-                                        <h4>{member.title} {member.name} {member.surname}</h4>
-                                        <p>{member.speciality || 'General'}</p>
-                                    </section>
-                                    <section className="staff-actions">
-                                        <button className="pill-btn-purple">Add Speciality</button>
-                                        <button className="pill-btn-purple">Remove Speciality</button>
-                                        <button className="pill-btn-red">Fire</button>
-                                    </section>
-                                </article>
+  return (
+    <main className="dashboard">
+    <header className="navbar">
+        <h2 id="navCliniQ">CliniQ</h2>
+      <nav className="nav">
+          <Link to="/" className="nav_button">Profile</Link>{/*profile page not implemented*/}
+          <button className="nav_button" onClick={logout}>Log Out</button>
+          <img src={bell} width={50} height={50} alt="notification bell" className="nav_button"></img>
+        </nav>
+      
+    </header>
+    <section id="top_section">
+        <h2>Welcome to the Admin Dashboard for {selectedClinic.practiceName}</h2>
+        <img src={logo} alt="Clinic Logo"></img>
+        <section id="dropdown_clinicList">
+                <button id="dropdown_button_clinicList">Change Clinic</button>
+                <section id="dropdown_content_clinicList">
+                    <ul className="clinic_list">
+                        {clinics.map((clinic) => (
+                                <li key={clinic._id} className="dropdown_item">
+                                    <button onClick={() => handleClinicChange(clinic)}>
+                                        {clinic.practiceName}
+                                    </button>
+                                </li>
                             ))}
-                        </section>
-                    </article>
-                )}
-
-                {activeSection === 'add-staff' && (
-                    <article className="content-block">
-                        <header className="block-header">Add New Clinic Staff</header>
-                        <section className="block-body">
-                            <form className="add-staff-form">
-                                <fieldset className="form-row">
-                                    <label>Enter Email</label>
-                                    <input type="email" className="form-input" />
-                                </fieldset>
-                                <fieldset className="form-row">
-                                    <label>Choose speciality</label>
-                                    <input type="text" className="form-input" />
-                                </fieldset>
-                                <button type="button" className="pill-btn-purple submit-staff-btn">Add Staff</button>
-                            </form>
-                        </section>
-                    </article>
-                )}
-
-                {activeSection === 'view-stats' && (
-                    <article className="content-block">
-                        <header className="block-header">Clinic Stats</header>
-                        <section className="block-body">
-                            <nav className="stats-nav">
-                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : ''}`} onClick={() => setSelectedStat("days-off")}>Staff<br/>Off Days</button>
-                                <button className={`stat-btn ${selectedStat === STATS.APPS_CANCELLED ? 'active' : ''}`} onClick={() => setSelectedStat("apps-cancelled")}>Cancelled<br/>Appointments</button>
-                                <button className={`stat-btn ${selectedStat === STATS.APPS_MADE ? 'active' : ''}`} onClick={() => setSelectedStat("apps-made")}>Appointments<br/>Made</button>
-                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : ''}`} onClick={() => setSelectedStat("queue-waits")}>Queue<br/>Waits</button>
-                            </nav>
-                            <section className="stats-graph">
-                                { loadingStats ? (
-                                    <span>Loading {selectedStat}...</span>
-                                ) : stats && selectedStat === STATS.QUEUE_WAIT ? (
-                                    <>
-                                        <h2 className="chart-title">Average Queue Wait Time</h2>
-                                        <nav className="granularity-toggle">
-                                            <button className={queueGranularity === 'day' ? 'active' : ''} onClick={() => setQueueGranularity('day')}>Per Day</button>
-                                            <button className={queueGranularity === 'hour' ? 'active' : ''} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
-                                        </nav>
-                                        <ResponsiveContainer width="100%" height={300}>
-                                            {queueGranularity === 'hour' ? (
-                                                <LineChart data={shiftHours}>
-                                                    <CartesianGrid strokeDasharray="3 3" />
-                                                    <XAxis 
-                                                        dataKey="hourNum"
-                                                        type="number"
-                                                        domain={['dataMin - 0.5', 'dataMax + 0.5']}
-                                                        tickFormatter={(val) => `${String(Math.floor(val)).padStart(2, '0')}:00`}
-                                                        ticks={shiftHours.map(d => d.hourNum - 0.5)}
-                                                    />
-                                                    <YAxis unit=' min'/>
-                                                    <Tooltip content={QueueTooltip}/>
-                                                    <Line type="monotone" dataKey="avgWait" stroke="#6b1fad" strokeWidth={2} dot={{ fill: '#6b1fad' }} />
-                                                </LineChart>
-                                            ) : (
-                                                <BarChart data={stats}>
-                                                    <CartesianGrid strokeDasharray="3 3" />
-                                                    <XAxis dataKey="label" />
-                                                    <YAxis unit=" min" />
-                                                    <Tooltip content={QueueTooltip}/>
-                                                    <Bar dataKey="avgWait" fill="#6b1fad" radius={[4, 4, 0, 0]} />
-                                                </BarChart>
-                                            )}
-                                        </ResponsiveContainer>
-                                    </>
-                                ) : (
-                                    <span className="graph-icon">📈</span>
-                                )}
-                            </section>
-                        </section>
-                    </article>
-                )}
+                    </ul>
             </section>
+        </section>
+    </section>
+    <section className="section">
+        <h2>Manage {selectedClinic.practiceName}</h2>
+            <h3>Clinic details:</h3>
+            <p>Address: {selectedClinic.physicalAddress}</p>
+            <p>Town: {selectedClinic.physicalTown}</p>
+            <p>Suburb: {selectedClinic.physicalSuburb}</p>
+            <p>Contact: {selectedClinic.contactNumber}</p>
+            <p>Operating Hours: {selectedClinic.operatingHours}</p>
+            <p>Services: {selectedClinic.services?.join(', ') || 'Not available'}</p>
+
+            <section id="dropdown_clinic">
+                <button id="dropdown_button_clinic">Edit Clinic Details</button>
+                <section id="dropdown_content_clinic">
+                    <ul className="clinic_list">
+                        <li className="dropdown_item"><button>Change Address</button></li>
+                        <li className="dropdown_item"><button>Change Contact</button></li>
+                        <li className="dropdown_item"><button>Change Operating Hours</button></li>
+                        <li className="dropdown_item"><button>Add Service</button></li>
+                        <li className="dropdown_item"><button>Remove Service</button></li>
+                    </ul>
             </section>
-            )}
-            
-        </main>
-    );
+        </section>
+    </section>
+
+    <section className="section" >
+        <h2>Manage Staff</h2>
+        <h3>Staff List:</h3>
+        <ul className="clinic_list">
+            {staffList.map((member) => (
+                <li key={member._id}>
+                    <p>ID: {member._id}, Name: {member.name} {member.surname}, Role: {member.role}</p>
+                </li>
+            ))}
+        </ul>
+        <section id="dropdown_staff">
+                <button id="dropdown_button_staff">Manage Staff</button>
+                <section id="dropdown_content_staff">
+                    <ul className="clinic_list">
+                        <li className="dropdown_item"><button>Add Staff</button></li>
+                        <li className="dropdown_item"><button>Edit Staff</button></li>
+                        <li className="dropdown_item"><button>Remove Staff</button></li>
+                    </ul>
+            </section>
+        </section>
+
+    </section>
+
+    <section className="section">
+        <h2>"Clinic Name" Stats</h2>
+        <p>Average Waiting Time at 2:00 PM: 15 minutes</p>
+        <button>Search Time</button>
+        <input type="text" placeholder="Enter time"></input>
+        <p>Appointments no-show-rates: 50% </p>
+        <section id="dropdown_stats">
+                <button id="dropdown_button_stats">Custom View</button>
+                <section id="dropdown_content_stats">
+                    <ul className="clinic_list">
+                        <li className="dropdown_item"><button>View CVS</button></li>
+                        <li className="dropdown_item"><button>Download CVS</button></li>
+                        <li className="dropdown_item"><button>Download PDF</button></li>
+                    </ul>
+            </section>
+        </section>
+    </section>
+    <footer>
+        <p>© 2026 CliniQ. All rights reserved.</p>
+        </footer>
+    </main>
+    
+
+     
+
+   
+  );
 }
 
 export default AdminDashboard;
