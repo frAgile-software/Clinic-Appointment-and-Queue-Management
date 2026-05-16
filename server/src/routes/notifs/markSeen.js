@@ -1,29 +1,40 @@
 const express = require("express");
 const router = express.Router();
 const Notif = require("../../database/models/Notif");
+const User = require("../../database/models/User"); 
 const mongoose = require("mongoose");
 
 router.patch("/:userId", async (req, res) => {
     try {
-        console.log(" Incoming request:", req.params);
-        const {userId} = req.params;
+        const { userId } = req.params;
+        let queryId = null;
+        console.log("marking for: ", userId);
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+            console.log("Valid notif id (not auth)")
+            queryId = userId;
+        } else {
+            const userRecord = await User.findOne({ auth0Id: userId });
+            console.log("Not valid id!");
+            queryId = userRecord?._id;
+        }
 
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ message: "Valid user ID is required" });
+        if (!queryId) {
+            return res.status(404).json({ message: "Recipient user record not found" });
         }
 
         const result = await Notif.updateMany(
-            { Recipient: userId, Seen: false },
+            { Recipient: queryId, Seen: false },
             { $set: { Seen: true } }           
         );
     
-
-        console.log("Notifications marked as seen");
-        res.status(200).json(result);
+        res.status(200).json({ 
+            success: true, 
+            matchedCount: result.matchedCount,
+            modifiedCount: result.modifiedCount 
+        });
 
     } catch (error) {
-        console.error("Error fetching notifications:", error);
-        res.status(500).json({ error: "Server error" });
+        res.status(500).json({ error: "Server error encountered while marking notifications as seen" });
     }
 });
 

@@ -71,14 +71,14 @@ const fetchNotifications = async () => {
   };
 
   useEffect(() => {
-    console.log("fetching notifs for user id:", userId);
+    console.log("fetching notifs for user id:",userId)
     fetchNotifications();
   }, [userId]);
 
   return (
     <aside className="notif-wrapper">
       <button className="btn" onClick={toggleNotifications} type="button">
-        Notifications {notifications.length > 0 && <span className="notif-badge">{notifications.length}</span>}
+      Notifications {notifications.filter(n => !n.Seen).length > 0 && <span className="notif-badge">{notifications.filter(n => !n.Seen).length}</span>}
       </button>
 
       {isOpen && (
