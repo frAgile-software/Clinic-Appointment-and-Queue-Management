@@ -170,13 +170,15 @@ function AdminDashboard() {
     }));
 
     const exportCSV = () => {
+        if (!stats) return;
         const csvUri = statExport.convertCsv(stats);
         statExport.downloadFile(csvUri, `${selectedStat}_${new Date().toISOString()}.csv`);
     };
 
     const exportPDF = () => {
-        const graph = document.getElementsByClassName("stats-graph")[0];
-        statExport.convertPdf(graph).then((pdfUri) => 
+        const graph = document.getElementsByClassName("stats-graph");
+        if (!graph || graph.length === 0) return;
+        statExport.convertPdf(graph[0]).then((pdfUri) => 
             statExport.downloadFile(pdfUri, `${selectedStat}_${new Date().toISOString()}.pdf`));
     };
 
