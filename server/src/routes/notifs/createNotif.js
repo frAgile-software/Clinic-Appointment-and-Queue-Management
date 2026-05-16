@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const User = require("../../database/models/User");
 const Notif = require("../../database/models/Notif");
 
-router.post("/", async (req, res) => {
+router.post("/:userId", async (req, res) => {
   try {
     const { recipient, message, time } = req.body;
 

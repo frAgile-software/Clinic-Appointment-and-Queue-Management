@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import './StaffProfile.css'; 
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
-import { useApi } from '../../api/useApi';
 import { useApiAuth } from '../../hooks/apiAuth';
 import { useRef } from 'react';
+import NotificationCenter from '../../components/NotificationCenter';
 
 function StaffProfile() {
 
@@ -12,15 +12,10 @@ function StaffProfile() {
   const surnameRef = useRef();
   const titleRef = useRef();
   const emailRef = useRef();
-  const api = useApi();
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
   const {apiFetch} = useApiAuth();
 
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [notificationsLoading, setNotificationsLoading] = useState(false);
-  const [notificationsError, setNotificationsError] = useState("");
   const [profileData, setProfileData] = useState(null);
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [isClinicDetailsModalOpen, setIsClinicDetailsModalOpen] = useState(false);
@@ -29,15 +24,6 @@ function StaffProfile() {
   const [loading, setLoading] = useState(false);
   void clinics;
   const staffId = user?.sub;
-
-  //sort notifs new -> last
-  const sortNotifications = (items) => {
-    return [...items].sort((a, b) => new Date(b.Time) - new Date(a.Time));
-  };
-  
-  const toggleNotifs = () => {
-    setIsNotifOpen(!isNotifOpen);
-  };
 
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -49,20 +35,6 @@ function StaffProfile() {
 
   const toggleClinicDetailsModal = async () => {
     setIsClinicDetailsModalOpen(!isClinicDetailsModalOpen);
-  };
-
-  //deletes all seen notifications
-  const handleClearSeen = async () => {
-    if (!profileData?._id) return;
-
-    try {
-      setNotificationsError("");
-      await api.notifications.deleteSeen(profileData._id);
-      setNotifications((prev) => prev.filter((notification) => !notification.Seen));
-    } catch (error) {
-      console.error("Could not clear seen notifications:", error);
-      setNotificationsError("Could not clear notifications.");
-    }
   };
 
   const handleUpdate = async () => {
@@ -109,23 +81,6 @@ function StaffProfile() {
     }
   };
 
-  //marks all notifs as seen
-  const handleMarkSeen = async () => {
-    if (!profileData?._id) return;
-
-      try {
-      setNotificationsError("");
-      await api.notifications.markSeen(profileData._id);
-      setNotifications((prev) => prev.map((notification) => ({
-        ...notification,
-        Seen: true
-      })));
-    } catch (error) {
-      console.error("Could not mark seen notifications:", error);
-      setNotificationsError("Could not mark notifications.");
-    }
-  };
-
   //fetch profile data
   useEffect(() => {
     if (!staffId) return;
@@ -135,14 +90,17 @@ function StaffProfile() {
         const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`);
         const data = await response.json();
         console.log("User data", data);
-       
+       console.log("USER _ID: ", data._id);
         setProfileData(data);
       } catch (error) {
         console.error("Could not fetch profile data:", error);
       }
+      console.log("USER SUB: ", user?.sub);
+      
     };
 
     fetchProfileData();
+
   }, [staffId, apiFetch]);
 
   //fetch specialities
@@ -185,106 +143,14 @@ function StaffProfile() {
 
   }, [staffId, apiFetch]);
 
-  //fetch notifications
- 
-useEffect(() => {
-  
-  if (!profileData?._id) return;
-
-  async function fetchNotifications() {
-    try {
-      setNotificationsLoading(true);
-      setNotificationsError("");
-      console.log("Fetching notifications for Recipient:", profileData?._id);
-      const data = await api.notifications.getNotifs(profileData._id);
-      setNotifications(Array.isArray(data) ? sortNotifications(data) : []);
-      console.log("Raw Notification Data:", data);
-    } catch (error) {
-      console.error("Could not fetch notifications:", error);
-      setNotifications([]);
-      setNotificationsError("Could not load notifications.");
-    } finally {
-      setNotificationsLoading(false);
-    }
-  }
-
-  fetchNotifications();
-}, [api, profileData?._id]); 
-  
-
-
-  
 return (
-  <div className="landing"> 
+  <section className="landing"> 
     <nav className="landing-nav" aria-label="Main navigation">
-      
-      <button
-      className="btn-secondary"
-      onClick={async () => {
-      if (!profileData?._id) return;
-
-      try {
-        const notif = await api.notifications.createNotif(
-          profileData._id,
-          `Test notification created at ${new Date().toLocaleTimeString()}`
-        );
-
-        setNotifications((prev) => sortNotifications([...prev, notif]));
-      } catch (error) {
-        console.error("Could not create test notification:", error);
-      }
-  }}
->
-  Create Test Notification
-</button>
       <span className="landing-logo">Clinics and Qs</span>
       <section className="landing-nav-btns">
         <button className="btn" onClick={logout}>Logout</button>
         <button className="btn btn-primary" onClick={() => navigate('/dashboard/staff')}>Back</button>
-        <div className="notif-wrapper" style={{ position: 'relative' }}>
-  <button className="btn" onClick={toggleNotifs}>
-        Notifications {notifications.length > 0 && <span className="notif-badge">{notifications.length}</span>}
-      </button>
-
-      {isNotifOpen && (
-        <div className="notif-dropdown">
-          <div className="notif-header">
-            <h4>Notifications</h4>
-            <div className="notif-actions">
-              <button className="btn-text" onClick={handleMarkSeen}>Mark all as seen</button>
-              <button className="btn-text" onClick={handleClearSeen}>Clear Seen</button>
-            </div>
-          </div>
-          
-          <div className="notif-list">
-            {notificationsLoading ? (
-              <p className="notif-empty">Loading notifications...</p>
-            ) : notificationsError ? (
-              <p className="notif-empty">{notificationsError}</p>
-            ) : notifications.length > 0 ? (
-              notifications.map((n) => (
-                <div key={n._id} className={`notif-item ${n.Seen ? '' : 'unseen'}`}>
-                  <p>{n.Message}</p>
-                  <small>{new Date(n.Time).toLocaleString([],{
-                    weekday: 'long',
-                    month: 'short',  
-                    day: 'numeric',   
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    hour12: true
-                  })}</small>
-                </div>
-                
-              ))
-              
-            ) : (
-              <p className="notif-empty">No new notifications</p>
-            )}  
-            
-          </div>
-        </div>
-      )}
-    </div>
+        <NotificationCenter userId={profileData?._id} />
       </section>
     </nav>
 
@@ -295,16 +161,16 @@ return (
       </header>
 
       {loading ? (
-        <div className="landing--loading">Loading profile details...</div>
+        <section className="landing--loading">Loading profile details...</section>
       ) : (
         <section className="profile-grid">
-          <div className="clinic-card profile-details-card">
+          <article className="clinic-card profile-details-card">
             <h3 className="clinic-type">Staff Information</h3>
-            <div className="details-content">
+            <section className="details-content">
               <p><strong>Name:</strong> {profileData?.name}</p>
               <p><strong>Email:</strong> {profileData?.email}</p>
-                <div><strong>Specialities:</strong>
-                    <div className="speciality-list">
+                <section><strong>Specialities:</strong>
+                    <section className="speciality-list">
                         {specialities.length > 0 ? (
                             specialities.map((spec, index) => (
                                 <span key={index} className="speciality-item">{spec}</span>
@@ -312,69 +178,69 @@ return (
                         ) : (
                             <p>No specialities found.</p>
                         )}
-                    </div></div>
-              <div className="clinic-assignments">
+                    </section></section>
+              <section className="clinic-assignments">
                 <p><strong>Assigned Clinic:</strong> {clinics ? clinics.practiceName : 'No assigned clinic'}</p>
                 <button className="btn-secondary" onClick={toggleClinicDetailsModal}>
                   View Details
                 </button>
-              </div>
+              </section>
               <span className="clinic-badge clinic-badge--open">Active Staff</span>
-            </div>
-          </div>
+            </section>
+          </article>
 
 
-          <div className="clinic-card profile-actions-card">
+          <article className="clinic-card profile-actions-card">
             <span className="clinic-type">Account Actions</span>
             <h3 className="clinic-name">Management Requests</h3>
-            <div className="action-button-list">
+            <section className="action-button-list">
               <button className="action-item-btn">Request occupation change</button>
               <button className="action-item-btn">Request clinic change</button>
               <button className="action-item-btn" onClick={toggleChangeDetailsModal}>Update personal details</button>
               <button className="action-item-btn action-item-btn--danger">Request dismissal</button>
-            </div>
-          </div>
+            </section>
+          </article>
         </section>
       )}
 
       {isChangeDetailsModalOpen && (
-  <div className="modal-overlay">
-    <div className="modal-content clinic-card"> 
-      <h3 className="clinic-name">Edit Personal Details</h3>
+  <section className="modal-overlay">
+    <article className="modal-content clinic-card" role="dialog" aria-modal="true" aria-labelledby="edit-profile-heading"> 
+      <h3 id="edit-profile-heading" className="clinic-name">Edit Personal Details</h3>
       
       <form className="details-content">
           
-          <div className='inline-components'>
+          <section className='inline-components'>
             <label>Name</label>
             <input type="text" ref={nameRef} defaultValue={profileData?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-          </div>
-          <div className='inline-components'>
+          </section>
+          <section className='inline-components'>
             <label>Surname</label>
             <input type="text" ref={surnameRef} defaultValue={profileData?.surname} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-          </div>
-          <div className='inline-components'>
+          </section>
+          <section className='inline-components'>
             <label>Title</label>
             <input type="text" ref={titleRef} defaultValue={profileData?.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-          </div>
-          <div className='inline-components'>
+          </section>
+          <section className='inline-components'>
             <label>Email</label> 
             <input type="email" ref={emailRef} disabled={!staffId?.startsWith("auth0|")} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-          </div> 
+          </section> 
           
 
-        <div className="landing-nav-btns" style={{marginTop: '20px'}}>
+        <footer className="landing-nav-btns" style={{marginTop: '20px'}}>
           <button type="button" className="btn btn-primary" onClick={handleUpdate}>Save Changes</button>
           <button type="button" className="btn" style={{color: 'var(--color-text)'}} onClick={toggleChangeDetailsModal}>Cancel</button>
-        </div>
+        </footer>
         
       </form>
-    </div>
-  </div>
+    </article>
+  </section>
 )}
 {isClinicDetailsModalOpen && (
-  <div className="modal-overlay">
-    <div className="modal-content clinic-card"> 
-      <h3 className="clinic-name">Your Clinic Details</h3>
+  <section className="modal-overlay">
+    <article className="modal-content clinic-card" role="dialog" aria-modal="true" aria-labelledby="clinic-details-heading"> 
+      <h3 id="clinic-details-heading" className="clinic-name">Your Clinic Details</h3>
       
       {clinics ? (
         <>
@@ -383,18 +249,18 @@ return (
           <p><strong>Phone:</strong> {clinics.contactNumber}</p>
         </>
       ) : (
-        <div className="no-clinic-message">
+        <section className="no-clinic-message">
           <p><strong>NO CLINIC ASSIGNED</strong></p>
           <p>Please contact your administrator to have a clinic assigned.</p>
-        </div>
+        </section>
       )}
       
       <button className="btn btn-primary" onClick={toggleClinicDetailsModal}>Close</button>
-    </div>
-  </div>
+    </article>
+  </section>
 )}
     </main>
-  </div>
+  </section>
   
 );
 }
