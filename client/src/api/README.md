@@ -242,6 +242,10 @@ const staffSpecs = await api.specialities.getForStaff("staff123");
 const specialities = await api.specialities.getAll();
 ```
 
+// create speciality
+await api.specialities.create("drugs");
+```
+)
 ---
 
 ### `ScheduleService`
