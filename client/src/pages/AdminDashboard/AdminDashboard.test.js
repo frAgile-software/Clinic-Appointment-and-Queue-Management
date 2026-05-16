@@ -99,6 +99,10 @@ const renderAndOpenAddStaff = async () => {
 };
 
 
+const getAddStaffSubmitButton = () =>
+    screen.getByRole('button', { name: /submit add staff/i });
+
+
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -167,13 +171,14 @@ describe('AdminDashboard – Add Staff section', () => {
 
         expect(screen.getByLabelText(/staff email/i)).toBeInTheDocument();
         expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /add staff/i })).toBeInTheDocument();
+        expect(getAddStaffSubmitButton()).toBeInTheDocument();
     });
 
     test('Add Staff button is disabled initially', async () => {
         await renderAndOpenAddStaff();
 
-        expect(screen.getByRole('button', { name: /add staff/i })).toBeDisabled();
+        expect(getAddStaffSubmitButton()).toBeDisabled();
+        expect(mockLinkStaff).not.toHaveBeenCalled();
     });
 
     test('renders speciality dropdown with options after staff is found', async () => {
@@ -201,7 +206,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        // No time advanced — debounce should not have fired
+      
         expect(mockGetByEmail).not.toHaveBeenCalled();
     });
 
@@ -315,7 +320,7 @@ describe('AdminDashboard – Add Staff section', () => {
         await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
-        fireEvent.click(screen.getByRole('button', { name: /add staff/i }));
+        fireEvent.click(getAddStaffSubmitButton());
 
         await waitFor(() =>
             expect(mockLinkStaff).toHaveBeenCalledWith('clinic123', { auth0Id: 'auth0|staffabc' })
@@ -350,7 +355,7 @@ describe('AdminDashboard – Add Staff section', () => {
         await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
-        fireEvent.click(screen.getByRole('button', { name: /add staff/i }));
+        fireEvent.click(getAddStaffSubmitButton());
 
         await waitFor(() => expect(mockCreateDefault).toHaveBeenCalled());
 
@@ -382,7 +387,7 @@ describe('AdminDashboard – Add Staff section', () => {
         await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
-        fireEvent.click(screen.getByRole('button', { name: /add staff/i }));
+        fireEvent.click(getAddStaffSubmitButton());
 
         await waitFor(() => expect(mockLinkStaff).toHaveBeenCalled());
 
@@ -406,7 +411,7 @@ describe('AdminDashboard – Add Staff section', () => {
         await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
-        fireEvent.click(screen.getByRole('button', { name: /add staff/i }));
+        fireEvent.click(getAddStaffSubmitButton());
 
         await waitFor(() =>
             expect(window.alert).toHaveBeenCalledWith('This staff member is already linked to a clinic.')
@@ -427,7 +432,7 @@ describe('AdminDashboard – Add Staff section', () => {
         await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
-        fireEvent.click(screen.getByRole('button', { name: /add staff/i }));
+        fireEvent.click(getAddStaffSubmitButton());
 
         await waitFor(() =>
             expect(window.alert).toHaveBeenCalledWith('Failed to add staff. Please try again.')
@@ -445,13 +450,13 @@ describe('AdminDashboard – Add Staff section', () => {
         await act(async () => jest.advanceTimersByTime(400));
         await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
 
-        expect(screen.getByRole('button', { name: /add staff/i })).toBeDisabled();
+        expect(getAddStaffSubmitButton()).toBeDisabled();
     });
 
     test('does not call linkStaff if no staff result is present', async () => {
         await renderAndOpenAddStaff();
 
-        expect(screen.getByRole('button', { name: /add staff/i })).toBeDisabled();
+        expect(getAddStaffSubmitButton()).toBeDisabled();
         expect(mockLinkStaff).not.toHaveBeenCalled();
     });
 });
