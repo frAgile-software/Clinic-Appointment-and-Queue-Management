@@ -1,462 +1,732 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import AdminDashboard from './AdminDashboard';
-import { BrowserRouter } from 'react-router';
+import React from "react";
+import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import AdminDashboard from "./AdminDashboard";
 
+import { useAuth0 } from '@auth0/auth0-react';
+import { useApi } from '../../api/useApi';
 
-
-const mockLinkStaff          = jest.fn();
-const mockCreateDefault      = jest.fn();
-const mockListStaff          = jest.fn();
-const mockGetByEmail         = jest.fn();
-const mockListSpecialities   = jest.fn();
-const mockGetAssignedClinics = jest.fn();
-
-jest.mock('@auth0/auth0-react', () => ({
-    useAuth0: () => ({
-        user: { sub: 'auth0|admin', name: 'Admin User' },
-        logout: jest.fn(),
-        isAuthenticated: true,
-        isLoading: false,
-    }),
-}));
-
-jest.mock('../../api/useApi', () => ({
-    useApi: () => ({
-        clinics: {
-            getAssignedClinics: mockGetAssignedClinics,
-            listStaff:          mockListStaff,
-            linkStaff:          mockLinkStaff,
-        },
-        users: {
-            getByEmail: mockGetByEmail,
-        },
-        schedules: {
-            createDefault: mockCreateDefault,
-        },
-        specialities: {
-            listSpecialities: mockListSpecialities,
-        },
-    }),
-}));
-
+jest.mock('@auth0/auth0-react');
+jest.mock('../../api/useApi');
 
 window.HTMLElement.prototype.scrollIntoView = jest.fn();
 
+describe("Admin Dashboard - Component and Feature Tests", () => {
+    const mockLogout = jest.fn();
+    let mockApi;
 
+    const mockClinics = [
+        {
+            _id: 'clinic_001',
+            practiceName: 'Sandton Medical Centre',
+            practiceTypeDescription: 'General Practice',
+            physicalAddress: '1 Sandton Drive',
+            physicalSuburb: 'Sandton',
+            physicalTown: 'Johannesburg',
+            practiceNumber: '123456789',
+            contactNumber: '0118001234',
+            practiceTimes: { open: '08:00', close: '17:00' },
+            services: ['Dentistry', 'Cardiology'],
+        },
+        {
+            _id: 'clinic_002',
+            practiceName: 'Rosebank Clinic',
+            practiceTypeDescription: 'Specialist Practice',
+            physicalAddress: '5 Oxford Road',
+            physicalSuburb: 'Rosebank',
+            physicalTown: 'Johannesburg',
+            practiceNumber: '987654321',
+            contactNumber: '0118005678',
+            practiceTimes: { open: '09:00', close: '18:00' },
+            services: ['Dermatology'],
+        },
+    ];
 
-const mockClinic = {
-    _id: 'clinic123',
-    practiceName: 'Test Clinic',
-    practiceTypeDescription: 'General Practice',
-    physicalAddress: '1 Main Rd',
-    physicalSuburb: 'Suburb',
-    physicalTown: 'Town',
-    practiceNumber: '12345',
-    contactNumber: '0110000000',
-    practiceTimes: { open: '08:00', close: '10:00' },
-    services: ['GP'],
-};
+    const mockStaff = [
+        {
+            _id: 'staff_001',
+            title: 'Dr.',
+            name: 'Jane',
+            surname: 'Smith',
+            speciality: 'Dentistry',
+            auth0Id: 'auth0|staff_001',
+        },
+        {
+            _id: 'staff_002',
+            title: 'Dr.',
+            name: 'John',
+            surname: 'Doe',
+            speciality: 'Cardiology',
+            auth0Id: 'auth0|staff_002',
+        },
+    ];
 
-const mockStaffUser = {
-    _id: 'user123',
-    auth0Id: 'auth0|staffabc',
-    name: 'Jane',
-    surname: 'Doe',
-    title: 'Dr',
-    role: 'Staff',
-};
+    const mockSpecialities = [
+        { _id: 'spec_001', SpecialityName: 'Dentistry' },
+        { _id: 'spec_002', SpecialityName: 'Cardiology' },
+        { _id: 'spec_003', SpecialityName: 'Dermatology' },
+    ];
 
-const mockSpecialities = [
-    { _id: 'spec1', SpecialityName: 'Cardiology' },
-    { _id: 'spec2', SpecialityName: 'Dermatology' },
-];
+    beforeEach(() => {
+        jest.useFakeTimers();
+        jest.clearAllMocks();
 
+        if (window.HTMLElement.prototype.scrollIntoView.mockClear) {
+            window.HTMLElement.prototype.scrollIntoView.mockClear();
+        }
 
-const renderAndOpenAddStaff = async () => {
-    mockGetAssignedClinics.mockResolvedValue([mockClinic]);
-    mockListStaff.mockResolvedValue({ users: [] });
-    mockListSpecialities.mockResolvedValue(mockSpecialities);
+        useAuth0.mockReturnValue({
+            user: { sub: 'auth0|admin_001', name: 'Admin User' },
+            logout: mockLogout,
+            isAuthenticated: true,
+            isLoading: false,
+        });
 
-    render(
-        <BrowserRouter>
-            <AdminDashboard />
-        </BrowserRouter>
-    );
+        mockApi = {
+            clinics: {
+                getAssignedClinics: jest.fn().mockResolvedValue(mockClinics),
+                listStaff: jest.fn().mockResolvedValue({ users: mockStaff }),
+                linkStaff: jest.fn().mockResolvedValue({ message: 'Staff linked successfully' }),
+            },
+            users: {
+                getByEmail: jest.fn().mockResolvedValue({
+                    _id: 'user_new',
+                    title: 'Dr.',
+                    name: 'Alice',
+                    surname: 'Brown',
+                    auth0Id: 'auth0|new_staff',
+                }),
+            },
+            schedules: {
+                createDefault: jest.fn().mockResolvedValue({ message: 'Schedule created' }),
+            },
+            specialities: {
+                listSpecialities: jest.fn().mockResolvedValue(mockSpecialities),
+            },
+        };
 
-   
-    await waitFor(() => screen.getByText('Test Clinic'));
+        useApi.mockReturnValue(mockApi);
+    });
 
-  
-    await act(async () => {
-        fireEvent.click(screen.getByText('Add Staff'));
+    afterEach(() => {
+        jest.useRealTimers();
+        jest.restoreAllMocks();
+    });
+
+    const renderDashboard = async () => {
+        render(<AdminDashboard />);
+        await waitFor(() => {
+            expect(screen.getByText(/Welcome Back, Admin User!/i)).toBeInTheDocument();
+        });
+    };
+
+    
+    test("Given the dashboard loads, Then the header with brand name is displayed", async () => {
+        await renderDashboard();
+        expect(screen.getByText(/Clinics and Qs/i)).toBeInTheDocument();
+    });
+
+    test("Given the dashboard loads, Then the logout button is visible", async () => {
+        await renderDashboard();
+        expect(screen.getByRole("button", { name: /Logout/i })).toBeInTheDocument();
+    });
+
+    test("Given the user is logged in, Then they see a personalized welcome message", async () => {
+        await renderDashboard();
+        expect(screen.getByText(/Welcome Back, Admin User!/i)).toBeInTheDocument();
+    });
+
+    test("Given the dashboard loads, Then the notifications card is shown", async () => {
+        await renderDashboard();
+        expect(screen.getByText(/Notifications/i)).toBeInTheDocument();
+        expect(screen.getByText(/3 New Notifications/i)).toBeInTheDocument();
     });
 
     
-    await waitFor(() => expect(mockListSpecialities).toHaveBeenCalled());
 
-    jest.useFakeTimers({ shouldClearNativeTimers: true });
-};
-
-
-const getAddStaffSubmitButton = () =>
-    screen.getByRole('button', { name: /submit add staff/i });
-
-
-
-beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useRealTimers();
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    jest.spyOn(window, 'alert').mockImplementation(() => {});
-});
-
-afterEach(() => {
-    jest.useRealTimers();
-    console.error.mockRestore();
-    window.alert.mockRestore();
-});
-
-
-
-describe('AdminDashboard Component', () => {
-
-    test('renders navbar elements', () => {
-        mockGetAssignedClinics.mockResolvedValue([mockClinic]);
-        mockListStaff.mockResolvedValue({ users: [] });
-
-        render(
-            <BrowserRouter>
-                <AdminDashboard />
-            </BrowserRouter>
-        );
-
-        // Check nav buttons
-        //expect(screen.getByText(/log out/i)).toBeInTheDocument();
-        //expect(screen.getByText(/profile/i)).toBeInTheDocument();
-
-        // Check notification image
-        //expect(screen.getByAltText(/notification bell/i)).toBeInTheDocument();
+    test("Given the user clicks Logout, Then auth0Logout is called with correct params", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Logout/i }));
+        expect(mockLogout).toHaveBeenCalledWith({
+            logoutParams: { returnTo: window.location.origin },
+        });
     });
 
-    test('renders top section content', () => {
-        mockGetAssignedClinics.mockResolvedValue([mockClinic]);
-        mockListStaff.mockResolvedValue({ users: [] });
+    
 
-        render(
-            <BrowserRouter>
-                <AdminDashboard />
-            </BrowserRouter>
-        );
-
-        /*expect(
-          screen.getByText(/welcome to the admin dashboard/i)
-        ).toBeInTheDocument();*/
-
-        //expect(screen.getByAltText(/clinic logo/i)).toBeInTheDocument();
+    test("Given auth0 is still loading, Then a loading message is shown", () => {
+        useAuth0.mockReturnValue({
+            user: null,
+            logout: mockLogout,
+            isAuthenticated: false,
+            isLoading: true,
+        });
+        render(<AdminDashboard />);
+        expect(screen.getByText(/Loading dashboard/i)).toBeInTheDocument();
     });
 
-});
-
-
-// ADD STAFF TESTS
-
-
-describe('AdminDashboard – Add Staff section', () => {
-
-    // Rendering
-    test('renders the Add Staff form when section is toggled', async () => {
-        await renderAndOpenAddStaff();
-
-        expect(screen.getByLabelText(/staff email/i)).toBeInTheDocument();
-        expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
-        expect(getAddStaffSubmitButton()).toBeInTheDocument();
+    test("Given no clinics are assigned, Then a fallback message is shown", async () => {
+        mockApi.clinics.getAssignedClinics.mockResolvedValue([]);
+        render(<AdminDashboard />);
+        await waitFor(() => {
+            expect(screen.getByText(/No assigned clinics found/i)).toBeInTheDocument();
+        });
     });
 
-    test('Add Staff button is disabled initially', async () => {
-        await renderAndOpenAddStaff();
+    
 
-        expect(getAddStaffSubmitButton()).toBeDisabled();
-        expect(mockLinkStaff).not.toHaveBeenCalled();
+    test("Given the dashboard loads, Then it fetches assigned clinics using the admin's auth0 ID", async () => {
+        await renderDashboard();
+        expect(mockApi.clinics.getAssignedClinics).toHaveBeenCalledWith('auth0|admin_001');
     });
 
-    test('renders speciality dropdown with options after staff is found', async () => {
-        mockGetByEmail.mockResolvedValue(mockStaffUser);
-        await renderAndOpenAddStaff();
+    test("Given clinics are fetched, Then clinic cards are rendered in the selection list", async () => {
+        await renderDashboard();
+        expect(screen.getByText(/Sandton Medical Centre/i)).toBeInTheDocument();
+        expect(screen.getByText(/Rosebank Clinic/i)).toBeInTheDocument();
+    });
 
-        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
+    test("Given clinics are fetched, Then the first clinic is selected by default", async () => {
+        await renderDashboard();
+        const firstCard = screen.getAllByRole("listitem")[0];
+        expect(firstCard).toHaveClass('active');
+    });
+
+    test("Given the user clicks a different clinic card, Then that clinic becomes active", async () => {
+        await renderDashboard();
+        const secondClinicCard = screen.getByText(/Rosebank Clinic/i).closest('li');
+        fireEvent.click(secondClinicCard);
+        expect(secondClinicCard).toHaveClass('active');
+    });
+
+    test("Given the clinic fetch fails, Then an error is logged", async () => {
+        mockApi.clinics.getAssignedClinics.mockRejectedValue(new Error("Network error"));
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        render(<AdminDashboard />);
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'Error fetching assigned clinics:',
+                expect.any(Error)
+            );
+        });
+        consoleSpy.mockRestore();
+    });
+
+    
+
+    test("Given a clinic is selected, Then staff are fetched for that clinic", async () => {
+        await renderDashboard();
+        expect(mockApi.clinics.listStaff).toHaveBeenCalledWith('clinic_001');
+    });
+
+    test("Given the staff fetch fails, Then an error is logged", async () => {
+        mockApi.clinics.listStaff.mockRejectedValue(new Error("Staff fetch error"));
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        render(<AdminDashboard />);
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'Error fetching staff:',
+                expect.any(Error)
+            );
+        });
+        consoleSpy.mockRestore();
+    });
+
+   
+    test("Given the dashboard loads, Then all four action buttons are visible", async () => {
+        await renderDashboard();
+        expect(screen.getByRole("button", { name: /Manage Clinic/i })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Manage Staff/i })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Add Staff/i })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /View Stats/i })).toBeInTheDocument();
+    });
+
+    // ─── Manage Clinic Section ────────────────────────────────────────────────────
+
+    test("Given the user clicks 'Manage Clinic', Then the clinic details section is shown", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+        expect(screen.getByText(/Practice Type:/i)).toBeInTheDocument();
+        expect(screen.getByText(/General Practice/i)).toBeInTheDocument();
+        expect(screen.getByText(/123456789/i)).toBeInTheDocument();
+        expect(screen.getByText(/Dentistry, Cardiology/i)).toBeInTheDocument();
+    });
+
+    test("Given the clinic detail section is open, Then the clinic's open and close times are shown", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+        expect(screen.getByText(/08:00 - 17:00/i)).toBeInTheDocument();
+    });
+
+    test("Given the clinic detail section is open, Then the address is displayed", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+        expect(screen.getByText(/1 Sandton Drive/i)).toBeInTheDocument();
+        expect(screen.getByText(/Johannesburg/i)).toBeInTheDocument();
+    });
+
+    test("Given the user clicks 'Manage Clinic' again, Then the section collapses", async () => {
+        await renderDashboard();
+        const btn = screen.getByRole("button", { name: /Manage Clinic/i });
+        fireEvent.click(btn);
+        expect(screen.getByText(/Practice Type:/i)).toBeInTheDocument();
+        fireEvent.click(btn);
+        expect(screen.queryByText(/Practice Type:/i)).not.toBeInTheDocument();
+    });
+
+    test("Given the user switches clinics with Manage Clinic open, Then the active section resets", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+        expect(screen.getByText(/Practice Type:/i)).toBeInTheDocument();
+
+        const secondClinicCard = screen.getByText(/Rosebank Clinic/i).closest('li');
+        fireEvent.click(secondClinicCard);
+
+        expect(screen.queryByText(/Practice Type:/i)).not.toBeInTheDocument();
+    });
+
+    
+
+    test("Given the user clicks 'Manage Staff', Then the staff list is shown", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Staff/i }));
+        await waitFor(() => {
+            expect(screen.getByText(/Dr. Jane Smith/i)).toBeInTheDocument();
+            expect(screen.getByText(/Dr. John Doe/i)).toBeInTheDocument();
+        });
+    });
+
+    test("Given the staff list is shown, Then each staff card has action buttons", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Staff/i }));
+        await waitFor(() => {
+            const addSpecButtons = screen.getAllByRole("button", { name: /Add Speciality/i });
+            const removeSpecButtons = screen.getAllByRole("button", { name: /Remove Speciality/i });
+            const fireButtons = screen.getAllByRole("button", { name: /Fire/i });
+            expect(addSpecButtons).toHaveLength(2);
+            expect(removeSpecButtons).toHaveLength(2);
+            expect(fireButtons).toHaveLength(2);
+        });
+    });
+
+    test("Given there are no staff, Then a 'No staff found' message is shown", async () => {
+        mockApi.clinics.listStaff.mockResolvedValue({ users: [] });
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Staff/i }));
+        await waitFor(() => {
+            expect(screen.getByText(/No staff found/i)).toBeInTheDocument();
+        });
+    });
+
+    test("Given the user switches clinics, Then the staff list is re-fetched for the new clinic", async () => {
+        await renderDashboard();
+
+        const secondClinicCard = screen.getByText(/Rosebank Clinic/i).closest('li');
+        fireEvent.click(secondClinicCard);
+
+        await waitFor(() => {
+            expect(mockApi.clinics.listStaff).toHaveBeenCalledWith('clinic_002');
+        });
+    });
+
+    
+
+    test("Given the user clicks 'Add Staff', Then the add-staff form is shown", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+    });
+
+    test("Given the add-staff section opens, Then specialities are fetched", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+        await waitFor(() => {
+            expect(mockApi.specialities.listSpecialities).toHaveBeenCalled();
+        });
+    });
+
+    test("Given the specialities fetch fails, Then an error is logged", async () => {
+        mockApi.specialities.listSpecialities.mockRejectedValue(new Error("Spec error"));
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalled();
+        });
+        consoleSpy.mockRestore();
+    });
+
+    test("Given the user types an email, Then the staff search is debounced and the API is called", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
         });
 
-       
-        await act(async () => jest.runAllTimersAsync());
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
-
-        expect(screen.getByLabelText(/speciality/i)).toBeInTheDocument();
-        expect(screen.getByText('Cardiology')).toBeInTheDocument();
-        expect(screen.getByText('Dermatology')).toBeInTheDocument();
-    });
-
-    // Email search
-
-    test('does not call getByEmail immediately on input change', async () => {
-        await renderAndOpenAddStaff();
-
         fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
+            target: { value: 'alice@clinic.com' },
         });
 
-        
-        expect(mockGetByEmail).not.toHaveBeenCalled();
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(mockApi.users.getByEmail).toHaveBeenCalledWith('alice@clinic.com', 'Staff');
+        });
     });
 
-    test('does not call getByEmail before 400ms debounce elapses', async () => {
-        await renderAndOpenAddStaff();
+    test("Given a valid staff email is entered, Then the found staff member's name is shown", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
 
-        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
         });
 
-       
-        act(() => jest.advanceTimersByTime(200));
-        expect(mockGetByEmail).not.toHaveBeenCalled();
-    });
-
-    test('calls getByEmail with email and "Staff" role after 400ms debounce', async () => {
-        mockGetByEmail.mockResolvedValue(mockStaffUser);
-        await renderAndOpenAddStaff();
-
         fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
+            target: { value: 'alice@clinic.com' },
         });
 
-        await act(async () => jest.runAllTimersAsync());
+        act(() => { jest.runAllTimers(); });
 
-        await waitFor(() =>
-            expect(mockGetByEmail).toHaveBeenCalledWith('jane@example.com', 'Staff')
-        );
+        await waitFor(() => {
+            expect(screen.getByText(/Found: Dr. Alice Brown/i)).toBeInTheDocument();
+        });
     });
 
-    test('shows tick indicator when staff is found and available', async () => {
-        mockGetByEmail.mockResolvedValue(mockStaffUser);
-        await renderAndOpenAddStaff();
+    test("Given a valid staff email is entered, Then the tick indicator is shown", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
 
-        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
         });
 
-        await act(async () => jest.runAllTimersAsync());
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
-
-        await waitFor(() =>
-            expect(screen.getByLabelText(/staff found and available/i)).toBeInTheDocument()
-        );
-    });
-
-    test('shows cross indicator and error message when staff is not found', async () => {
-        mockGetByEmail.mockResolvedValue(null);
-        await renderAndOpenAddStaff();
-
         fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'unknown@example.com' },
+            target: { value: 'alice@clinic.com' },
         });
 
-        await act(async () => jest.runAllTimersAsync());
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
+        act(() => { jest.runAllTimers(); });
 
-        await waitFor(() =>
-            expect(screen.getByLabelText(/not found or already linked/i)).toBeInTheDocument()
-        );
-        expect(screen.getByText(/no staff account found with that email/i)).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByLabelText(/Staff found and available/i)).toBeInTheDocument();
+        });
     });
 
-    test('shows found staff full name when email resolves successfully', async () => {
-        mockGetByEmail.mockResolvedValue(mockStaffUser);
-        await renderAndOpenAddStaff();
+    test("Given no staff account matches the email, Then a 'No staff account found' message is shown", async () => {
+        mockApi.users.getByEmail.mockResolvedValue(null);
 
-        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
         });
 
-        await act(async () => jest.runAllTimersAsync());
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
-
-        await waitFor(() =>
-            expect(screen.getByText(/Found: Dr Jane Doe/i)).toBeInTheDocument()
-        );
-    });
-
-    test('clears search result when email input is emptied', async () => {
-        mockGetByEmail.mockResolvedValue(mockStaffUser);
-        await renderAndOpenAddStaff();
-
-        const input = screen.getByPlaceholderText(/staff@example.com/i);
-
-        fireEvent.change(input, { target: { value: 'jane@example.com' } });
-        await act(async () => jest.runAllTimersAsync());
-        await waitFor(() => screen.getByText(/Found: Dr Jane Doe/i));
-
-        fireEvent.change(input, { target: { value: '' } });
-
-        await waitFor(() =>
-            expect(screen.queryByText(/Found: Dr Jane Doe/i)).not.toBeInTheDocument()
-        );
-    });
-
-    // handleAddStaff
-
-    test('calls linkStaff and createDefault with correct args on successful add', async () => {
-        mockGetByEmail.mockResolvedValue(mockStaffUser);
-        mockLinkStaff.mockResolvedValue({});
-        mockCreateDefault.mockResolvedValue({});
-        mockListStaff.mockResolvedValue({ users: [mockStaffUser] });
-
-        await renderAndOpenAddStaff();
-
         fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
+            target: { value: 'notfound@clinic.com' },
         });
 
-        await act(async () => jest.runAllTimersAsync());
-        await waitFor(() => screen.getByLabelText(/speciality/i));
+        act(() => { jest.runAllTimers(); });
 
-        fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
-        fireEvent.click(getAddStaffSubmitButton());
-
-        await waitFor(() =>
-            expect(mockLinkStaff).toHaveBeenCalledWith('clinic123', { auth0Id: 'auth0|staffabc' })
-        );
-        await waitFor(() =>
-            expect(mockCreateDefault).toHaveBeenCalledWith(
-                'auth0|staffabc',
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        DayOfWeek: expect.any(Number),
-                        StartTime: expect.any(String),
-                        EndTime:   expect.any(String),
-                    }),
-                ])
-            )
-        );
+        await waitFor(() => {
+            expect(screen.getByText(/No staff account found with that email/i)).toBeInTheDocument();
+        });
     });
 
-    test('buildDefaultScheduleEntries generates correct entries from clinic times', async () => {
-        mockGetByEmail.mockResolvedValue(mockStaffUser);
-        mockLinkStaff.mockResolvedValue({});
-        mockCreateDefault.mockResolvedValue({});
+    test("Given no staff account matches the email, Then the cross indicator is shown", async () => {
+        mockApi.users.getByEmail.mockResolvedValue(null);
 
-        await renderAndOpenAddStaff();
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
 
-        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
         });
 
-        await act(async () => jest.runAllTimersAsync());
-        await waitFor(() => screen.getByLabelText(/speciality/i));
-
-        fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
-        fireEvent.click(getAddStaffSubmitButton());
-
-        await waitFor(() => expect(mockCreateDefault).toHaveBeenCalled());
-
-        const entries = mockCreateDefault.mock.calls[0][1];
-
-        expect(entries).toHaveLength(14);
-
-        const days = [...new Set(entries.map(e => e.DayOfWeek))].sort();
-        expect(days).toEqual([0, 1, 2, 3, 4, 5, 6]);
-
-        const day0 = entries.filter(e => e.DayOfWeek === 0);
-        expect(day0).toEqual([
-            { DayOfWeek: 0, StartTime: '08:00', EndTime: '09:00' },
-            { DayOfWeek: 0, StartTime: '09:00', EndTime: '10:00' },
-        ]);
-    });
-
-    test('resets form fields after successful add', async () => {
-        mockGetByEmail.mockResolvedValue(mockStaffUser);
-        mockLinkStaff.mockResolvedValue({});
-        mockCreateDefault.mockResolvedValue({});
-
-        await renderAndOpenAddStaff();
-
-        const input = screen.getByPlaceholderText(/staff@example.com/i);
-        fireEvent.change(input, { target: { value: 'jane@example.com' } });
-
-        await act(async () => jest.runAllTimersAsync());
-        await waitFor(() => screen.getByLabelText(/speciality/i));
-
-        fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
-        fireEvent.click(getAddStaffSubmitButton());
-
-        await waitFor(() => expect(mockLinkStaff).toHaveBeenCalled());
-
-        expect(input.value).toBe('');
-        await waitFor(() =>
-            expect(screen.queryByText(/Found: Dr Jane Doe/i)).not.toBeInTheDocument()
-        );
-    });
-
-    test('shows 409 alert when staff is already linked to a clinic', async () => {
-        mockGetByEmail.mockResolvedValue(mockStaffUser);
-        mockLinkStaff.mockRejectedValue({ status: 409 });
-
-        await renderAndOpenAddStaff();
-
         fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
+            target: { value: 'notfound@clinic.com' },
         });
 
-        await act(async () => jest.runAllTimersAsync());
-        await waitFor(() => screen.getByLabelText(/speciality/i));
+        act(() => { jest.runAllTimers(); });
 
-        fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
-        fireEvent.click(getAddStaffSubmitButton());
-
-        await waitFor(() =>
-            expect(window.alert).toHaveBeenCalledWith('This staff member is already linked to a clinic.')
-        );
+        await waitFor(() => {
+            expect(screen.getByLabelText(/Not found or already linked/i)).toBeInTheDocument();
+        });
     });
 
-    test('shows generic alert on non-409 error', async () => {
-        mockGetByEmail.mockResolvedValue(mockStaffUser);
-        mockLinkStaff.mockRejectedValue({ status: 500, message: 'Server error' });
+    test("Given the email search errors, Then an error is logged and no result is shown", async () => {
+        mockApi.users.getByEmail.mockRejectedValue(new Error("Search error"));
 
-        await renderAndOpenAddStaff();
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
 
-        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
         });
 
-        await act(async () => jest.runAllTimersAsync());
-        await waitFor(() => screen.getByLabelText(/speciality/i));
-
-        fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
-        fireEvent.click(getAddStaffSubmitButton());
-
-        await waitFor(() =>
-            expect(window.alert).toHaveBeenCalledWith('Failed to add staff. Please try again.')
-        );
-    });
-
-    test('Add Staff button stays disabled when speciality is not selected', async () => {
-        mockGetByEmail.mockResolvedValue(mockStaffUser);
-        await renderAndOpenAddStaff();
-
         fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
+            target: { value: 'error@clinic.com' },
         });
 
-        await act(async () => jest.runAllTimersAsync());
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
+        act(() => { jest.runAllTimers(); });
 
-        
-        expect(getAddStaffSubmitButton()).toBeDisabled();
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalledWith('Staff email check error:', expect.any(Error));
+        });
+
+        expect(screen.queryByText(/Found:/i)).not.toBeInTheDocument();
+        consoleSpy.mockRestore();
     });
 
-    test('does not call linkStaff if no staff result is present', async () => {
-        await renderAndOpenAddStaff();
+    test("Given a staff member is found, Then the speciality dropdown is shown", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
 
-        expect(getAddStaffSubmitButton()).toBeDisabled();
-        expect(mockLinkStaff).not.toHaveBeenCalled();
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /Speciality/i })).toBeInTheDocument();
+        });
+    });
+
+    test("Given a staff member is found but no speciality is selected, Then the Add Staff button is disabled", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /Add Staff/i, hidden: false })).toBeDisabled();
+        });
+    });
+
+    test("Given a staff member and speciality are selected, Then clicking 'Add Staff' calls linkStaff and createDefault", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /Speciality/i })).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByRole('combobox', { name: /Speciality/i }), {
+            target: { value: 'spec_001' },
+        });
+
+        const submitBtn = screen.getByRole("button", { name: /^Add Staff$/i });
+        fireEvent.click(submitBtn);
+
+        await waitFor(() => {
+            expect(mockApi.clinics.linkStaff).toHaveBeenCalledWith('clinic_001', {
+                auth0Id: 'auth0|new_staff',
+            });
+            expect(mockApi.schedules.createDefault).toHaveBeenCalledWith(
+                'auth0|new_staff',
+                expect.any(Array)
+            );
+        });
+    });
+
+    test("Given 'Add Staff' succeeds, Then the form resets (email cleared)", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /Speciality/i })).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByRole('combobox', { name: /Speciality/i }), {
+            target: { value: 'spec_001' },
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: /^Add Staff$/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toHaveValue('');
+        });
+    });
+
+    test("Given 'Add Staff' succeeds, Then the staff list is refreshed", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /Speciality/i })).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByRole('combobox', { name: /Speciality/i }), {
+            target: { value: 'spec_001' },
+        });
+
+        const callsBefore = mockApi.clinics.listStaff.mock.calls.length;
+
+        fireEvent.click(screen.getByRole("button", { name: /^Add Staff$/i }));
+
+        await waitFor(() => {
+            expect(mockApi.clinics.listStaff.mock.calls.length).toBeGreaterThan(callsBefore);
+        });
+    });
+
+    test("Given linkStaff returns 409, Then an alert is shown for already-linked staff", async () => {
+        const conflict = new Error("Conflict");
+        conflict.status = 409;
+        mockApi.clinics.linkStaff.mockRejectedValue(conflict);
+
+        const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /Speciality/i })).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByRole('combobox', { name: /Speciality/i }), {
+            target: { value: 'spec_001' },
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: /^Add Staff$/i }));
+
+        await waitFor(() => {
+            expect(alertSpy).toHaveBeenCalledWith('This staff member is already linked to a clinic.');
+        });
+
+        alertSpy.mockRestore();
+    });
+
+    test("Given linkStaff returns a generic error, Then a generic failure alert is shown", async () => {
+        mockApi.clinics.linkStaff.mockRejectedValue(new Error("Server error"));
+
+        const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /Speciality/i })).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByRole('combobox', { name: /Speciality/i }), {
+            target: { value: 'spec_001' },
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: /^Add Staff$/i }));
+
+        await waitFor(() => {
+            expect(alertSpy).toHaveBeenCalledWith('Failed to add staff. Please try again.');
+        });
+
+        alertSpy.mockRestore();
+    });
+
+   
+
+    test("Given the user clicks 'View Stats', Then the stats section is shown", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /View Stats/i }));
+        expect(screen.getByText(/Clinic Stats/i)).toBeInTheDocument();
+    });
+
+    test("Given the stats section is open, Then the three stat navigation buttons are shown", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /View Stats/i }));
+        expect(screen.getByRole("button", { name: /Staff.*Off Days/i })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Cancelled.*Appointments/i })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Appointments.*Made/i })).toBeInTheDocument();
+    });
+
+   
+
+    test("Given the user clicks an action button, Then the content area scrolls into view", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(window.HTMLElement.prototype.scrollIntoView).toHaveBeenCalledWith({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        });
+    });
+
+    test("Given one section is open and the user clicks a different action button, Then only the new section is shown", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+        expect(screen.getByText(/Practice Type:/i)).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: /View Stats/i }));
+        expect(screen.queryByText(/Practice Type:/i)).not.toBeInTheDocument();
+        expect(screen.getByText(/Clinic Stats/i)).toBeInTheDocument();
     });
 });
