@@ -21,7 +21,7 @@ function AdminDashboard() {
     const [selectedClinic, setSelectedClinic] = useState(null);
     const [staffList, setStaffList] = useState([]);
     const [activeSection, setActiveSection] = useState(null);
-    const [adminName] = useState("");
+    const [adminName] = useState(user?.name || "");
     const contentRef = useRef(null);
     const [stats, setStats] = useState(null);
     const [statsCache, setStatsCache] = useState({});

@@ -174,8 +174,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         mockApi.clinics.getAssignedClinics.mockResolvedValue([]);
         render(<AdminDashboard />);
         await waitFor(() => {
-            expect(screen.getByText(/No assigned clinics found/i)).toBeInTheDocument();
-        });
+            expect(screen.getByText(/You are not assigned to any clinics yet/i)).toBeInTheDocument();
     });
 
     
