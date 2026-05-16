@@ -358,3 +358,144 @@
   font-size: 100px;
   color: #6b1fad;
 }
+
+
+.staff-card {
+    width: 100%;
+    max-width: 720px;
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.staff-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #eeeeee;
+    padding-bottom: 1rem;
+}
+
+.staff-name {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1f1f1f;
+}
+
+.staff-role {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.staff-section-title {
+    margin: 0 0 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.staff-speciality-section,
+.add-speciality-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.empty-specialities {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #777;
+    background: #f7f7f7;
+    padding: 0.75rem;
+    border-radius: 12px;
+}
+
+.speciality-chip-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.speciality-chip {
+    border: none;
+    background: #f0e6ff;
+    color: #5f18b8;
+    border-radius: 999px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.speciality-chip:hover {
+    background: #e1ccff;
+    transform: translateY(-1px);
+}
+
+.chip-remove {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.speciality-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.speciality-select,
+.speciality-input {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid #d8d8d8;
+    font-size: 0.9rem;
+    outline: none;
+    background: #ffffff;
+}
+
+.speciality-select:focus,
+.speciality-input:focus {
+    border-color: #7b22c8;
+    box-shadow: 0 0 0 3px rgba(123, 34, 200, 0.12);
+}
+
+.add-speciality-btn {
+    align-self: flex-start;
+    min-width: 180px;
+}
+
+.staff-fire-btn {
+    min-width: 90px;
+    padding: 0.55rem 1rem;
+}
+
+@media (max-width: 700px) {
+    .staff-card-header {
+        flex-direction: column;
+    }
+
+    .speciality-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .add-speciality-btn,
+    .staff-fire-btn {
+        width: 100%;
+    }
+}

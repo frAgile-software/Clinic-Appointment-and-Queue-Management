@@ -278,74 +278,89 @@ function AdminDashboard() {
                         <section className="block-body flex-list">
                             {staffList.length === 0 ? <p>No staff found.</p> : staffList.map((member) => (
                                 <article key={member._id} className="staff-card">
-                                    <section className="staff-info">
-                                        <h4>{member.title} {member.name} {member.surname}</h4>
-                                        <p>{member.speciality || 'General'}</p>
-                                    </section>
-                                    <section className="staff-actions">
-                                        <section className="add-speciality-section">
-                                            <select 
-                                                value={selectedSpecialityByStaff[member.staffId] || ""} 
-                                                onChange={(e) =>
-                                                    setSelectedSpecialityByStaff((prev) => ({
-                                                        ...prev,
-                                                        [member.staffId]: e.target.value
-                                                    }))
-                                                }
-                                                >
-                                                <option value="">Choose Speciality</option>
-                                                {allSpecialities.map((speciality) => (
-                                                    <option key={speciality._id} value={speciality._id}>
-                                                        {speciality.SpecialityName}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            <input 
-                                                type="text" 
-                                                placeholder="enter new speciality"
-                                                value={newSpecialityByStaff[member.staffId] || ""}
-                                                onChange={(e) =>
-                                                    setNewSpecialityByStaff((prev) => ({
-                                                        ...prev,
-                                                        [member.staffId]: e.target.value
-                                                    }))
-                                                }
-                                            />
-                                            <button
-                                                className="pill-btn-purple"
-                                                onClick={() => handleAddSpeciality(member.staffId)}
-                                            >
-                                                Add Speciality
-                                            </button>
-                                        </section>
-
-                                        <section className="staff-speciality-list">
-                                        <p>Current Specialities:</p>
-
-                                        {(staffSpecialities[member.staffId] || []).length === 0 ? (
-                                            <p>No specialities assigned.</p>
-                                        ) : (
-                                            <ul className="speciality-chip-list">
-                                                {(staffSpecialities[member.staffId] || []).map((speciality) => (
-                                                    <li key={speciality._id}>
-                                                        <button
-                                                            type="button"
-                                                            className="speciality-chip"
-                                                            onClick={() =>
-                                                                handleRemoveSpeciality(member.staffId, speciality._id)
-                                                            }
-                                                        >
-                                                            {speciality.SpecialityName} ×
-                                                        </button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
+                                <section className="staff-card-header">
+                                    <section>
+                                        <h4 className="staff-name">
+                                            {member.title} {member.name} {member.surname}
+                                        </h4>
+                                        <p className="staff-role">{member.role || 'Staff Member'}</p>
                                     </section>
 
-                                        <button className="pill-btn-red">Fire</button>
+                                    <button className="pill-btn-red staff-fire-btn">
+                                        Fire
+                                    </button>
+                                </section>
+
+                                <section className="staff-speciality-section">
+                                    <h5 className="staff-section-title">Current Specialities</h5>
+
+                                    {(staffSpecialities[member.staffId] || []).length === 0 ? (
+                                        <p className="empty-specialities">No specialities assigned.</p>
+                                    ) : (
+                                        <ul className="speciality-chip-list">
+                                            {(staffSpecialities[member.staffId] || []).map((speciality) => (
+                                                <li key={speciality._id}>
+                                                    <button
+                                                        type="button"
+                                                        className="speciality-chip"
+                                                        onClick={() =>
+                                                            handleRemoveSpeciality(member.staffId, speciality._id)
+                                                        }
+                                                        title="Click to remove speciality"
+                                                    >
+                                                        {speciality.SpecialityName || speciality.name}
+                                                        <span className="chip-remove">×</span>
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </section>
+
+                                <section className="add-speciality-section">
+                                    <h5 className="staff-section-title">Add Speciality</h5>
+
+                                    <section className="speciality-controls">
+                                        <select
+                                            className="speciality-select"
+                                            value={selectedSpecialityByStaff[member.staffId] || ""}
+                                            onChange={(e) =>
+                                                setSelectedSpecialityByStaff((prev) => ({
+                                                    ...prev,
+                                                    [member.staffId]: e.target.value
+                                                }))
+                                            }
+                                        >
+                                            <option value="">Choose existing speciality</option>
+                                            {allSpecialities.map((speciality) => (
+                                                <option key={speciality._id} value={speciality._id}>
+                                                    {speciality.SpecialityName}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <input
+                                            className="speciality-input"
+                                            type="text"
+                                            placeholder="Or enter new speciality"
+                                            value={newSpecialityByStaff[member.staffId] || ""}
+                                            onChange={(e) =>
+                                                setNewSpecialityByStaff((prev) => ({
+                                                    ...prev,
+                                                    [member.staffId]: e.target.value
+                                                }))
+                                            }
+                                        />
                                     </section>
-                                </article>
+
+                                    <button
+                                        className="pill-btn-purple add-speciality-btn"
+                                        onClick={() => handleAddSpeciality(member.staffId)}
+                                    >
+                                        Add Speciality
+                                    </button>
+                                </section>
+                            </article>
                             ))}
                         </section>
                     </article>
