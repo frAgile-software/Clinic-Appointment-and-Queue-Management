@@ -83,25 +83,21 @@ const renderAndOpenAddStaff = async () => {
         </BrowserRouter>
     );
 
-    // Wait for clinic to load with real timers
+   
     await waitFor(() => screen.getByText('Test Clinic'));
 
-    // Wrap click in act so React flushes setActiveSection and triggers
-    // the useEffect that calls listSpecialities
+  
     await act(async () => {
         fireEvent.click(screen.getByText('Add Staff'));
     });
 
-    // Wait for the specialities fetch triggered by the section toggle
+    
     await waitFor(() => expect(mockListSpecialities).toHaveBeenCalled());
 
-    // NOW switch to fake timers for debounce control in individual tests
     jest.useFakeTimers({ shouldClearNativeTimers: true });
 };
 
-// Helper: targets the form submit button via its aria-label ("Submit add staff"),
-// avoiding the nav "Add Staff" button that shares the same visible text.
-// Requires aria-label="Submit add staff" on the submit button in AdminDashboard.js.
+
 const getAddStaffSubmitButton = () =>
     screen.getByRole('button', { name: /submit add staff/i });
 
@@ -191,7 +187,8 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => jest.advanceTimersByTime(400));
+       
+        await act(async () => jest.runAllTimersAsync());
         await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
 
         expect(screen.getByLabelText(/speciality/i)).toBeInTheDocument();
@@ -208,7 +205,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        // No time advanced — debounce should not have fired
+        
         expect(mockGetByEmail).not.toHaveBeenCalled();
     });
 
@@ -219,6 +216,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
+       
         act(() => jest.advanceTimersByTime(200));
         expect(mockGetByEmail).not.toHaveBeenCalled();
     });
@@ -231,7 +229,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => jest.advanceTimersByTime(400));
+        await act(async () => jest.runAllTimersAsync());
 
         await waitFor(() =>
             expect(mockGetByEmail).toHaveBeenCalledWith('jane@example.com', 'Staff')
@@ -246,7 +244,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => jest.advanceTimersByTime(400));
+        await act(async () => jest.runAllTimersAsync());
         await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
 
         await waitFor(() =>
@@ -262,7 +260,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'unknown@example.com' },
         });
 
-        await act(async () => jest.advanceTimersByTime(400));
+        await act(async () => jest.runAllTimersAsync());
         await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
 
         await waitFor(() =>
@@ -279,7 +277,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => jest.advanceTimersByTime(400));
+        await act(async () => jest.runAllTimersAsync());
         await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
 
         await waitFor(() =>
@@ -294,7 +292,7 @@ describe('AdminDashboard – Add Staff section', () => {
         const input = screen.getByPlaceholderText(/staff@example.com/i);
 
         fireEvent.change(input, { target: { value: 'jane@example.com' } });
-        await act(async () => jest.advanceTimersByTime(400));
+        await act(async () => jest.runAllTimersAsync());
         await waitFor(() => screen.getByText(/Found: Dr Jane Doe/i));
 
         fireEvent.change(input, { target: { value: '' } });
@@ -318,7 +316,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => jest.advanceTimersByTime(400));
+        await act(async () => jest.runAllTimersAsync());
         await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
@@ -352,7 +350,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => jest.advanceTimersByTime(400));
+        await act(async () => jest.runAllTimersAsync());
         await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
@@ -384,7 +382,7 @@ describe('AdminDashboard – Add Staff section', () => {
         const input = screen.getByPlaceholderText(/staff@example.com/i);
         fireEvent.change(input, { target: { value: 'jane@example.com' } });
 
-        await act(async () => jest.advanceTimersByTime(400));
+        await act(async () => jest.runAllTimersAsync());
         await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
@@ -408,7 +406,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => jest.advanceTimersByTime(400));
+        await act(async () => jest.runAllTimersAsync());
         await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
@@ -429,7 +427,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => jest.advanceTimersByTime(400));
+        await act(async () => jest.runAllTimersAsync());
         await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
@@ -448,9 +446,10 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => jest.advanceTimersByTime(400));
+        await act(async () => jest.runAllTimersAsync());
         await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
 
+        
         expect(getAddStaffSubmitButton()).toBeDisabled();
     });
 
