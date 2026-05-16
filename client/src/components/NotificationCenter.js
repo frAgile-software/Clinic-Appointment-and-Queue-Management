@@ -35,9 +35,15 @@ const fetchNotifications = async () => {
 
   const toggleNotifications = async () => {
     setIsOpen((prev) => !prev);
+    const now = new Date();
+    const seconds = now.getSeconds(); 
     if (!isOpen){
-    await api.notifications.createNotif(userId,"CLINIC OVERRUN BY ZOMBIES")
-    }
+      if (seconds%2===0){
+      await api.notifications.createNotif(userId,"ZOMBIES R COMING")
+      } else
+          await api.notifications.createNotif(userId,"CLINIC OVERRUN BY ZOMBIES")
+        }
+    
     else fetchNotifications();
   };
 
