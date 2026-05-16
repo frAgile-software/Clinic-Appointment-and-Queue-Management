@@ -82,7 +82,7 @@ function AdminDashboard() {
         };
         
         fetchStaff();
-    },[selectedClinic, user, apiFetch]);
+    },[selectedClinic, user]);
 
     useEffect(() => {
         const loadStaffSpecialities = async () => {
