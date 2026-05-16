@@ -2,9 +2,8 @@ import { Link } from 'react-router';
 import './AdminDashboard.css';
 import logo from './clinicLogo.png';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useState, useEffect } from 'react';
+
 import NotificationCenter from '../../components/NotificationCenter';
-import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router";
 import { LuUser, LuBell } from "react-icons/lu";

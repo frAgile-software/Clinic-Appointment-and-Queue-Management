@@ -265,7 +265,7 @@ return (
               <button className="action-item-btn" onClick={toggleChangeDetailsModal}>Update personal details</button>
               <button className="action-item-btn action-item-btn--danger" onClick={emailDismissal}>Request dismissal</button>
             </div>
-          </div>
+          </article>
         </section>
       )}
 
