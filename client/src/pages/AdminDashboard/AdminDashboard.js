@@ -364,7 +364,7 @@ function AdminDashboard() {
 
                             <button
                                 type="button"
-                                Submit add staff
+                                aria-label="Submit add staff"
                                 className="pill-btn-purple submit-staff-btn"
                                 disabled={
                                     !staffSearchResult?.user ||
