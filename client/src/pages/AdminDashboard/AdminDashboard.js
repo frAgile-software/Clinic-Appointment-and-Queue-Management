@@ -2,7 +2,10 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
 import { LuUser, LuBell } from "react-icons/lu";
 import { useApi } from "../../api/useApi";  
+import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './AdminDashboard.css';
+
+const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED: 'apps-cancelled', DAYS_OFF: 'days-off'}
 
 function AdminDashboard() {
     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
@@ -18,6 +21,11 @@ function AdminDashboard() {
     const [activeSection, setActiveSection] = useState(null);
     const [adminName, setAdminName] = useState("");
     const contentRef = useRef(null);
+    const [stats, setStats] = useState(null);
+    const [statsCache, setStatsCache] = useState({});
+    const [selectedStat, setSelectedStat] = useState('');
+    const [loadingStats, setLoadingStats] = useState(false);
+    const [queueGranularity, setQueueGranularity] = useState('day');
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -71,6 +79,58 @@ function AdminDashboard() {
         fetchStaff();
     }, [selectedClinic, user, api]);
 
+    // creates a cache key for a stats query
+    const buildCacheKey = (clinicId, stat, params = {}) => {
+        const paramStr = Object.values(params).join('-');
+        return paramStr ? `${clinicId}-${stat}-${paramStr}` : `${clinicId}-${stat}`;
+    }
+
+    useEffect(() => {
+        if (activeSection === 'view-stats' && selectedClinic) {
+            const fetchStats = async () => {
+
+                // Cache stats (so we dont refetch them on every button click)
+                const cacheKey = buildCacheKey(selectedClinic._id, selectedStat,
+                    selectedStat === STATS.QUEUE_WAIT ? {granularity: queueGranularity } : {}
+                );
+
+                if (statsCache[cacheKey]) {
+                    setStats(statsCache[cacheKey]);
+                    return;
+                }
+
+                setLoadingStats(true);
+                try {
+                    switch(selectedStat) {
+                        case STATS.QUEUE_WAIT:
+                            console.log("Queue waits:");
+                            const data = await api.queues.getAverageWaitTime(selectedClinic._id, {_groupby: queueGranularity});
+                            setStats(data.data);
+                            setStatsCache( prev => ({...prev, [cacheKey]: data.data } ));
+                            break;
+                        case STATS.APPS_MADE:
+                            console.log("Appoitments made:");
+                            break;
+                        case STATS.APPS_CANCELLED:
+                            console.log("Appoitments cancelled:");
+                            break;
+                        case STATS.DAYS_OFF:
+                            console.log("Staff days off:");
+                            break;
+                        default:
+                            console.log("No stat selected.");
+                    }
+                } catch (error) {
+                    console.log("Error fetching stats:", error);
+                    setStats(null);
+                } finally {
+                    setLoadingStats(false);
+                }
+            }
+            fetchStats();
+        }
+    }, [activeSection, selectedClinic, queueGranularity, selectedStat, api, statsCache]);
+
     if (isLoading) {
         return <p>Loading dashboard...</p>;
     }
@@ -86,6 +146,27 @@ function AdminDashboard() {
             contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
+
+    const QueueTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            const hour = Math.floor(label)
+            const formatLabel = queueGranularity === 'hour' ? `${String(hour).padStart(2, '0')}:00-${String(hour).padStart(2, '0')}:59` : label;
+            return (
+                <section className='custom-tooltip'>
+                    <p className='tooltip-label'>{formatLabel}</p>
+                    <p className='tooltip-label'>{payload[0].value} min</p>
+                </section>
+            )
+        }
+        return null;
+    }
+
+    // data is returned per hour i.e. 08:00 is the wait time for 08:00-08:59
+    // this func shifts those values for display purposes (line graph)
+    const shiftHours = !stats ? [] : stats.map(item => ({
+        ...item,
+        hourNum: parseInt(item.label) + 0.5,
+    }));
 
     return (
         <main className="admin-dashboard-wrapper">
@@ -213,12 +294,50 @@ function AdminDashboard() {
                         <header className="block-header">Clinic Stats</header>
                         <section className="block-body">
                             <nav className="stats-nav">
-                                <button className="stat-btn">Staff<br/>Off Days</button>
-                                <button className="stat-btn">Cancelled<br/>Appointments</button>
-                                <button className="stat-btn">Appointments<br/>Made</button>
+                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : ''}`} onClick={() => setSelectedStat("days-off")}>Staff<br/>Off Days</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPS_CANCELLED ? 'active' : ''}`} onClick={() => setSelectedStat("apps-cancelled")}>Cancelled<br/>Appointments</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPS_MADE ? 'active' : ''}`} onClick={() => setSelectedStat("apps-made")}>Appointments<br/>Made</button>
+                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : ''}`} onClick={() => setSelectedStat("queue-waits")}>Queue<br/>Waits</button>
                             </nav>
-                            <section className="graph-placeholder">
-                                <span className="graph-icon">📈</span>
+                            <section className="stats-graph">
+                                { loadingStats ? (
+                                    <span>Loading {selectedStat}...</span>
+                                ) : stats && selectedStat === STATS.QUEUE_WAIT ? (
+                                    <>
+                                        <h2 className="chart-title">Average Queue Wait Time</h2>
+                                        <nav className="granularity-toggle">
+                                            <button className={queueGranularity === 'day' ? 'active' : ''} onClick={() => setQueueGranularity('day')}>Per Day</button>
+                                            <button className={queueGranularity === 'hour' ? 'active' : ''} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
+                                        </nav>
+                                        <ResponsiveContainer width="100%" height={300}>
+                                            {queueGranularity === 'hour' ? (
+                                                <LineChart data={shiftHours}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis 
+                                                        dataKey="hourNum"
+                                                        type="number"
+                                                        domain={['dataMin - 0.5', 'dataMax + 0.5']}
+                                                        tickFormatter={(val) => `${String(Math.floor(val)).padStart(2, '0')}:00`}
+                                                        ticks={shiftHours.map(d => d.hourNum - 0.5)}
+                                                    />
+                                                    <YAxis unit=' min'/>
+                                                    <Tooltip content={QueueTooltip}/>
+                                                    <Line type="monotone" dataKey="avgWait" stroke="#6b1fad" strokeWidth={2} dot={{ fill: '#6b1fad' }} />
+                                                </LineChart>
+                                            ) : (
+                                                <BarChart data={stats}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="label" />
+                                                    <YAxis unit=" min" />
+                                                    <Tooltip content={QueueTooltip}/>
+                                                    <Bar dataKey="avgWait" fill="#6b1fad" radius={[4, 4, 0, 0]} />
+                                                </BarChart>
+                                            )}
+                                        </ResponsiveContainer>
+                                    </>
+                                ) : (
+                                    <span className="graph-icon">📈</span>
+                                )}
                             </section>
                         </section>
                     </article>

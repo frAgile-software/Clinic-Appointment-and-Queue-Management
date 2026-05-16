@@ -336,8 +336,8 @@
 }
 
 .stat-btn {
-  background-color: #6b1fad; 
-  color: #fff;
+  color: #6b1fad;
+  background-color: white;
   border: none;
   padding: 15px 30px;
   border-radius: 10px;
@@ -348,14 +348,68 @@
   min-width: 180px;
 }
 
-.graph-placeholder {
+.stat-btn.active {
+  background: #6b1fad;
+  color: white;
+}
+
+.stats-graph {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200px;
+  min-height: 200px;
+  width: 100%;
+  padding: 1rem 0;
+  flex-direction: column;
+}
+
+.stats-graph h2 {
+  color: #6b1fad;
+  margin-bottom: 0.5rem;
+  padding-bottom: 10px;
+}
+
+.stats-graph .granularity-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-direction: row;
+}
+
+.stats-graph .granularity-toggle button {
+  padding: 0.4rem 1rem;
+  border: 1px solid #6b1fad;
+  border-radius: 20px;
+  background: transparent;
+  color: #6b1fad;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.stats-graph .granularity-toggle button.active {
+  background: #6b1fad;
+  color: white;
 }
 
 .graph-icon {
   font-size: 100px;
   color: #6b1fad; 
+}
+
+.custom-tooltip {
+    background: white;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.custom-tooltip .tooltip-label {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.custom-tooltip .tooltip-value {
+    font-size: 12px;
 }
