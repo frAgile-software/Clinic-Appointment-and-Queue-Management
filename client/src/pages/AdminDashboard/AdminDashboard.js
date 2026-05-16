@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { LuUser, LuBell } from "react-icons/lu";
 import { useApi } from "../../api/useApi";  
 import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import * as statExport from './exportHelper';
 import './AdminDashboard.css';
 
 const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED: 'apps-cancelled', DAYS_OFF: 'days-off'}
@@ -167,6 +168,17 @@ function AdminDashboard() {
         ...item,
         hourNum: parseInt(item.label) + 0.5,
     }));
+
+    const exportCSV = () => {
+        const csvUri = statExport.convertCsv(stats);
+        statExport.downloadFile(csvUri, `${selectedStat}_${new Date().toISOString()}.csv`);
+    };
+
+    const exportPDF = () => {
+        const graph = document.getElementsByClassName("stats-graph")[0];
+        statExport.convertPdf(graph).then((pdfUri) => 
+            statExport.downloadFile(pdfUri, `${selectedStat}_${new Date().toISOString()}.pdf`));
+    };
 
     return (
         <main className="admin-dashboard-wrapper">
@@ -340,6 +352,11 @@ function AdminDashboard() {
                                 )}
                             </section>
                         </section>
+                        <nav align='right'>
+                            Export to:
+                            <button onClick={exportCSV}>CSV</button>
+                            <button onClick={exportPDF}>PDF</button>
+                        </nav>
                     </article>
                 )}
             </section>
