@@ -224,6 +224,7 @@ Base path: `/specialities`.
 | `removeFromStaff({staffId, specialityId})`| Private |`DELETE /api/specialities/staff/:staffId/:specialityId` |
 | `getForStaff(staffId)`| Public | `GET /specialities/staff/:staffId` |
 
+
 **Example usage in a component**
 ```js
 const api = useApi();
@@ -251,6 +252,7 @@ Base path: `/schedules`. All methods are login protected.
 |---|---|
 | `getSchedule(userId)` | `GET /api/schedules/:userId` |
 | `update(scheduleId, {Staff, DayOfWeek, StartTime, EndTime})` | `PUT /api/schedules/:scheduleId` |
+| `createDefault(auth0Id, schedules)`|`POST /api/schedules/bulk`|
 
 **Example usage in a component**
 ```js
@@ -266,6 +268,13 @@ await spi.schedules.update("schdl1", {
   StartTime: "01:00",
   EndTime: "23:00"
 });
+
+// create default schedules in bulk
+await api.schedules.createDefault("auth0|123", [
+  { DayOfWeek: 0, StartTime: "08:00", EndTime: "17:00" },
+  { DayOfWeek: 1, StartTime: "08:00", EndTime: "17:00" },
+]);
+
 ```
 
 ---
