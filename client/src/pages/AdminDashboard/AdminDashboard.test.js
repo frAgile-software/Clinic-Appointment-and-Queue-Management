@@ -247,6 +247,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
     test("Given the user clicks 'Manage Clinic', Then the clinic details section is shown", async () => {
         await renderDashboard();
         fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+        
         expect(screen.getByText(/Practice Type:/i)).toBeInTheDocument();
         
         expect(screen.getAllByText(/General Practice/i).length).toBeGreaterThanOrEqual(1);
@@ -521,7 +522,8 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         act(() => { jest.runAllTimers(); });
 
         await waitFor(() => {
-            expect(screen.getByRole('button', { name: /Add Staff/i, hidden: false })).toBeDisabled();
+           
+            expect(screen.getByRole('button', { name: /Submit add staff/i })).toBeDisabled();
         });
     });
 
@@ -547,7 +549,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
             target: { value: 'spec_001' },
         });
 
-        const submitBtn = screen.getByRole("button", { name: /^Add Staff$/i });
+        const submitBtn = screen.getByRole("button", { name: /Submit add staff/i });
         fireEvent.click(submitBtn);
 
         await waitFor(() => {
@@ -583,7 +585,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
             target: { value: 'spec_001' },
         });
 
-        fireEvent.click(screen.getByRole("button", { name: /^Add Staff$/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Submit add staff/i }));
 
         await waitFor(() => {
             expect(screen.getByPlaceholderText(/staff@example.com/i)).toHaveValue('');
@@ -614,7 +616,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
 
         const callsBefore = mockApi.clinics.listStaff.mock.calls.length;
 
-        fireEvent.click(screen.getByRole("button", { name: /^Add Staff$/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Submit add staff/i }));
 
         await waitFor(() => {
             expect(mockApi.clinics.listStaff.mock.calls.length).toBeGreaterThan(callsBefore);
@@ -649,7 +651,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
             target: { value: 'spec_001' },
         });
 
-        fireEvent.click(screen.getByRole("button", { name: /^Add Staff$/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Submit add staff/i }));
 
         await waitFor(() => {
             expect(alertSpy).toHaveBeenCalledWith('This staff member is already linked to a clinic.');
@@ -684,7 +686,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
             target: { value: 'spec_001' },
         });
 
-        fireEvent.click(screen.getByRole("button", { name: /^Add Staff$/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Submit add staff/i }));
 
         await waitFor(() => {
             expect(alertSpy).toHaveBeenCalledWith('Failed to add staff. Please try again.');
@@ -693,6 +695,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         alertSpy.mockRestore();
     });
 
+    
 
     test("Given the user clicks 'View Stats', Then the stats section is shown", async () => {
         await renderDashboard();
