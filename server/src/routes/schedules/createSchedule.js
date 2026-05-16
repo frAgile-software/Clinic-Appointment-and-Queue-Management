@@ -4,7 +4,7 @@ const Schedule = require("../../database/models/Schedule");
 const User = require("../../database/models/User");
 
 // POST /api/schedules/bulk
-// Creates default schedule for a new staff member across all 7 days
+// Sends the default schedule for a new staff member across all 7 days to the database 
 router.post("/bulk", async (req, res) => {
     try {
         const { staffId, schedules } = req.body;
