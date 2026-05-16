@@ -18,7 +18,7 @@ function AdminDashboard() {
     const [selectedClinic, setSelectedClinic] = useState(null);
     const [staffList, setStaffList] = useState([]);
     const [activeSection, setActiveSection] = useState(null);
-
+    const [staffSpecialities, setStaffSpecialities] = useState({});
     const [allSpecialities, setAllSpecialities]= useState([]);
     const [selectedSpecialityByStaff, setSelectedSpecialityByStaff]= useState({});
     const [newSpecialityByStaff, setNewSpecialityByStaff]= useState({});
@@ -72,6 +72,34 @@ function AdminDashboard() {
     },[selectedClinic, user, apiFetch]);
 
     useEffect(() => {
+        const loadStaffSpecialities = async () => {
+            try {
+                const result = {};
+
+                for (const member of staffList) {
+                    const userId = member.userId || member._id;
+
+                    if (!userId || !member.staffId) continue;
+
+                    const data = await api.specialities.getForStaff(userId);
+
+                    result[member.staffId] = data.SpecialityObjects || [];
+                }
+
+                setStaffSpecialities(result);
+            } catch (error) {
+                console.error("Error loading staff specialities:", error);
+            }
+        };
+
+        if (staffList.length > 0) {
+            loadStaffSpecialities();
+        } else {
+            setStaffSpecialities({});
+        }
+    },[staffList, api]);
+
+    useEffect(() => {
         const loadSpecialities = async () => {
             try {
                 const specialities=await api.specialities.getAll();
@@ -114,6 +142,18 @@ function AdminDashboard() {
             }
             
             await api.specialities.addToStaff({staffId, specialityId});
+
+            const member = staffList.find((staff) => staff.staffId === staffId);
+            const userId = member?.userId || member?._id;
+            if (userId) {
+                const updatedData = await api.specialities.getForStaff(userId);
+
+                setStaffSpecialities((prev) => ({
+                    ...prev,
+                    [staffId]: updatedData.SpecialityObjects || []
+                }));
+            }
+
             setSelectedSpecialityByStaff((prev)=> ({
                 ...prev,
                 [staffId]: ""
@@ -126,6 +166,27 @@ function AdminDashboard() {
         } catch (error) {
             console.error("Error adding speciality to staff:", error);
             alert("Failed to add speciality. Please try again.");
+        }
+    };
+
+    const handleRemoveSpeciality = async (staffId, specialityId) => {
+        try {
+            await api.specialities.removeFromStaff({
+                staffId,
+                specialityId
+            });
+
+            setStaffSpecialities((prev) => ({
+                ...prev,
+                [staffId]: (prev[staffId] || []).filter(
+                    (speciality) => speciality._id !== specialityId
+                )
+            }));
+
+            alert("Speciality removed successfully.");
+        } catch (error) {
+            console.error("Error removing speciality from staff:", error);
+            alert("Failed to remove speciality. Please try again.");
         }
     };
 
@@ -258,7 +319,30 @@ function AdminDashboard() {
                                             </button>
                                         </section>
 
-                                        <button className="pill-btn-purple">Remove Speciality</button>
+                                        <section className="staff-speciality-list">
+                                        <p>Current Specialities:</p>
+
+                                        {(staffSpecialities[member.staffId] || []).length === 0 ? (
+                                            <p>No specialities assigned.</p>
+                                        ) : (
+                                            <ul className="speciality-chip-list">
+                                                {(staffSpecialities[member.staffId] || []).map((speciality) => (
+                                                    <li key={speciality._id}>
+                                                        <button
+                                                            type="button"
+                                                            className="speciality-chip"
+                                                            onClick={() =>
+                                                                handleRemoveSpeciality(member.staffId, speciality._id)
+                                                            }
+                                                        >
+                                                            {speciality.SpecialityName} ×
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </section>
+
                                         <button className="pill-btn-red">Fire</button>
                                     </section>
                                 </article>
