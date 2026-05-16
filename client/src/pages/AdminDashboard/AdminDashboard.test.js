@@ -177,7 +177,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
             expect(screen.getByText(/You are not assigned to any clinics yet/i)).toBeInTheDocument();
     });
 
-    
+});   
 
     test("Given the dashboard loads, Then it fetches assigned clinics using the admin's auth0 ID", async () => {
         await renderDashboard();
