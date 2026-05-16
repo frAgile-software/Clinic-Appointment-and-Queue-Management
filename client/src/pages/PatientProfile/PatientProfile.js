@@ -101,6 +101,7 @@ function PatientProfile() {
             <span className="landing-logo">Clinics and Qs</span>
             <section className="landing-nav-btns">
                 <button className="btn" onClick={logout}>Logout</button>
+                <NotificationCenter userId={user?.sub} />
                 <button className="btn btn-primary" onClick={() => navigate('/dashboard/patient')}>Back</button>
             </section>
             </nav>

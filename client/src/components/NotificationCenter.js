@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useApi } from '../api/useApi';
 import './NotificationCenter.css';
 
@@ -13,7 +13,7 @@ export default function NotificationCenter({ userId }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-const fetchNotifications = async () => {
+const fetchNotifications = useCallback(async () => {
   if (!userId) {
     setNotifications([]);
     return;
@@ -31,7 +31,7 @@ const fetchNotifications = async () => {
   } finally {
     setLoading(false);
   }
-};
+}, [api, userId]);
 
   const toggleNotifications = async () => {
     setIsOpen((prev) => !prev);
