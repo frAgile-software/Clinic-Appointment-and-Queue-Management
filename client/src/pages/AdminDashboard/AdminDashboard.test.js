@@ -72,7 +72,6 @@ const mockSpecialities = [
 ];
 
 
-
 const renderAndOpenAddStaff = async () => {
     mockGetAssignedClinics.mockResolvedValue([mockClinic]);
     mockListStaff.mockResolvedValue({ users: [] });
@@ -84,21 +83,23 @@ const renderAndOpenAddStaff = async () => {
         </BrowserRouter>
     );
 
-
+    // Wait for clinic to load with real timers
     await waitFor(() => screen.getByText('Test Clinic'));
 
- 
-    jest.useFakeTimers();
-
+    // Click Add Staff — still on real timers so the listSpecialities
+    // promise can resolve via the useEffect
     fireEvent.click(screen.getByText('Add Staff'));
 
-    
-    act(() => jest.advanceTimersByTime(200));
-
+    // Wait for the specialities fetch triggered by the section toggle
     await waitFor(() => expect(mockListSpecialities).toHaveBeenCalled());
+
+    // NOW switch to fake timers for debounce control in individual tests
+    jest.useFakeTimers({ shouldClearNativeTimers: true });
 };
 
-
+// Helper: targets the form submit button via its aria-label ("Submit add staff"),
+// avoiding the nav "Add Staff" button that shares the same visible text.
+// Requires aria-label="Submit add staff" on the submit button in AdminDashboard.js.
 const getAddStaffSubmitButton = () =>
     screen.getByRole('button', { name: /submit add staff/i });
 
@@ -106,7 +107,6 @@ const getAddStaffSubmitButton = () =>
 
 beforeEach(() => {
     jest.clearAllMocks();
-
     jest.useRealTimers();
     jest.spyOn(console, 'error').mockImplementation(() => {});
     jest.spyOn(window, 'alert').mockImplementation(() => {});
@@ -122,40 +122,40 @@ afterEach(() => {
 
 describe('AdminDashboard Component', () => {
 
-  test('renders navbar elements', () => {
-    mockGetAssignedClinics.mockResolvedValue([mockClinic]);
-    mockListStaff.mockResolvedValue({ users: [] });
+    test('renders navbar elements', () => {
+        mockGetAssignedClinics.mockResolvedValue([mockClinic]);
+        mockListStaff.mockResolvedValue({ users: [] });
 
-    render(
-      <BrowserRouter>
-        <AdminDashboard />
-      </BrowserRouter>
-    );
+        render(
+            <BrowserRouter>
+                <AdminDashboard />
+            </BrowserRouter>
+        );
 
-    // Check nav buttons
-    //expect(screen.getByText(/log out/i)).toBeInTheDocument();
-    //expect(screen.getByText(/profile/i)).toBeInTheDocument();
+        // Check nav buttons
+        //expect(screen.getByText(/log out/i)).toBeInTheDocument();
+        //expect(screen.getByText(/profile/i)).toBeInTheDocument();
 
-    // Check notification image
-    //expect(screen.getByAltText(/notification bell/i)).toBeInTheDocument();
-  });
-  
-  test('renders top section content', () => {
-    mockGetAssignedClinics.mockResolvedValue([mockClinic]);
-    mockListStaff.mockResolvedValue({ users: [] });
+        // Check notification image
+        //expect(screen.getByAltText(/notification bell/i)).toBeInTheDocument();
+    });
 
-    render(
-      <BrowserRouter>
-        <AdminDashboard />
-      </BrowserRouter>
-    );
+    test('renders top section content', () => {
+        mockGetAssignedClinics.mockResolvedValue([mockClinic]);
+        mockListStaff.mockResolvedValue({ users: [] });
 
-    /*expect(
-      screen.getByText(/welcome to the admin dashboard/i)
-    ).toBeInTheDocument();*/
+        render(
+            <BrowserRouter>
+                <AdminDashboard />
+            </BrowserRouter>
+        );
 
-    //expect(screen.getByAltText(/clinic logo/i)).toBeInTheDocument();
-  });
+        /*expect(
+          screen.getByText(/welcome to the admin dashboard/i)
+        ).toBeInTheDocument();*/
+
+        //expect(screen.getByAltText(/clinic logo/i)).toBeInTheDocument();
+    });
 
 });
 
@@ -197,7 +197,7 @@ describe('AdminDashboard – Add Staff section', () => {
         expect(screen.getByText('Dermatology')).toBeInTheDocument();
     });
 
-    // Email search 
+    // Email search
 
     test('does not call getByEmail immediately on input change', async () => {
         await renderAndOpenAddStaff();
@@ -206,7 +206,7 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-      
+        // No time advanced — debounce should not have fired
         expect(mockGetByEmail).not.toHaveBeenCalled();
     });
 
@@ -302,7 +302,7 @@ describe('AdminDashboard – Add Staff section', () => {
         );
     });
 
-    // handleAddStaff 
+    // handleAddStaff
 
     test('calls linkStaff and createDefault with correct args on successful add', async () => {
         mockGetByEmail.mockResolvedValue(mockStaffUser);
@@ -340,7 +340,6 @@ describe('AdminDashboard – Add Staff section', () => {
     });
 
     test('buildDefaultScheduleEntries generates correct entries from clinic times', async () => {
-        
         mockGetByEmail.mockResolvedValue(mockStaffUser);
         mockLinkStaff.mockResolvedValue({});
         mockCreateDefault.mockResolvedValue({});
