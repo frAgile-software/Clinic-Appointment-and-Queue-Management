@@ -120,7 +120,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         });
     };
 
-    
+
     test("Given the dashboard loads, Then the header with brand name is displayed", async () => {
         await renderDashboard();
         expect(screen.getByText(/Clinics and Qs/i)).toBeInTheDocument();
@@ -138,7 +138,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
 
     test("Given the dashboard loads, Then the notifications card is shown", async () => {
         await renderDashboard();
-        expect(screen.getByText(/Notifications/i)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /^Notifications$/i })).toBeInTheDocument();
         expect(screen.getByText(/3 New Notifications/i)).toBeInTheDocument();
     });
 
@@ -188,8 +188,9 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
 
     test("Given clinics are fetched, Then the first clinic is selected by default", async () => {
         await renderDashboard();
-        const firstCard = screen.getAllByRole("listitem")[0];
-        expect(firstCard).toHaveClass('active');
+        
+        const clinicCard = screen.getByRole("button", { name: /Sandton Medical Centre/i });
+        expect(clinicCard).toHaveClass('active');
     });
 
     test("Given the user clicks a different clinic card, Then that clinic becomes active", async () => {
@@ -232,7 +233,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         consoleSpy.mockRestore();
     });
 
-   
+
     test("Given the dashboard loads, Then all four action buttons are visible", async () => {
         await renderDashboard();
         expect(screen.getByRole("button", { name: /Manage Clinic/i })).toBeInTheDocument();
@@ -241,13 +242,14 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         expect(screen.getByRole("button", { name: /View Stats/i })).toBeInTheDocument();
     });
 
-    // ─── Manage Clinic Section ────────────────────────────────────────────────────
+    
 
     test("Given the user clicks 'Manage Clinic', Then the clinic details section is shown", async () => {
         await renderDashboard();
         fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
         expect(screen.getByText(/Practice Type:/i)).toBeInTheDocument();
-        expect(screen.getByText(/General Practice/i)).toBeInTheDocument();
+        
+        expect(screen.getAllByText(/General Practice/i).length).toBeGreaterThanOrEqual(1);
         expect(screen.getByText(/123456789/i)).toBeInTheDocument();
         expect(screen.getByText(/Dentistry, Cardiology/i)).toBeInTheDocument();
     });
@@ -261,7 +263,10 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
     test("Given the clinic detail section is open, Then the address is displayed", async () => {
         await renderDashboard();
         fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
-        expect(screen.getByText(/1 Sandton Drive/i)).toBeInTheDocument();
+        
+        expect(screen.getByText((content, element) =>
+            element?.tagName === 'P' && /Address:/.test(content) && /1 Sandton Drive/.test(content)
+        )).toBeInTheDocument();
         expect(screen.getByText(/Johannesburg/i)).toBeInTheDocument();
     });
 
@@ -285,7 +290,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         expect(screen.queryByText(/Practice Type:/i)).not.toBeInTheDocument();
     });
 
-    
+
 
     test("Given the user clicks 'Manage Staff', Then the staff list is shown", async () => {
         await renderDashboard();
@@ -329,7 +334,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         });
     });
 
-    
+
 
     test("Given the user clicks 'Add Staff', Then the add-staff form is shown", async () => {
         await renderDashboard();
@@ -688,7 +693,6 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         alertSpy.mockRestore();
     });
 
-   
 
     test("Given the user clicks 'View Stats', Then the stats section is shown", async () => {
         await renderDashboard();
@@ -704,7 +708,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         expect(screen.getByRole("button", { name: /Appointments.*Made/i })).toBeInTheDocument();
     });
 
-   
+
 
     test("Given the user clicks an action button, Then the content area scrolls into view", async () => {
         await renderDashboard();
