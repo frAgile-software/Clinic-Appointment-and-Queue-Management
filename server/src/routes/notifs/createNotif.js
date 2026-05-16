@@ -4,9 +4,16 @@ const mongoose = require("mongoose");
 const User = require("../../database/models/User");
 const Notif = require("../../database/models/Notif");
 
-router.post("/:userId", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const { recipient, message, time } = req.body;
+    console.log("Creating notification for id",recipient);
+    const {userId, auth0Id} = recipient;
+    let queryId = userId;
+    if (!queryId && auth0Id){
+        const userRecord = await User.findOne({ auth0Id });
+        queryId = userRecord?._id;
+    }
 
     if (!recipient || !mongoose.Types.ObjectId.isValid(recipient)) {
       return res.status(400).json({ message: "Valid recipient is required" });

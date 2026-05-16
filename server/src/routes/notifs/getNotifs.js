@@ -8,7 +8,14 @@ router.get("/:userId", async (req, res) => {
         console.log("1. Incoming notification request:", req.params);
         
         //get userId
-        const {userId} = req.params;
+        const {userId, auth0Id} = req.params;
+        let queryId = userId;
+
+        if (!queryId && auth0Id){
+            const userRecord = await User.findOne({ auth0Id });
+            queryId = userRecord?._id;
+        }
+
          console.log("Searching notifications for Recipient:", userId); 
         // Database lookup 
         const notif = await Notif.find({Recipient: userId});

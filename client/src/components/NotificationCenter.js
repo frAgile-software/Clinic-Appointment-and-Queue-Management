@@ -13,7 +13,7 @@ export default function NotificationCenter({ userId }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const toggleNotifications = () => {
+  const toggleNotifications = async () => {
     setIsOpen((prev) => !prev);
   };
 

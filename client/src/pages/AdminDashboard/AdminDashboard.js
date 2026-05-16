@@ -4,7 +4,7 @@ import bell from './bell.png';
 import logo from './clinicLogo.png';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect } from 'react';
-
+import NotificationCenter from '../../components/NotificationCenter';
 
 function AdminDashboard() {
      const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
@@ -83,7 +83,7 @@ function AdminDashboard() {
       <nav className="nav">
           <Link to="/" className="nav_button">Profile</Link>{/*profile page not implemented*/}
           <button className="nav_button" onClick={logout}>Log Out</button>
-          <img src={bell} width={50} height={50} alt="notification bell" className="nav_button"></img>
+          <NotificationCenter userId={user?.sub} />
         </nav>
       
     </header>

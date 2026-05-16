@@ -81,6 +81,8 @@ function StaffProfile() {
     }
   };
 
+  
+
   //fetch profile data
   useEffect(() => {
     if (!staffId) return;
