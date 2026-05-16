@@ -1,40 +1,44 @@
 const express = require("express");
 const router = express.Router();
 const Notif = require("../../database/models/Notif");
+const User = require("../../database/models/User"); // Fixed missing import
 const mongoose = require("mongoose");
 
 router.get("/:userId", async (req, res) => {
     try {
-        console.log("1. Incoming notification request:", req.params);
+        const { userId } = req.params;
+        console.log("Incoming notification check for key:", userId);
         
-        //get userId
-        const {userId, auth0Id} = req.params;
-        let queryId = userId;
+        let queryId = null;
 
-        if (!queryId && auth0Id){
-            const userRecord = await User.findOne({ auth0Id });
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+            queryId = userId;
+        } else {
+       
+            console.log("Detected Auth0 ID parameter string. Finding local user record...");
+            const userRecord = await User.findOne({ auth0Id: userId });
             queryId = userRecord?._id;
         }
 
-         console.log("Searching notifications for Recipient:", userId); 
-        // Database lookup 
-        const notif = await Notif.find({Recipient: userId});
-
-        //No notifications
-        if (!notif || notif.length === 0) {
-            console.log("No notifications for user id:", userId);
-            return res.status(200).json({ message: "No notifications to show" });
+        if (!queryId) {
+            console.log("Could not locate any user corresponding to identity key:", userId);
+            return res.status(404).json({ error: "User account reference not found" });
         }
-        console.log("Notifications found");
-        res.status(200).json(notif);
+
+        console.log("Executing query targeting database ObjectId reference:", queryId); 
+        
+        const notifications = await Notif.find({ Recipient: queryId });
+     
+        if (!notifications || notifications.length === 0) {
+            return res.status(200).json([]); 
+        }
+
+        console.log(`Found ${notifications.length} notifications.`);
+        res.status(200).json(notifications);
 
     } catch (error) {
-        if (error.name === "CastError") {
-            console.error("Invalid ObjectId format:", req.params);
-            return res.status(400).json({ error: "Invalid user ID format" });
-        }
         console.error("Error fetching notifications:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Server error encountered while retrieving notification index" });
     }
 });
 

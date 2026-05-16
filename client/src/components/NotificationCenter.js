@@ -71,6 +71,7 @@ const fetchNotifications = async () => {
   };
 
   useEffect(() => {
+    console.log("fetching notifs for user id:", userId);
     fetchNotifications();
   }, [userId]);
 
