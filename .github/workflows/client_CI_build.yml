@@ -4,10 +4,8 @@
 name: Client CI
 
 on:
-  push:
-    branches-ignore: [ "main" ]
-    paths: [ "client/**" ]
   pull_request:
+    paths: [ "client/**" ]
   workflow_dispatch:
 
 jobs:
@@ -27,4 +25,4 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run build --if-present
-    - run: CI=true npm test -- --coverage
+    - run: CI=true npm test -- --coverage --silent

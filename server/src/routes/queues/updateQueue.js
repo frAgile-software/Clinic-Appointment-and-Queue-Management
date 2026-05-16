@@ -8,15 +8,15 @@ const Speciality = require("../../database/models/Speciality");
 router.put("/:queueId", async (req, res) => {
     try {
         const { queueId } = req.params;
-        const { Clinic: clinicId, Speciality: specialityId, Patient: patientId, Status: status, Remarks: remarks} = req.body;
-        if(!mongoose.Types.ObjectId.isValid(queueId)) {
+        const { Clinic: clinicId, Speciality: specialityId, Patient: patientId, Status: status, Remarks: remarks, TimeSeen: timeSeen } = req.body;
+        if (!mongoose.Types.ObjectId.isValid(queueId)) {
             return res.status(400).json({ error: "Invalid queue ID" });
         }
-        const queueEntry=await Queue.findById(queueId);
+        const queueEntry = await Queue.findById(queueId);
         if (!queueEntry) {
             return res.status(404).json({ error: "Queue entry not found" });
         }
-        if (clinicId!== undefined) {
+        if (clinicId !== undefined) {
             if (!mongoose.Types.ObjectId.isValid(clinicId)) {
                 return res.status(400).json({ error: "Invalid clinic ID" });
             }
@@ -52,6 +52,9 @@ router.put("/:queueId", async (req, res) => {
         if (remarks !== undefined) {
             queueEntry.Remarks = remarks;
         }
+        if (timeSeen !== undefined) {
+            queueEntry.TimeSeen = new Date(timeSeen);
+        }
         const updatedQueueEntry = await queueEntry.save();
         return res.status(200).json({
             message: "Queue entry updated successfully.",
@@ -61,7 +64,7 @@ router.put("/:queueId", async (req, res) => {
         console.error("Error updating queue entry:", error);
         return res.status(500).json({
             error: "Internal server error"
-        }); 
-    }      
-    });
-    module.exports = router;
+        });
+    }
+});
+module.exports = router;

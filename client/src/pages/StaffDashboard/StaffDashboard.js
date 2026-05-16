@@ -5,8 +5,16 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../../api/useApi';
 import { useNavigate } from 'react-router';
 
-const activeStatus = ["Waiting", "In Consult"];
-const inactiveStatus = ["Completed", "Cancelled", "No-show"];
+const status = {
+  WAITING: "Waiting",
+  BEING_SEEN: "In Consult",
+  CONCLUDED: "Completed",
+  CANCELLED: "Cancelled",
+  NO_SHOW: "No-show",
+}
+
+const activeStatus = [status.WAITING, status.BEING_SEEN];
+const inactiveStatus = [status.CONCLUDED, status.CANCELLED, status.NO_SHOW];
 
 function StaffDashboard() {
   const {
@@ -40,7 +48,8 @@ function StaffDashboard() {
   const [patient, setPatient] = useState(null);
   const [clinicSpecialities, setClinicSpecialities] = useState({});
   const [selectedSpeciality, setSelectedSpeciality] = useState('');
-
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [newBookingDateTime, setNewBookingDateTime] = useState('');
   const statusList = !viewingHistory ? activeStatus : inactiveStatus;
 
   const [addingToQueue, setAddingToQueue] = useState(false);
@@ -77,7 +86,7 @@ function StaffDashboard() {
       try {
         setLoadingQueues(true);
         console.log("Finding queues...");
-        const data = await api.queues.get(clinics[0]._id, {auth0Id: staffId, statuses: statusList});
+        const data = await api.queues.get(clinics[0]._id, { auth0Id: staffId, statuses: statusList });
         console.log("Queues found:", data);
         setPatientQueue(data);
       } catch (error) {
@@ -95,7 +104,7 @@ function StaffDashboard() {
       try {
         setLoadingAppointments(true);
         console.log("Finding appointments...");
-        const data = await api.appointments.getForAuth0Id(staffId, {statuses: statusList});
+        const data = await api.appointments.getForAuth0Id(staffId, { statuses: statusList });
         console.log("Appointments found:", data);
         setAppointments(data);
       } catch (error) {
@@ -129,7 +138,7 @@ function StaffDashboard() {
       setAddingToQueue(true);
       await api.queues.addPatient(
         clinics[0]._id,
-        {patientId: patient._id},
+        { patientId: patient._id },
         selectedSpeciality,
       );
 
@@ -162,9 +171,9 @@ function StaffDashboard() {
     debounceTimer.current = setTimeout(async () => {
       setLoadingEmailSearch(true);
       setHasSearchedEmail(true);
-      
+
       try {
-        const user = await api.users.getByEmail(email, {role: "Patient"});
+        const user = await api.users.getByEmail(email, { role: "Patient" });
         console.log("Fetched user:", user);
         setPatient(user);
       } catch (error) {
@@ -180,6 +189,32 @@ function StaffDashboard() {
     return () => clearTimeout(debounceTimer.current);
   }, [patientEmail, api]);
 
+  const handleReschedule = async () => {
+    if (!newBookingDateTime) {
+      alert('Please select a new date and time.');
+      return;
+    }
+    const selectedDate = new Date(newBookingDateTime);
+    if (selectedDate <= new Date()) {
+      alert('Please select a future date and time.');
+      return;
+    }
+
+    try {
+      await api.appointments.update(modalDetails._id, { bookingDateTime: newBookingDateTime });
+
+      const updatedItem = { ...modalDetails, BookingDateTime: newBookingDateTime };
+      setModalDetails(updatedItem);
+      setAppointments((prev) => prev.map((item) => (item._id === modalDetails._id ? updatedItem : item)));
+
+      setIsRescheduleModalOpen(false);
+      setNewBookingDateTime('');
+    } catch (error) {
+      console.error('Could not reschedule appointment:', error);
+      alert('Failed to reschedule. Please try again.');
+    }
+  };
+
   const toAppointmentCard = (appointmentItem) => {
     const bookingDate = new Date(appointmentItem.BookingDateTime);
     const patient = appointmentItem.Patient;
@@ -189,7 +224,7 @@ function StaffDashboard() {
         <span className="data-card-detail">ID: {patient._id}</span>
         <span className="data-card-detail">{bookingDate.toLocaleString()}</span>
         <span className="data-card-detail">{appointmentItem.ReasonDetails}</span>
-        <span className={`status-badge ${appointmentItem.Status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
+        <span className={`status-badge ${appointmentItem.Status === status.BEING_SEEN ? 'status-purple' : 'status-white'}`}>
           {appointmentItem.Status}
         </span>
       </li>
@@ -205,7 +240,7 @@ function StaffDashboard() {
         <span className="data-card-detail">ID: {patient._id}</span>
         <span className="data-card-detail">{queueTime.toLocaleTimeString()}</span>
         <span className="data-card-detail">{queueItem.Speciality.SpecialityName}</span>
-        <span className="status-badge status-white">
+        <span className={`status-badge ${queueItem.Status === status.BEING_SEEN ? 'status-purple' : 'status-white'}`}>
           {queueItem.Status}
         </span>
       </li>
@@ -219,11 +254,15 @@ function StaffDashboard() {
     }
 
     const isQueueItem = consultItem.type === 'Queue' || (!!consultItem.createdAt && !consultItem.BookingDateTime);
-    
+
     try {
-      
-      if (isQueueItem)
-        await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
+
+      if (isQueueItem) {
+        if (newStatus === status.BEING_SEEN && consultItem.Status !== status.BEING_SEEN)
+          await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks, timeSeen: new Date() });
+        else
+          await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
+      }
       else
         await api.appointments.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
 
@@ -284,14 +323,14 @@ function StaffDashboard() {
         <article className="quick-action-card">
           <h3 className="quick-action-title">Add Patient to Queue</h3>
           <button className="pill-btn-purple" onClick={() => {
-              setShowAddToQueue(!showAddToQueue);
-              if (showAddToQueue) {
-                setPatientEmail('');
-                setSelectedSpeciality('');
-                setPatient(null);
-                setHasSearchedEmail(false);
-              }
+            setShowAddToQueue(!showAddToQueue);
+            if (showAddToQueue) {
+              setPatientEmail('');
+              setSelectedSpeciality('');
+              setPatient(null);
+              setHasSearchedEmail(false);
             }
+          }
           }>
             {showAddToQueue ? 'CLOSE' : 'ADD TO QUEUE'}
           </button>
@@ -336,8 +375,8 @@ function StaffDashboard() {
               <fieldset className="form-group">
                 <label className="form-label" htmlFor="patient-email-input">Patient Email:</label>
                 <section className="email-input-wrapper">
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className="form-input-canva"
                     value={patientEmail}
                     onChange={(e) => setPatientEmail(e.target.value)}
@@ -423,11 +462,45 @@ function StaffDashboard() {
               </section>
 
               <footer className="modal-actions-footer">
-                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "Waiting")}>Set waiting</button>
-                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "In Consult")}>Check in</button>
-                <button className="modal-action-btn btn-green" onClick={() => updateConsult(modalDetails, "Completed")}>Done</button>
-                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "Cancelled")}>Cancel</button>
-                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "No-show")}>No show</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, status.BEING_SEEN)}>Check in</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, status.WAITING)}>Reset status</button>
+                <button className="modal-action-btn btn-green" onClick={() => updateConsult(modalDetails, status.CONCLUDED)}>Conclude session</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, status.CANCELLED)}>Cancel</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, status.NO_SHOW)}>No show</button>
+                {modalDetails.type === 'Queue' ? <></> : <button
+                  className="modal-action-btn btn-blue"
+                  onClick={() => setIsRescheduleModalOpen(true)}>
+                  Reschedule
+                </button>}
+              </footer>
+
+            </section>
+          </article>
+        </section>
+      )}
+
+      {isRescheduleModalOpen && (
+        <section className="modal-overlay-canva" onClick={() => setIsRescheduleModalOpen(false)}>
+          <article className="modal-outer-box" onClick={(e) => e.stopPropagation()}>
+            <section className="modal-inner-box">
+              <header className="modal-header-canva">
+                <h2>Reschedule Appointment</h2>
+                <button className="modal-close-x" onClick={() => setIsRescheduleModalOpen(false)}>X</button>
+              </header>
+              <section className="modal-details-canva">
+                <p>Current Date/Time: {new Date(modalDetails.BookingDateTime).toLocaleString()}</p>
+                <label htmlFor="new-datetime">New Date/Time:</label>
+                <input
+                  type="datetime-local"
+                  id="new-datetime"
+                  value={newBookingDateTime}
+                  onChange={(e) => setNewBookingDateTime(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}  // Prevent past dates
+                />
+              </section>
+              <footer className="modal-actions-footer">
+                <button className="modal-action-btn btn-green" onClick={handleReschedule}>Confirm Reschedule</button>
+                <button className="modal-action-btn btn-red" onClick={() => setIsRescheduleModalOpen(false)}>Cancel</button>
               </footer>
             </section>
           </article>

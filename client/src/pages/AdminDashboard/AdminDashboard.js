@@ -1,14 +1,15 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
 import { LuUser, LuBell } from "react-icons/lu";
-import { useApiAuth } from '../../hooks/apiAuth';
-import { useApi } from '../../api/useApi';
+import { useApi } from "../../api/useApi";  
+import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './AdminDashboard.css';
+
+const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED: 'apps-cancelled', DAYS_OFF: 'days-off'}
 
 function AdminDashboard() {
     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
-    const { apiFetch } = useApiAuth();
-    const api = useApi();
+    const api = useApi(); 
 
     const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -23,23 +24,38 @@ function AdminDashboard() {
     const [selectedSpecialityByStaff, setSelectedSpecialityByStaff]= useState({});
     const [newSpecialityByStaff, setNewSpecialityByStaff]= useState({});
 
+    const [adminName, setAdminName] = useState("");
     const contentRef = useRef(null);
+    const [stats, setStats] = useState(null);
+    const [statsCache, setStatsCache] = useState({});
+    const [selectedStat, setSelectedStat] = useState('');
+    const [loadingStats, setLoadingStats] = useState(false);
+    const [queueGranularity, setQueueGranularity] = useState('day');
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (user?.sub) {
+            try {
+                const data = await api.users.get(user.sub);
+                setAdminName(data.name);
+            } catch (error) {
+                console.error("Failed to fetch user profile:", error);
+            }
+            }
+        };
+        fetchUserData();
+    }, [user, api]);
 
     useEffect(() => {
         const fetchAssignedClinics = async () => {
             try {
                 if (!user?.sub) return;
 
-                const response = await apiFetch(
-                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${encodeURIComponent(user.sub)}`
-                );
-                const data = await response.json();
+                const data = await api.clinics.getAssignedClinics(user.sub);
 
-                if (response.ok && Array.isArray(data) && data.length > 0) {
+                if (Array.isArray(data) && data.length > 0) {
                     setClinics(data);
                     setSelectedClinic(data[0]);
-                } else {
-                    console.warn("Backend response was not ok, or array was empty:", data);
                 }
             } catch (error) {
                 console.error('Error fetching assigned clinics:', error);
@@ -48,19 +64,16 @@ function AdminDashboard() {
         if (!isLoading && isAuthenticated) {
             fetchAssignedClinics();
         }
-    }, [user, isAuthenticated, isLoading, apiFetch]);
+    }, [user, isAuthenticated, isLoading, api]);
 
     useEffect(() => {
         const fetchStaff = async () => {
             try {
                 if (!selectedClinic || !user?.sub) return;
 
-                const response = await apiFetch(
-                    `${process.env.REACT_APP_SERVER_URL}/api/clinics/${selectedClinic._id}/staff?auth0Id=${encodeURIComponent(user.sub)}`
-                );
-                const data = await response.json();
+                const data = await api.clinics.listStaff(selectedClinic._id);
 
-                if (response.ok) {
+                if (data && data.users) {
                     setStaffList(data.users || []);
                 }
             } catch (error) {
@@ -113,12 +126,60 @@ function AdminDashboard() {
         
 
 
-    if (isLoading) {
-        return <p>Loading dashboard...</p>;
+    // creates a cache key for a stats query
+    const buildCacheKey = (clinicId, stat, params = {}) => {
+        const paramStr = Object.values(params).join('-');
+        return paramStr ? `${clinicId}-${stat}-${paramStr}` : `${clinicId}-${stat}`;
     }
 
-    if (!selectedClinic) {
-        return <p>No assigned clinics found.</p>;
+    useEffect(() => {
+        if (activeSection === 'view-stats' && selectedClinic) {
+            const fetchStats = async () => {
+
+                // Cache stats (so we dont refetch them on every button click)
+                const cacheKey = buildCacheKey(selectedClinic._id, selectedStat,
+                    selectedStat === STATS.QUEUE_WAIT ? {granularity: queueGranularity } : {}
+                );
+
+                if (statsCache[cacheKey]) {
+                    setStats(statsCache[cacheKey]);
+                    return;
+                }
+
+                setLoadingStats(true);
+                try {
+                    switch(selectedStat) {
+                        case STATS.QUEUE_WAIT:
+                            console.log("Queue waits:");
+                            const data = await api.queues.getAverageWaitTime(selectedClinic._id, {_groupby: queueGranularity});
+                            setStats(data.data);
+                            setStatsCache( prev => ({...prev, [cacheKey]: data.data } ));
+                            break;
+                        case STATS.APPS_MADE:
+                            console.log("Appoitments made:");
+                            break;
+                        case STATS.APPS_CANCELLED:
+                            console.log("Appoitments cancelled:");
+                            break;
+                        case STATS.DAYS_OFF:
+                            console.log("Staff days off:");
+                            break;
+                        default:
+                            console.log("No stat selected.");
+                    }
+                } catch (error) {
+                    console.log("Error fetching stats:", error);
+                    setStats(null);
+                } finally {
+                    setLoadingStats(false);
+                }
+            }
+            fetchStats();
+        }
+    }, [activeSection, selectedClinic, queueGranularity, selectedStat, api, statsCache]);
+
+    if (isLoading) {
+        return <p>Loading dashboard...</p>;
     }
 
     const handleClinicChange = (clinic) => {
@@ -197,6 +258,27 @@ function AdminDashboard() {
         }, 100);
     };
 
+    const QueueTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            const hour = Math.floor(label)
+            const formatLabel = queueGranularity === 'hour' ? `${String(hour).padStart(2, '0')}:00-${String(hour).padStart(2, '0')}:59` : label;
+            return (
+                <section className='custom-tooltip'>
+                    <p className='tooltip-label'>{formatLabel}</p>
+                    <p className='tooltip-label'>{payload[0].value} min</p>
+                </section>
+            )
+        }
+        return null;
+    }
+
+    // data is returned per hour i.e. 08:00 is the wait time for 08:00-08:59
+    // this func shifts those values for display purposes (line graph)
+    const shiftHours = !stats ? [] : stats.map(item => ({
+        ...item,
+        hourNum: parseInt(item.label) + 0.5,
+    }));
+
     return (
         <main className="admin-dashboard-wrapper">
             <header className="admin-header-canva">
@@ -215,7 +297,7 @@ function AdminDashboard() {
             <section className="purple-banner-container">
                 <section className="top-section">
                     <section className="welcome-area">
-                        <h1 className="welcome-title-canva">Welcome Back, {user?.name || 'Admin'}!</h1>
+                        <h1 className="welcome-title-canva">Welcome Back, {adminName || 'Admin'}!</h1>
                     </section>
 
                     <section className="notifications-card">
@@ -230,20 +312,26 @@ function AdminDashboard() {
                 </section>
             </section>
 
+            {!clinics || clinics.length === 0 ? (
+                <section className="clinic-selection-area">
+                    <header className="selection-header">You are not assigned to any clinics yet.</header>
+                </section>
+            ) : (
+            <section>
             <section className="clinic-selection-area">
                 <header className="selection-header">Select your Clinic</header>
                 <ul className="clinic-cards-list">
                     {clinics.map((clinic) => (
                         <li 
                             key={clinic._id} 
-                            className={`clinic-card ${selectedClinic._id === clinic._id ? 'active' : ''}`}
+                            className={`admin-selection-card ${selectedClinic._id === clinic._id ? 'active' : ''}`}
                             onClick={() => handleClinicChange(clinic)}
                             role="button"
                             tabIndex={0}
                         >
-                            <h3 className="clinic-card-title">{clinic.practiceName}</h3>
-                            <p className="clinic-card-desc">{clinic.practiceTypeDescription || 'General Practice'}</p>
-                            <p className="clinic-card-address">{clinic.physicalAddress}</p>
+                            <h3 className="admin-card-title">{clinic.practiceName}</h3>
+                            <p className="admin-card-desc">{clinic.practiceTypeDescription || 'General Practice'}</p>
+                            <p className="admin-card-address">{clinic.physicalAddress}</p>
                         </li>
                     ))}
                 </ul>
@@ -390,17 +478,58 @@ function AdminDashboard() {
                         <header className="block-header">Clinic Stats</header>
                         <section className="block-body">
                             <nav className="stats-nav">
-                                <button className="stat-btn">Staff<br/>Off Days</button>
-                                <button className="stat-btn">Cancelled<br/>Appointments</button>
-                                <button className="stat-btn">Appointments<br/>Made</button>
+                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : ''}`} onClick={() => setSelectedStat("days-off")}>Staff<br/>Off Days</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPS_CANCELLED ? 'active' : ''}`} onClick={() => setSelectedStat("apps-cancelled")}>Cancelled<br/>Appointments</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPS_MADE ? 'active' : ''}`} onClick={() => setSelectedStat("apps-made")}>Appointments<br/>Made</button>
+                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : ''}`} onClick={() => setSelectedStat("queue-waits")}>Queue<br/>Waits</button>
                             </nav>
-                            <section className="graph-placeholder">
-                                <span className="graph-icon">📈</span>
+                            <section className="stats-graph">
+                                { loadingStats ? (
+                                    <span>Loading {selectedStat}...</span>
+                                ) : stats && selectedStat === STATS.QUEUE_WAIT ? (
+                                    <>
+                                        <h2 className="chart-title">Average Queue Wait Time</h2>
+                                        <nav className="granularity-toggle">
+                                            <button className={queueGranularity === 'day' ? 'active' : ''} onClick={() => setQueueGranularity('day')}>Per Day</button>
+                                            <button className={queueGranularity === 'hour' ? 'active' : ''} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
+                                        </nav>
+                                        <ResponsiveContainer width="100%" height={300}>
+                                            {queueGranularity === 'hour' ? (
+                                                <LineChart data={shiftHours}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis 
+                                                        dataKey="hourNum"
+                                                        type="number"
+                                                        domain={['dataMin - 0.5', 'dataMax + 0.5']}
+                                                        tickFormatter={(val) => `${String(Math.floor(val)).padStart(2, '0')}:00`}
+                                                        ticks={shiftHours.map(d => d.hourNum - 0.5)}
+                                                    />
+                                                    <YAxis unit=' min'/>
+                                                    <Tooltip content={QueueTooltip}/>
+                                                    <Line type="monotone" dataKey="avgWait" stroke="#6b1fad" strokeWidth={2} dot={{ fill: '#6b1fad' }} />
+                                                </LineChart>
+                                            ) : (
+                                                <BarChart data={stats}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="label" />
+                                                    <YAxis unit=" min" />
+                                                    <Tooltip content={QueueTooltip}/>
+                                                    <Bar dataKey="avgWait" fill="#6b1fad" radius={[4, 4, 0, 0]} />
+                                                </BarChart>
+                                            )}
+                                        </ResponsiveContainer>
+                                    </>
+                                ) : (
+                                    <span className="graph-icon">📈</span>
+                                )}
                             </section>
                         </section>
                     </article>
                 )}
             </section>
+            </section>
+            )}
+            
         </main>
     );
 }

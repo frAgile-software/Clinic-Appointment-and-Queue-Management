@@ -17,4 +17,6 @@ router.use("/api/specialities", requireAuth, removeSpecialityFromStaff);
 router.use("/api/specialities", requireAuth, getStaffSpecialities);
 router.use("/api/specialities", requireAuth, getClinicSpecialities);
 
+
+
 module.exports = router;

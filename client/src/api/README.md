@@ -187,8 +187,9 @@ Base path: `/queues`.
 | `getForPatient(patientAuth0Id)` | Private | `GET /api/queues/patient/:auth0Id` |
 | `addPatient(clinicId, patientId, specialityName)` | Public | `POST /queues/` |
 | `remove(queueId)` | Private | `DELETE /api/queues/:queueId` |
-| `update(queueId, {clinicId, specialityId, patientId, status, remarks})` | Private | `PUT /api/queues/:queueId` |
+| `update(queueId, {clinicId, specialityId, patientId, status, remarks, timeSeen})` | Private | `PUT /api/queues/:queueId` |
 | `get(clinicId, {auth0Id, userId, specialityIDs, statuses})` | Private | `GET /api/queues/:clinicId?statuses=...` with <br> `&auth0Id=..`,  `&userId=..`, or `&specialityIDs=spec1,spec2...`|
+| `getAverageWaitTime(clinicId, {specialityIDs, _fromdate, _todate})` | Public | `GET /queues/estimate/:clinicID` |
 
 
 **Example usage in a component**
@@ -235,8 +236,15 @@ await api.specialities.removeFromStaff({staffId: "staff123", specialityId: "spc1
 
 // get a list of staff specialities
 const staffSpecs = await api.specialities.getForStaff("staff123");
+
+//get a list of all specialitities
+const specialities = await api.specialities.getAll();
 ```
 
+// create speciality
+await api.specialities.create("drugs");
+```
+)
 ---
 
 ### `ScheduleService`

@@ -28,7 +28,7 @@
 .brand-logo {
   width: 32px;
   height: 32px;
-  background-color: #6b1fad;
+  background-color: #6b1fad; 
   border-radius: 50%;
   padding: 4px;
 }
@@ -66,7 +66,7 @@
 }
 
 .purple-banner-container {
-  background-color: #6b1fad;
+  background-color: #6b1fad; 
   padding: 3rem;
   margin-bottom: 2rem;
 }
@@ -139,7 +139,7 @@
   justify-content: center;
 }
 
-.clinic-card {
+.admin-selection-card {
   background-color: #fff;
   padding: 20px;
   border-radius: 15px;
@@ -148,20 +148,21 @@
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
   transition: all 0.2s ease;
+  color: #000;
 }
 
-.clinic-card.active {
-  background-color: #6b1fad;
+.admin-selection-card.active {
+  background-color: #6b1fad; 
   color: #fff;
 }
 
-.clinic-card-title {
+.admin-card-title {
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 5px;
 }
 
-.clinic-card-desc, .clinic-card-address {
+.admin-card-desc, .admin-card-address {
   font-size: 12px;
   opacity: 0.9;
 }
@@ -177,7 +178,7 @@
 }
 
 .action-btn-large {
-  background-color: #6b1fad;
+  background-color: #6b1fad; 
   color: #fff;
   border: none;
   padding: 20px 30px;
@@ -203,12 +204,12 @@
 
 .content-block {
   background-color: #d1d5db;
-  border: 2px solid #6b1fad;
+  border: 2px solid #6b1fad; 
   margin-bottom: 20px;
 }
 
 .block-header {
-  background-color: #6b1fad;
+  background-color: #6b1fad; 
   color: #fff;
   padding: 15px;
   text-align: center;
@@ -234,7 +235,7 @@
 }
 
 .pill-btn-purple {
-  background-color: #6b1fad;
+  background-color: #6b1fad; 
   color: #fff;
   border: none;
   padding: 8px 16px;
@@ -260,7 +261,7 @@
   justify-content: center;
   background-color: #fff;
   margin: 20px;
-  border: 1px solid #6b1fad;
+  border: 1px solid #6b1fad; 
   flex-direction: row; 
 }
 
@@ -335,8 +336,8 @@
 }
 
 .stat-btn {
-  background-color: #6b1fad;
-  color: #fff;
+  color: #6b1fad;
+  background-color: white;
   border: none;
   padding: 15px 30px;
   border-radius: 10px;
@@ -347,11 +348,48 @@
   min-width: 180px;
 }
 
-.graph-placeholder {
+.stat-btn.active {
+  background: #6b1fad;
+  color: white;
+}
+
+.stats-graph {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200px;
+  min-height: 200px;
+  width: 100%;
+  padding: 1rem 0;
+  flex-direction: column;
+}
+
+.stats-graph h2 {
+  color: #6b1fad;
+  margin-bottom: 0.5rem;
+  padding-bottom: 10px;
+}
+
+.stats-graph .granularity-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-direction: row;
+}
+
+.stats-graph .granularity-toggle button {
+  padding: 0.4rem 1rem;
+  border: 1px solid #6b1fad;
+  border-radius: 20px;
+  background: transparent;
+  color: #6b1fad;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.stats-graph .granularity-toggle button.active {
+  background: #6b1fad;
+  color: white;
 }
 
 .graph-icon {
@@ -498,4 +536,22 @@
     .staff-fire-btn {
         width: 100%;
     }
+  color: #6b1fad; 
+}
+
+.custom-tooltip {
+    background: white;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.custom-tooltip .tooltip-label {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.custom-tooltip .tooltip-value {
+    font-size: 12px;
 }
