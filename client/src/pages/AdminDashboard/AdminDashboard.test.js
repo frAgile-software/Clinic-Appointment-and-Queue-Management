@@ -86,9 +86,11 @@ const renderAndOpenAddStaff = async () => {
     // Wait for clinic to load with real timers
     await waitFor(() => screen.getByText('Test Clinic'));
 
-    // Click Add Staff — still on real timers so the listSpecialities
-    // promise can resolve via the useEffect
-    fireEvent.click(screen.getByText('Add Staff'));
+    // Wrap click in act so React flushes setActiveSection and triggers
+    // the useEffect that calls listSpecialities
+    await act(async () => {
+        fireEvent.click(screen.getByText('Add Staff'));
+    });
 
     // Wait for the specialities fetch triggered by the section toggle
     await waitFor(() => expect(mockListSpecialities).toHaveBeenCalled());
