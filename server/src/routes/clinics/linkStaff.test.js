@@ -1,17 +1,19 @@
-const request = require('supertest');
-const express = require('express');
-const linkStaff = require('./linkStaff');
-const Clinic = require('../../database/models/Clinic');
-const User = require('../../database/models/User');
+const request = require("supertest");
+const express = require("express");
 
+const linkStaffRouter = require("./linkStaff");
+const User = require("../../database/models/User");
+const Clinic = require("../../database/models/Clinic");
+const Staff = require("../../database/models/Staff");
 
+jest.mock("../../database/models/User");
+jest.mock("../../database/models/Clinic");
+jest.mock("../../database/models/Staff");
 
 const app = express();
 app.use(express.json());
-app.use("/clinics", linkStaff);
-jest.mock('../../database/models/Clinic');
-jest.mock('../../database/models/User');
-jest.mock('../../database/models/Staff');
+app.use("/clinics", linkStaffRouter);
+
 describe("POST /clinics/:clinicId/staff", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -24,7 +26,7 @@ describe("POST /clinics/:clinicId/staff", () => {
         console.error.mockRestore();
     });
 
-    // ── Not Found ─────────────────────────────────────────────────────────────
+    // Not Found 
 
     test("should return 404 if clinic does not exist", async () => {
         Clinic.findById.mockResolvedValue(null);
@@ -53,7 +55,7 @@ describe("POST /clinics/:clinicId/staff", () => {
         expect(Staff.findOne).not.toHaveBeenCalled();
     });
 
-
+    //  Conflict
 
     test("should return 409 if staff member is already linked to a clinic", async () => {
         const mockClinic = { _id: "clinic123", name: "Test Clinic" };
@@ -73,7 +75,7 @@ describe("POST /clinics/:clinicId/staff", () => {
         expect(Staff.create).not.toHaveBeenCalled();
     });
 
-    
+    // Success
 
     test("should return 201 and staffId when staff is linked successfully", async () => {
         const mockClinic = { _id: "clinic123", name: "Test Clinic" };
@@ -117,6 +119,7 @@ describe("POST /clinics/:clinicId/staff", () => {
         });
     });
 
+    //Server Errors 
 
     test("should return 500 if Clinic.findById throws", async () => {
         Clinic.findById.mockRejectedValue(new Error("DB connection lost"));
