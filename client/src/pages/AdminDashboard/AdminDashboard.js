@@ -1,5 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from "react-router";
 import { LuUser, LuBell } from "react-icons/lu";
 import { useApi } from "../../api/useApi";  
 import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -10,6 +11,7 @@ const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED
 function AdminDashboard() {
     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
     const api = useApi(); 
+    const navigate = useNavigate();
 
     const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -176,7 +178,7 @@ function AdminDashboard() {
                     <h2 className="brand-title">Clinics and Qs</h2>
                 </section>
                 <nav className="header-nav-canva">
-                    <button className="icon-btn-user" aria-label="Profile">
+                    <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/admin/profile')}>
                         <LuUser />
                     </button>
                     <button className="logout-btn-canva" onClick={logout}>Logout</button>
