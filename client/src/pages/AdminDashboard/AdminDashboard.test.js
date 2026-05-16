@@ -118,12 +118,13 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         jest.restoreAllMocks();
     });
 
-    const renderDashboard = async () => {
-        render(<AdminDashboard />);
-        await waitFor(() => {
-            expect(screen.getByText(/Welcome Back, Admin User!/i)).toBeInTheDocument();
-        });
-    };
+   const renderDashboard = async () => {
+    render(<AdminDashboard />);
+    await waitFor(() => {
+        expect(screen.getByText(/Welcome Back, Admin User!/i)).toBeInTheDocument();
+        expect(screen.getByText(/Sandton Medical Centre/i)).toBeInTheDocument();
+    });
+};
 
 
     test("Given the dashboard loads, Then the header with brand name is displayed", async () => {
@@ -561,7 +562,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
                 auth0Id: 'auth0|new_staff',
             });
             expect(mockApi.schedules.createDefault).toHaveBeenCalledWith(
-                'auth0|new_staff',
+                'user_new',
                 expect.any(Array)
             );
         });
