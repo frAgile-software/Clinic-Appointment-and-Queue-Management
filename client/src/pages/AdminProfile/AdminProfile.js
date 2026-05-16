@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import './PatientProfile.css'; 
+import './AdminProfile.css'; 
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
-import { useApiAuth } from '../../hooks/apiAuth';
 import { useRef } from 'react';
-import NotificationCenter from '../../components/NotificationCenter';
+import { useApi } from '../../api/useApi';
 
-function PatientProfile() {
+function AdminProfile() {
     const nameRef = useRef(); //for changing of details
     const surnameRef = useRef();
     const titleRef = useRef();
@@ -14,12 +13,12 @@ function PatientProfile() {
 
     const { user, logout: auth0Logout } = useAuth0();
     const navigate = useNavigate();
-    const {apiFetch} = useApiAuth();
+    const api = useApi();
  
     const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const patientId = user?.sub;
+    const adminId = user?.sub;
 
     const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -30,7 +29,7 @@ function PatientProfile() {
     };
 
     const handleUpdate = async () => {
-        if (!patientId){
+        if (!adminId){
             console.error("No userId found, cannot update.");
             return;
         };
@@ -54,18 +53,11 @@ function PatientProfile() {
 
         try {
             console.log("Updating with data:", updatedData);    
-            const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${patientId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData),
-            });
+            await api.users.update(adminId, updatedData, null); // TODO:
 
-            if (response.ok) {
-                setProfileData(prev => ({ ...prev, ...updatedData }));
-                toggleChangeDetailsModal();
-                alert("Details updated successfully!");
-            };
-
+            setProfileData(prev => ({ ...prev, ...updatedData }));
+            toggleChangeDetailsModal();
+            alert("Details updated successfully!");
         } catch (error) {
             console.error("Update failed:", error);
         };
@@ -73,7 +65,7 @@ function PatientProfile() {
 
     //fetch profile data
     useEffect(() => {
-        if (!patientId) {
+        if (!adminId) {
             console.log("No user, cannot find profile details.");
             return;
         };
@@ -81,8 +73,7 @@ function PatientProfile() {
         const fetchProfileData = async () => {
             try {
                 setLoading(true);
-                const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${patientId}`);
-                const data = await response.json();
+                const data = await api.users.get(adminId);
                 console.log("User data", data);
                 setProfileData(data);
             } catch (error) {
@@ -93,7 +84,7 @@ function PatientProfile() {
         };
 
         fetchProfileData();
-    }, [patientId, apiFetch]);
+    }, [adminId, api]);
 
     return (
         <section className="landing">
@@ -101,8 +92,7 @@ function PatientProfile() {
             <span className="landing-logo">Clinics and Qs</span>
             <section className="landing-nav-btns">
                 <button className="btn" onClick={logout}>Logout</button>
-                <NotificationCenter userId={user?.sub} />
-                <button className="btn btn-primary" onClick={() => navigate('/dashboard/patient')}>Back</button>
+                <button className="btn btn-primary" onClick={() => navigate('/dashboard/admin')}>Back</button>
             </section>
             </nav>
 
@@ -119,6 +109,14 @@ function PatientProfile() {
                             <h3 className='profile-subtitle'>Account Details</h3>
                             {profileData && (
                                 <section className='profile-display'>
+                                     <section className="profile-avatar-container">
+                                        <img 
+                                            src={user.picture} 
+                                            alt="Profile Avatar" 
+                                            className="profile-avatar" 
+                                            referrerPolicy="no-referrer"
+                                        />
+                                    </section>
                                     <fieldset className='inline-components'>
                                         <label>Title</label>
                                         <p>{profileData?.title}</p>
@@ -165,7 +163,7 @@ function PatientProfile() {
                                 </fieldset>
                                 <fieldset className='inline-components'>
                                     <label>Email</label> 
-                                    <input type="email" disabled={!patientId || !patientId?.startsWith("auth0|")} ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+                                    <input type="email" disabled={!adminId || !adminId?.startsWith("auth0|")} ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
                                 </fieldset>
 
                                 <footer className="landing-nav-btns" style={{marginTop: '20px'}}>
@@ -182,4 +180,4 @@ function PatientProfile() {
     );
 }
 
-export default PatientProfile;
+export default AdminProfile;

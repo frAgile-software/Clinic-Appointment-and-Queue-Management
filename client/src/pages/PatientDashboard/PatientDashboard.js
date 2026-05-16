@@ -90,6 +90,15 @@ function PatientDashboard() {
         try {
           const data = await api.queues.getForPatient(user.sub);
           if (data.inQueue) {
+            try {
+              const response = await api.queues.getAverageWaitTime(data.queue.queue.Clinic._id, {
+                specialityIDs: data.queue.queue.Speciality._id,
+              });
+              data.queue.averageWaitTime = response ? response.averageWaitTime : 0;
+            } catch (error) {
+              console.log("Error getting queue position:", error);
+              data.queue.averageWaitTime = 0;
+            }
             setPatientQueue(data.queue);
           } else {
             setPatientQueue(null);
@@ -167,8 +176,21 @@ function PatientDashboard() {
 
     try {
       await api.queues.addPatient(selectedClinic._id, {auth0Id: user.sub}, selectedService);
+
+      // refresh queue card with current queue
       const queueResponse = await api.queues.getForPatient(user.sub);
-      if (queueResponse.inQueue) setPatientQueue(queueResponse.queue);
+      if (queueResponse.inQueue) {
+        try {
+          const response = await api.queues.getAverageWaitTime(queueResponse.queue.queue.Clinic._id, {
+            specialityIDs: queueResponse.queue.queue.Speciality._id,
+          });
+          queueResponse.queue.averageWaitTime = response ? response.averageWaitTime : 0;
+        } catch (error) {
+          console.log("Error getting queue position:", error);
+          queueResponse.queue.averageWaitTime = 0;
+        }
+        setPatientQueue(queueResponse.queue);
+      }
       setShowQueuePanel(false);
       closePopup();
     } catch (error) {
@@ -330,6 +352,7 @@ function PatientDashboard() {
                 <p>{patientQueue.queue.Clinic.practiceName}</p>
                 <p>{patientQueue.queue.Speciality.SpecialityName}</p>
                 <p>Position: <strong>{patientQueue.position}</strong></p>
+                <p>Average wait: <strong>{patientQueue.averageWaitTime}</strong> minutes</p>
                 <button className="card-btn" onClick={handleLeaveQueue}>LEAVE QUEUE</button>
               </>
             ) : (

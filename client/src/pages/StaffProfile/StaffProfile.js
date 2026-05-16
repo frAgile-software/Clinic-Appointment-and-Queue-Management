@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useApi } from '../../api/useApi';
 import './StaffProfile.css'; 
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
@@ -12,6 +13,8 @@ function StaffProfile() {
   const surnameRef = useRef();
   const titleRef = useRef();
   const emailRef = useRef();
+  const api = useApi();
+
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
   const {apiFetch} = useApiAuth();
@@ -20,11 +23,56 @@ function StaffProfile() {
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
   const [isClinicDetailsModalOpen, setIsClinicDetailsModalOpen] = useState(false);
   const [clinics, setClinics] = useState(null);
+  const [admins, setAdmins] = useState([]);
   const [specialities, setSpecialities] = useState([]);
   const [loading, setLoading] = useState(false);
   void clinics;
   const staffId = user?.sub;
+  const adminEmail = admins?.[0]?.email;
 
+  const showNoAdminMessage = () => {
+    alert('No clinic administrator is assigned yet. Please contact support or wait until an administrator is added to your clinic.');
+  };
+
+  const emailDismissal = () => {
+    
+    if (!adminEmail) {
+      showNoAdminMessage();
+      return;
+    }
+
+    const subject = encodeURIComponent('Request for staff dismissal');
+    const body = encodeURIComponent(`Hello,
+
+I would like to request dismissal from my staff position.
+
+Staff name: ${profileData?.name || ''} ${profileData?.surname|| ''}
+Current clinic: ${clinics?.practiceName || 'None'}
+ID: ${profileData._id || ''}
+
+Thank you.`);
+    window.open(`mailto:${adminEmail}?subject=${subject}&body=${body}`);
+  };
+
+  const emailClinicChange = () => {
+    if (!adminEmail) {
+      showNoAdminMessage();
+      return;
+    }
+
+    const subject = encodeURIComponent('Request for clinic change');
+    const body = encodeURIComponent(`Hello,
+
+I would like to request a clinic assignment change.
+
+Staff name: ${profileData?.name || ''} ${profileData?.surname|| ''}
+Current clinic: ${clinics?.practiceName || 'None'}
+ID: ${profileData._id || ''}
+
+Thank you.`);
+    window.open(`mailto:${adminEmail}?subject=${subject}&body=${body}`);
+  };
+  
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
@@ -145,6 +193,23 @@ function StaffProfile() {
 
   }, [staffId, apiFetch]);
 
+
+ useEffect(() => {
+    if (!clinics?._id) return;
+
+    const fetchAdmins = async () => {
+      try {
+        const json = await api.clinics.getAdmins(clinics._id);
+        console.log("Admins", json);
+        setAdmins(json.users);
+      } catch (error) {
+        console.error("Could not fetch admins:", error);
+      }
+    };
+
+    fetchAdmins();
+  }, [clinics, api]);
+
 return (
   <section className="landing"> 
     <nav className="landing-nav" aria-label="Main navigation">
@@ -195,13 +260,12 @@ return (
           <article className="clinic-card profile-actions-card">
             <span className="clinic-type">Account Actions</span>
             <h3 className="clinic-name">Management Requests</h3>
-            <section className="action-button-list">
-              <button className="action-item-btn">Request occupation change</button>
-              <button className="action-item-btn">Request clinic change</button>
+            <div className="action-button-list">
+              <button className="action-item-btn" onClick={emailClinicChange}>Request clinic change</button>
               <button className="action-item-btn" onClick={toggleChangeDetailsModal}>Update personal details</button>
-              <button className="action-item-btn action-item-btn--danger">Request dismissal</button>
-            </section>
-          </article>
+              <button className="action-item-btn action-item-btn--danger" onClick={emailDismissal}>Request dismissal</button>
+            </div>
+          </div>
         </section>
       )}
 
