@@ -145,7 +145,7 @@ function AdminDashboard() {
  
             //create default schedule
             const defaultEntries = buildDefaultScheduleEntries(selectedClinic);
-            await api.schedules.createDefault(staffSearchResult.user.auth0Id, defaultEntries);
+            await api.schedules.createDefault(staffSearchResult.user._id, defaultEntries);
  
             
             const data = await api.clinics.listStaff(selectedClinic._id);
