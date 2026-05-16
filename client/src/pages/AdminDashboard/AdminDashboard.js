@@ -420,7 +420,13 @@ function AdminDashboard() {
                                             }
                                         >
                                             <option value="">Choose existing speciality</option>
-                                            {allSpecialities.map((speciality) => (
+                                            {allSpecialities.filter((speciality) => {
+                                                const currentSpecialities = staffSpecialities[member.staffId] || [];
+                                                return !currentSpecialities.some(
+                                                    (current) => current._id === speciality._id
+                                                );
+                                            })
+                                            .map((speciality) => (
                                                 <option key={speciality._id} value={speciality._id}>
                                                     {speciality.SpecialityName}
                                                 </option>
