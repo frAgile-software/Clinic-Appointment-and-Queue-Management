@@ -163,7 +163,7 @@ function AdminDashboard() {
 
     // data is returned per hour i.e. 08:00 is the wait time for 08:00-08:59
     // this func shifts those values for display purposes (line graph)
-    const shiftHours = stats.map(item => ({
+    const shiftHours = !stats ? [] : stats.map(item => ({
         ...item,
         hourNum: parseInt(item.label) + 0.5,
     }));
