@@ -101,7 +101,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
                 createDefault: jest.fn().mockResolvedValue({ message: 'Schedule created' }),
             },
             specialities: {
-                listSpecialities: jest.fn().mockResolvedValue(mockSpecialities),
+                getAll: jest.fn().mockResolvedValue(mockSpecialities),
             },
         };
 
