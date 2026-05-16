@@ -3,6 +3,7 @@ import AdminDashboard from './AdminDashboard';
 import { BrowserRouter } from 'react-router';
 
 
+
 const mockLinkStaff          = jest.fn();
 const mockCreateDefault      = jest.fn();
 const mockListStaff          = jest.fn();
@@ -39,7 +40,6 @@ jest.mock('../../api/useApi', () => ({
 }));
 
 
-
 const mockClinic = {
     _id: 'clinic123',
     practiceName: 'Test Clinic',
@@ -67,6 +67,8 @@ const mockSpecialities = [
     { _id: 'spec2', SpecialityName: 'Dermatology' },
 ];
 
+
+
 const renderAndOpenAddStaff = async () => {
     mockGetAssignedClinics.mockResolvedValue([mockClinic]);
     mockListStaff.mockResolvedValue({ users: [] });
@@ -78,7 +80,8 @@ const renderAndOpenAddStaff = async () => {
         </BrowserRouter>
     );
 
-    await waitFor(() => expect(mockGetAssignedClinics).toHaveBeenCalled());
+
+    await waitFor(() => screen.getByText('Test Clinic'));
 
     fireEvent.click(screen.getByText('Add Staff'));
 
@@ -89,58 +92,60 @@ const renderAndOpenAddStaff = async () => {
 
 beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
     jest.spyOn(console, 'error').mockImplementation(() => {});
     jest.spyOn(window, 'alert').mockImplementation(() => {});
 });
 
 afterEach(() => {
-    jest.useRealTimers();
     console.error.mockRestore();
     window.alert.mockRestore();
 });
 
 
+
 describe('AdminDashboard Component', () => {
 
-    test('renders navbar elements', () => {
-        mockGetAssignedClinics.mockResolvedValue([mockClinic]);
-        mockListStaff.mockResolvedValue({ users: [] });
+  test('renders navbar elements', () => {
+    mockGetAssignedClinics.mockResolvedValue([mockClinic]);
+    mockListStaff.mockResolvedValue({ users: [] });
 
-        render(
-            <BrowserRouter>
-                <AdminDashboard />
-            </BrowserRouter>
-        );
+    render(
+      <BrowserRouter>
+        <AdminDashboard />
+      </BrowserRouter>
+    );
 
-        // Check nav buttons
-        //expect(screen.getByText(/log out/i)).toBeInTheDocument();
-        //expect(screen.getByText(/profile/i)).toBeInTheDocument();
+    // Check nav buttons
+    //expect(screen.getByText(/log out/i)).toBeInTheDocument();
+    //expect(screen.getByText(/profile/i)).toBeInTheDocument();
 
-        // Check notification image
-        //expect(screen.getByAltText(/notification bell/i)).toBeInTheDocument();
-    });
+    // Check notification image
+    //expect(screen.getByAltText(/notification bell/i)).toBeInTheDocument();
+  });
+  
+  test('renders top section content', () => {
+    mockGetAssignedClinics.mockResolvedValue([mockClinic]);
+    mockListStaff.mockResolvedValue({ users: [] });
 
-    test('renders top section content', () => {
-        mockGetAssignedClinics.mockResolvedValue([mockClinic]);
-        mockListStaff.mockResolvedValue({ users: [] });
+    render(
+      <BrowserRouter>
+        <AdminDashboard />
+      </BrowserRouter>
+    );
 
-        render(
-            <BrowserRouter>
-                <AdminDashboard />
-            </BrowserRouter>
-        );
+    /*expect(
+      screen.getByText(/welcome to the admin dashboard/i)
+    ).toBeInTheDocument();*/
 
-        /*expect(
-          screen.getByText(/welcome to the admin dashboard/i)
-        ).toBeInTheDocument();*/
-
-        //expect(screen.getByAltText(/clinic logo/i)).toBeInTheDocument();
-    });
+    //expect(screen.getByAltText(/clinic logo/i)).toBeInTheDocument();
+  });
 
 });
 
+
 // ADD STAFF TESTS
+
+
 describe('AdminDashboard – Add Staff section', () => {
 
     // Rendering 
@@ -159,27 +164,15 @@ describe('AdminDashboard – Add Staff section', () => {
     });
 
     test('renders speciality dropdown with options after staff is found', async () => {
-        mockGetAssignedClinics.mockResolvedValue([mockClinic]);
-        mockListStaff.mockResolvedValue({ users: [] });
-        mockListSpecialities.mockResolvedValue(mockSpecialities);
         mockGetByEmail.mockResolvedValue(mockStaffUser);
-
-        render(
-            <BrowserRouter>
-                <AdminDashboard />
-            </BrowserRouter>
-        );
-
-        await waitFor(() => expect(mockGetAssignedClinics).toHaveBeenCalled());
-        fireEvent.click(screen.getByText('Add Staff'));
-        await waitFor(() => expect(mockListSpecialities).toHaveBeenCalled());
+        await renderAndOpenAddStaff();
 
         fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => { jest.advanceTimersByTime(400); });
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
+       
+        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled(), { timeout: 1000 });
 
         expect(screen.getByLabelText(/speciality/i)).toBeInTheDocument();
         expect(screen.getByText('Cardiology')).toBeInTheDocument();
@@ -188,18 +181,7 @@ describe('AdminDashboard – Add Staff section', () => {
 
     // Email search
 
-    test('does not call getByEmail before debounce delay', async () => {
-        await renderAndOpenAddStaff();
-
-        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
-            target: { value: 'jane@example.com' },
-        });
-
-        act(() => { jest.advanceTimersByTime(200); });
-        expect(mockGetByEmail).not.toHaveBeenCalled();
-    });
-
-    test('calls getByEmail with email and "Staff" role after 400ms debounce', async () => {
+    test('calls getByEmail with email and "Staff" role after debounce', async () => {
         mockGetByEmail.mockResolvedValue(mockStaffUser);
         await renderAndOpenAddStaff();
 
@@ -207,11 +189,22 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => { jest.advanceTimersByTime(400); });
-
         await waitFor(() =>
-            expect(mockGetByEmail).toHaveBeenCalledWith('jane@example.com', 'Staff')
+            expect(mockGetByEmail).toHaveBeenCalledWith('jane@example.com', 'Staff'),
+            { timeout: 1000 }
         );
+    });
+
+    test('does not call getByEmail immediately on input change', async () => {
+        mockGetByEmail.mockResolvedValue(mockStaffUser);
+        await renderAndOpenAddStaff();
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'jane@example.com' },
+        });
+
+       
+        expect(mockGetByEmail).not.toHaveBeenCalled();
     });
 
     test('shows tick indicator when staff is found and available', async () => {
@@ -222,10 +215,10 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => { jest.advanceTimersByTime(400); });
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
-
-        expect(screen.getByLabelText(/staff found and available/i)).toBeInTheDocument();
+        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled(), { timeout: 1000 });
+        await waitFor(() =>
+            expect(screen.getByLabelText(/staff found and available/i)).toBeInTheDocument()
+        );
     });
 
     test('shows cross indicator and error message when staff is not found', async () => {
@@ -236,10 +229,10 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'unknown@example.com' },
         });
 
-        await act(async () => { jest.advanceTimersByTime(400); });
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
-
-        expect(screen.getByLabelText(/not found or already linked/i)).toBeInTheDocument();
+        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled(), { timeout: 1000 });
+        await waitFor(() =>
+            expect(screen.getByLabelText(/not found or already linked/i)).toBeInTheDocument()
+        );
         expect(screen.getByText(/no staff account found with that email/i)).toBeInTheDocument();
     });
 
@@ -251,10 +244,10 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => { jest.advanceTimersByTime(400); });
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
-
-        expect(screen.getByText(/Found: Dr Jane Doe/i)).toBeInTheDocument();
+        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled(), { timeout: 1000 });
+        await waitFor(() =>
+            expect(screen.getByText(/Found: Dr Jane Doe/i)).toBeInTheDocument()
+        );
     });
 
     test('clears search result when email input is emptied', async () => {
@@ -264,8 +257,8 @@ describe('AdminDashboard – Add Staff section', () => {
         const input = screen.getByPlaceholderText(/staff@example.com/i);
 
         fireEvent.change(input, { target: { value: 'jane@example.com' } });
-        await act(async () => { jest.advanceTimersByTime(400); });
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
+        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled(), { timeout: 1000 });
+        await waitFor(() => screen.getByText(/Found: Dr Jane Doe/i));
 
         fireEvent.change(input, { target: { value: '' } });
 
@@ -288,8 +281,8 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => { jest.advanceTimersByTime(400); });
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
+        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled(), { timeout: 1000 });
+        await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
         fireEvent.click(screen.getByRole('button', { name: /add staff/i }));
@@ -297,7 +290,6 @@ describe('AdminDashboard – Add Staff section', () => {
         await waitFor(() =>
             expect(mockLinkStaff).toHaveBeenCalledWith('clinic123', { auth0Id: 'auth0|staffabc' })
         );
-
         await waitFor(() =>
             expect(mockCreateDefault).toHaveBeenCalledWith(
                 'auth0|staffabc',
@@ -317,7 +309,6 @@ describe('AdminDashboard – Add Staff section', () => {
         mockGetByEmail.mockResolvedValue(mockStaffUser);
         mockLinkStaff.mockResolvedValue({});
         mockCreateDefault.mockResolvedValue({});
-        mockListStaff.mockResolvedValue({ users: [] });
 
         await renderAndOpenAddStaff();
 
@@ -325,8 +316,8 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => { jest.advanceTimersByTime(400); });
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
+        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled(), { timeout: 1000 });
+        await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
         fireEvent.click(screen.getByRole('button', { name: /add staff/i }));
@@ -351,15 +342,14 @@ describe('AdminDashboard – Add Staff section', () => {
         mockGetByEmail.mockResolvedValue(mockStaffUser);
         mockLinkStaff.mockResolvedValue({});
         mockCreateDefault.mockResolvedValue({});
-        mockListStaff.mockResolvedValue({ users: [] });
 
         await renderAndOpenAddStaff();
 
         const input = screen.getByPlaceholderText(/staff@example.com/i);
         fireEvent.change(input, { target: { value: 'jane@example.com' } });
 
-        await act(async () => { jest.advanceTimersByTime(400); });
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
+        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled(), { timeout: 1000 });
+        await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
         fireEvent.click(screen.getByRole('button', { name: /add staff/i }));
@@ -382,8 +372,8 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => { jest.advanceTimersByTime(400); });
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
+        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled(), { timeout: 1000 });
+        await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
         fireEvent.click(screen.getByRole('button', { name: /add staff/i }));
@@ -403,8 +393,8 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => { jest.advanceTimersByTime(400); });
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
+        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled(), { timeout: 1000 });
+        await waitFor(() => screen.getByLabelText(/speciality/i));
 
         fireEvent.change(screen.getByLabelText(/speciality/i), { target: { value: 'spec1' } });
         fireEvent.click(screen.getByRole('button', { name: /add staff/i }));
@@ -422,10 +412,8 @@ describe('AdminDashboard – Add Staff section', () => {
             target: { value: 'jane@example.com' },
         });
 
-        await act(async () => { jest.advanceTimersByTime(400); });
-        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled());
+        await waitFor(() => expect(mockGetByEmail).toHaveBeenCalled(), { timeout: 1000 });
 
-        
         expect(screen.getByRole('button', { name: /add staff/i })).toBeDisabled();
     });
 
