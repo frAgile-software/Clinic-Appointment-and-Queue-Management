@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router';
 import { useApiAuth } from '../../hooks/apiAuth';
 
 function PatientProfile() {
-    const nameRef = useRef(); 
+    const nameRef = useRef(); //for changing of details
     const surnameRef = useRef();
     const titleRef = useRef();
     const emailRef = useRef();
@@ -127,22 +127,22 @@ function PatientProfile() {
                             <h3 className='profile-subtitle'>Account Details</h3>
                             {profileData && (
                                 <section className='profile-display'>
-                                    <div className='inline-components'>
+                                    <fieldset className='inline-components'>
                                         <label>Title</label>
                                         <p>{profileData?.title}</p>
-                                    </div>
-                                    <div className='inline-components'>
+                                    </fieldset>
+                                    <fieldset className='inline-components'>
                                         <label>Name</label>
                                         <p>{profileData?.name}</p>
-                                    </div>
-                                    <div className='inline-components'>
+                                    </fieldset>
+                                    <fieldset className='inline-components'>
                                         <label>Surname</label>
                                         <p>{profileData?.surname}</p>
-                                    </div>
-                                    <div className='inline-components'>
+                                    </fieldset>
+                                    <fieldset className='inline-components'>
                                         <label>Email</label>
                                         <p>{profileData?.email}</p>
-                                    </div>
+                                    </fieldset>
                                 </section>
                             )}
                             <nav className="action-button-list">
@@ -159,22 +159,22 @@ function PatientProfile() {
 
                             <form className="details-content">
 
-                                <div className='inline-components'>
+                                <fieldset className='inline-components'>
                                     <label>Name</label>
                                     <input type="text" ref={nameRef} defaultValue={profileData?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-                                </div>
-                                <div className='inline-components'>
+                                </fieldset>
+                                <fieldset className='inline-components'>
                                     <label>Surname</label>
                                     <input type="text" ref={surnameRef} defaultValue={profileData?.surname} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-                                </div>
-                                <div className='inline-components'>
+                                </fieldset>
+                                <fieldset className='inline-components'>
                                     <label>Title</label>
                                     <input type="text" ref={titleRef} defaultValue={profileData?.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-                                </div>
-                                <div className='inline-components'>
+                                </fieldset>
+                                <fieldset className='inline-components'>
                                     <label>Email</label> 
                                     <input type="email" disabled={!patientId || !patientId?.startsWith("auth0|")} ref={emailRef} defaultValue={profileData?.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-                                </div>
+                                </fieldset>
 
                                 <footer className="landing-nav-btns" style={{marginTop: '20px'}}>
                                 <button type="button" className="btn btn-primary" onClick={handleUpdate}>Save Changes</button>
