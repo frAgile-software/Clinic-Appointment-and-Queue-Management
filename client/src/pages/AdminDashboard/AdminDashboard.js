@@ -1,6 +1,5 @@
 import { Link } from 'react-router';
 import './AdminDashboard.css';
-import bell from './bell.png';
 import logo from './clinicLogo.png';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect } from 'react';
