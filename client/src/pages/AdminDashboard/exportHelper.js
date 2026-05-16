@@ -1,3 +1,6 @@
+import { jsPDF } from 'jspdf';
+import { toCanvas, toPng } from 'html-to-image';
+
 export function convertCsv(values, keys = Object.keys(values[0])) { // why and how does Javascript let you do this for a default value
     let csvContent = "data:text/csv;charset=utf-8," + keys.join(",") + "\n";
     csvContent += values.map((v) => {
@@ -10,6 +13,15 @@ export function convertCsv(values, keys = Object.keys(values[0])) { // why and h
         return ret.map(String).map(a => a.replaceAll('"', '""')).map(b => `"${b}"`).join(",");
     }).join("\n"); // This may be doable with less nested things, but I don't know how to ensure that the order of keys is followed otherwise
     return csvContent;
+}
+
+export async function convertPdf(element) {
+    const canv = await toCanvas(element);
+    const doc = new jsPDF({ orientation: canv.width > canv.height ? 'l' : 'p', unit: 'pt', format: [canv.width, canv.height] });
+    const png = await toPng(element);
+
+    doc.addImage(png, "PNG", 0, 0, canv.width, canv.height);
+    return doc.output("datauristring");
 }
 
 export function downloadFile(fileContent, fileName) {
