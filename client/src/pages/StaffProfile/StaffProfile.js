@@ -103,7 +103,7 @@ function StaffProfile() {
 
     fetchProfileData();
 
-  }, [staffId, apiFetch]);
+  }, [staffId, apiFetch, user?.sub]);
 
   //fetch specialities
   useEffect(() => {

@@ -33,53 +33,43 @@ describe('DELETE /api/Notifs/:userId', () => {
     console.log.mockRestore();
     console.error.mockRestore();
   });
+ it('should successfully delete seen notifications for a valid ObjectId', async () => {
+    const validMockObjectId = "507f1f77bcf86cd799439011";
+    Notif.deleteMany.mockResolvedValue({ deletedCount: 3 });
 
-  it('should delete existing seen notifications', async () => {
-
-    const mockDeletedNotifEntry = [ 
-    { _id: '1234', 
-    Recipient: '123456789012345678901234', 
-    Message: 'spec1',
-    Time: '2026-05-10T15:49:34.752+00:00',
-    Seen: 'true'},
-
-    { _id: '1235', 
-    Recipient: '123456789012345678901234', 
-    Message: 'spec1',
-    Time: '2026-05-10T15:49:34.752+00:00',
-    Seen: 'true'}
-    ]
-
-    Notif.deleteMany.mockResolvedValue(mockDeletedNotifEntry);
     const res = await request(app)
-      .delete('/api/Notif/123456789012345678901234');
+      .delete(`/api/Notif/${validMockObjectId}`);
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockDeletedNotifEntry);
+    expect(res.body).toEqual({
+      success: true,
+      deletedCount: 3
+    });
+    expect(Notif.deleteMany).toHaveBeenCalledWith({
+      Recipient: validMockObjectId,
+      Seen: true
+    });
   });
 
-  it('should work on no seen notifications', async () => {
+  it('should resolve an Auth0 ID string to an actual user account before executing deletion', async () => {
+    const auth0IdString = "auth0|69e511e40a";
+    const resolvedMockObjectId = "507f1f77bcf86cd799439011";
 
-   const mockDeletedNotifEntry = [ 
-    { _id: '1234', 
-    Recipient: '123456789012345678901234', 
-    Message: 'spec1',
-    Time: '2026-05-10T15:49:34.752+00:00',
-    Seen: 'false'},
+    User.findOne.mockResolvedValue({ _id: resolvedMockObjectId });
+    Notif.deleteMany.mockResolvedValue({ deletedCount: 1 });
 
-    { _id: '1235', 
-    Recipient: '123456789012345678901234', 
-    Message: 'spec1',
-    Time: '2026-05-10T15:49:34.752+00:00',
-    Seen: 'false'}
-    ]
-
-    Notif.deleteMany.mockResolvedValue(mockDeletedNotifEntry);
     const res = await request(app)
-      .delete('/api/Notif/123456789012345678901234');
+      .delete(`/api/Notif/${auth0IdString}`);
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockDeletedNotifEntry);
+    expect(res.body).toEqual({
+      success: true,
+      deletedCount: 1
+    });
+    expect(User.findOne).toHaveBeenCalledWith({ auth0Id: auth0IdString });
+    expect(Notif.deleteMany).toHaveBeenCalledWith({
+      Recipient: resolvedMockObjectId,
+      Seen: true
+    });
   });
-  
 });

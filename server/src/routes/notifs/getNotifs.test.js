@@ -35,28 +35,32 @@ describe('GET /api/Notifs/:userId', () => {
   });
 
   it('should return Notif list for user', async () => {
+    const validMockObjectId = "507f1f77bcf86cd799439011";
     const mockNotifs = [
-        { _id: 'notif1', Recipient: 'userId', Message: 'spec1', Time: '2026-05-10T15:49:34.752+00:00', Seen: 'true'},
-        { _id: 'notif2', Recipient: 'userId', Message: 'spec2', Time: '2026-05-10T15:49:35.752+00:00', Seen: 'false'}
+        { _id: 'notif1', Recipient: validMockObjectId, Message: 'spec1', Time: '2026-05-10T15:49:34.752+00:00', Seen: true },
+        { _id: 'notif2', Recipient: validMockObjectId, Message: 'spec2', Time: '2026-05-10T15:49:35.752+00:00', Seen: false }
     ];
 
-    Notif.find.mockResolvedValue(mockNotifs)
+    Notif.find.mockResolvedValue(mockNotifs);
 
     const res = await request(app)
-      .get('/api/Notif/userId');
+      .get(`/api/Notif/${validMockObjectId}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockNotifs);
-  });
+});
 
 
-  it('should return no notifications if no notifications (duh)', async()=>{
+  it('should return an empty array if no notifications exist', async () => {
     const mockNotifs = [];
-    Notif.find.mockResolvedValue(mockNotifs)
-    
+    Notif.find.mockResolvedValue(mockNotifs);
+    const validMockObjectId = "507f1f77bcf86cd799439011";
+
     const res = await request(app)
-      .get('/api/Notif/userId');
+      .get(`/api/Notif/${validMockObjectId}`);
+      
     expect(res.status).toBe(200);
-    expect(res.body.message).toBe("No notifications to show");
-  });
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(0);
+});
   });
