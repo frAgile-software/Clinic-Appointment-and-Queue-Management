@@ -31,7 +31,7 @@ function App() {
             <AdminDashboard /> 
           </ProtectedRoute>
           } />
-          <Route path="/dashboard/admin/profile" element= { 
+        <Route path="/dashboard/admin/profile" element= { 
           <ProtectedRoute>
             <AdminProfile /> 
           </ProtectedRoute>
