@@ -28,8 +28,6 @@ export class SpecialityService extends ResourceService {
         return this.priv.get(`${this.basePath}/clinic/${clinicId}`, null);
     }
 
-    listSpecialities() {
-        return this.pub.get(`${this.basePath}`, null);
-    }
+  
 
 }

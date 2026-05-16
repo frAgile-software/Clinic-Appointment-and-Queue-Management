@@ -99,7 +99,7 @@ function AdminDashboard() {
    
     useEffect(() => {
         if (activeSection === 'add-staff') {
-            api.specialities.listSpecialities()
+            api.specialities.getAll()
                 .then(data => {
                     const map = {};
                     data.forEach(s => { map[s._id] = s.SpecialityName; });
