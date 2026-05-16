@@ -8,8 +8,9 @@ import { useApi } from '../../api/useApi';
 
 jest.mock('@auth0/auth0-react');
 jest.mock('../../api/useApi');
+
 jest.mock('react-router-dom', () => ({ 
-    ...jest.requireActual('react-router-dom'),
+    ...jest.requireActual('react-router'),
     useNavigate: () => jest.fn(),
 }));
 
