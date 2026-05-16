@@ -8,6 +8,16 @@ import { useApi } from "../../api/useApi";
 
 const PAGE_LIMIT = 12;
 
+const status = {
+  WAITING: "Waiting",
+  BEING_SEEN: "In Consult",
+  CONCLUDED: "Completed",
+  CANCELLED: "Cancelled",
+  NO_SHOW: "No-show",
+};
+const activeStatus = [status.WAITING, status.BEING_SEEN];
+const inactiveStatus = [status.CONCLUDED, status.CANCELLED, status.NO_SHOW];
+
 function PatientDashboard() {
   const { user, logout: auth0Logout } = useAuth0();
   const api = useApi();
@@ -75,7 +85,7 @@ function PatientDashboard() {
         setLoadingAppointments(true);
         try {
           const data = await api.appointments.getForAuth0Id(user.sub);
-          const activeAppointments = Array.isArray(data) ? data.filter(app => app.Status !== 'Cancelled') : data;
+          const activeAppointments = Array.isArray(data) ? data.filter(app => activeStatus.includes(app.Status)) : data;
           setAppointments(activeAppointments);
         } catch (error) {
           console.error("Error fetching appointments:", error);
@@ -289,12 +299,12 @@ function PatientDashboard() {
   };
   const pageRange = buildPageRange(pagination.page, pagination.totalPages);
 
-  const formatHistoryStatus = (status) => {
-    const s = status?.toLowerCase() || '';
+  const formatHistoryStatus = (statusStr) => {
+    const s = statusStr?.toLowerCase() || '';
     if (s === 'in consult' || s === 'completed') return 'Attended';
     if (s === 'cancelled') return 'Cancelled';
     if (s === 'no-show') return 'You missed it';
-    return status;
+    return statusStr;
   };
 
   return (
@@ -646,7 +656,8 @@ function PatientDashboard() {
                   <p>You have no upcoming appointments.</p>
                 ) : (
                   appointments.map((app) => {
-                    const isWithin24Hours = (new Date(app.BookingDateTime).getTime() - Date.now()) < (24 * 60 * 60 * 1000);
+                    const appointmentTime = new Date(app.BookingDateTime).getTime();
+                    const isWithin24Hours = (appointmentTime - Date.now()) < (24 * 60 * 60 * 1000);
                     return (
                     <article key={app._id} style={{ border: '1px solid #e2e4e9', padding: '1rem', borderRadius: '8px', background: '#fff' }}>
                       <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{app.Clinic?.practiceName || 'Unknown Clinic'}</p>

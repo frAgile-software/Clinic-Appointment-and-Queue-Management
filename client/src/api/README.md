@@ -15,6 +15,7 @@ useApi (hook)
         |-> AppointmentService  (done)
         |-> QueueService        (done)
         |-> SpecialityService   (done)
+        |-> ConsultService      (done)
 ```
 
 ---
@@ -34,6 +35,7 @@ src/
         |-- AppointmentService.js
         |-- QueueService.js
         |-- SpecialityService.js
+        |-- ConsultService.js
 ```
 
 ---
@@ -101,6 +103,7 @@ Returns:
   appointments,  // AppointmentService
   queues,        // QueueService
   specialities,  // SpecialityService
+  consults,      // ConsultService
 }
 ```
 
@@ -303,6 +306,24 @@ await api.appointments.cancel("appt1");
 // get a list of upcoming appointments by auth0Id
 const appointments = await api.appointments.getForAuth0Id("auth0|123", {statuses: ["Waiting"]});
 ```
+---
+
+### `ConsultService`
+
+Base path: `/consults`. All routes are private.
+
+| Method | auth | Server route |
+|---|---|---|
+| `getForAuth0Id(auth0Id)` | Private | `GET /api/consults/:auth0Id` |
+
+**Example usage in a component**
+```js
+const api = useApi();
+
+// get consults for a user
+const consults = await api.consults.getForAuth0Id("auth0|123");
+```
+
 ---
 
 ## How to Create a New Service
