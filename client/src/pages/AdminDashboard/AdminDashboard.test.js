@@ -144,11 +144,12 @@ describe('AdminDashboard Component', () => {
 
 
 // ADD STAFF TESTS
-
+// ─────────────────────────────────────────────────────────────────────────────
 
 describe('AdminDashboard – Add Staff section', () => {
 
-    // Rendering 
+    // ── Rendering ─────────────────────────────────────────────────────────────
+
     test('renders the Add Staff form when section is toggled', async () => {
         await renderAndOpenAddStaff();
 
