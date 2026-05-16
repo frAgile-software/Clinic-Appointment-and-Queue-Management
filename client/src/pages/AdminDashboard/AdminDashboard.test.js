@@ -349,12 +349,12 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         await renderDashboard();
         fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
         await waitFor(() => {
-            expect(mockApi.specialities.listSpecialities).toHaveBeenCalled();
+            expect(mockApi.specialities.getAll).toHaveBeenCalled();
         });
     });
 
     test("Given the specialities fetch fails, Then an error is logged", async () => {
-        mockApi.specialities.listSpecialities.mockRejectedValue(new Error("Spec error"));
+        mockApi.specialities.getAll.mockRejectedValue(new Error("Spec error"));
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         await renderDashboard();
         fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
