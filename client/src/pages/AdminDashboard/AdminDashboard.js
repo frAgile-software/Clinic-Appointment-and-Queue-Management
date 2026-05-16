@@ -354,10 +354,10 @@ function AdminDashboard() {
                                 )}
                             </section>
                         </section>
-                        <nav align='right'>
-                            Export to:
-                            <button onClick={exportCSV}>CSV</button>
-                            <button onClick={exportPDF}>PDF</button>
+                        <nav className="export-nav" align='right'>
+                            <h2>Export to: </h2>
+                            <button className="pill-btn-purple submit-staff-btn" onClick={exportCSV}>CSV</button>
+                            <button className="pill-btn-purple submit-staff-btn" onClick={exportPDF}>PDF</button>
                         </nav>
                     </article>
                 )}
