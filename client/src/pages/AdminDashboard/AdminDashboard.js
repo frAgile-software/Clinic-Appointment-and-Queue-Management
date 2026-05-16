@@ -234,9 +234,7 @@ function AdminDashboard() {
         return <p>Loading dashboard...</p>;
     }
 
-    if (!selectedClinic) {
-        return <p>No assigned clinics found.</p>;
-    }
+   
 
     const handleClinicChange = (clinic) => {
         setSelectedClinic(clinic);
