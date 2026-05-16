@@ -250,7 +250,10 @@ return (
         <div className="notif-dropdown">
           <div className="notif-header">
             <h4>Notifications</h4>
-            <button className="btn-text" onClick={handleMarkSeen}>Mark all as seen</button>
+            <div className="notif-actions">
+              <button className="btn-text" onClick={handleMarkSeen}>Mark all as seen</button>
+              <button className="btn-text" onClick={handleClearSeen}>Clear Seen</button>
+            </div>
           </div>
           
           <div className="notif-list">
@@ -279,7 +282,6 @@ return (
             )}  
             
           </div>
-          <button className="btn-text" onClick= {handleClearSeen}> Delete seen </button>
         </div>
       )}
     </div>
