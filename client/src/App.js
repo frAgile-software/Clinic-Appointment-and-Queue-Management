@@ -9,6 +9,8 @@ import PatientDashboard from  "./pages/PatientDashboard/PatientDashboard"
 import StaffProfile from      "./pages/StaffProfile/StaffProfile"
 import Booking from           "./pages/Booking/Booking"
 import PatientProfile from    './pages/PatientProfile/PatientProfile'
+import AdminProfile from './pages/AdminProfile/AdminProfile';
+
 function App() {
   const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, isLoading } = useAuth0();
@@ -27,6 +29,11 @@ function App() {
         <Route path="/dashboard/admin" element= { 
           <ProtectedRoute>
             <AdminDashboard /> 
+          </ProtectedRoute>
+          } />
+        <Route path="/dashboard/admin/profile" element= { 
+          <ProtectedRoute>
+            <AdminProfile /> 
           </ProtectedRoute>
           } />
         <Route path="/dashboard/staff" element= { 
