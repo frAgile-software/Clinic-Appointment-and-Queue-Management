@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const dbConnect = require("./database/dbConnect")
 const { requireAuth } = require('./middleware/auth');
+const { scheduleClearStaleQueues, clearStaleQueues } = require("./jobs/clearStaleQueues");
+
 const usersRoute = require('./routes/usersRoute');
 const clinicsRoute = require('./routes/clinicsRoute');
 const schedulesRoute = require('./routes/schedulesRoute');
@@ -42,6 +44,7 @@ if (require.main === module) {
     const listener = server.listen(port, () => {
         console.log(`Running on port ${port}`);
     });
+    scheduleClearStaleQueues();
 }
 
 module.exports = server;

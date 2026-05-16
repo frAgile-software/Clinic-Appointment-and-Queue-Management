@@ -53,7 +53,7 @@ describe("GET /queues/estimate/:clinicID", () => {
         expect(Queue.aggregate).toHaveBeenCalledTimes(1);
     });
 
-    it("should return averageWaitTime as null if no data", async () => {
+    it("should return averageWaitTime as 0 if no data", async () => {
         const mockClinic = { _id: "mock-clinic-id" };
         Clinic.findById.mockResolvedValue(mockClinic);
         Queue.aggregate.mockResolvedValue([]);
@@ -62,7 +62,7 @@ describe("GET /queues/estimate/:clinicID", () => {
             .get("/queues/estimate/mock-clinic-id?referenceDateTime=2026-05-13T12:00:00.000Z");
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual({ averageWaitTime: null });
+        expect(response.body).toEqual({ averageWaitTime: 0 });
     });
 
     it("should handle specialityIDs filter", async () => {

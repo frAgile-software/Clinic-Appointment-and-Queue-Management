@@ -21,11 +21,12 @@
     "express": "^5.2.1",
     "express-oauth2-jwt-bearer": "^1.8.0",
     "mongoose": "^9.3.3",
+    "node-cron": "^4.2.1",
     "path": "^0.12.7"
   },
   "jest": {
     "coveragePathIgnorePatterns": [
-        "src/middleware/"
+      "src/middleware/"
     ]
   }
 }

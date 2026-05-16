@@ -5,6 +5,15 @@ export class SpecialityService extends ResourceService {
         super(publicClient, privateClient, '/specialities');
     }
 
+    
+    create({ SpecialityName }) {
+    return this.priv.post(`${this.basePath}`, { SpecialityName }, null);
+    }
+  
+    getAll() {
+        return this.pub.get(`${this.basePath}/`);
+    }
+
     // TODO: should accept a list of specialityIds (maybe in body)
     addToStaff({staffId, specialityId}) {
         return this.priv.post(`${this.basePath}/staff/${staffId}/${specialityId}`, null, null);
