@@ -310,25 +310,32 @@ function AdminDashboard() {
                 </section>
             </section>
 
-            <section className="clinic-selection-area">
-                <header className="selection-header">Select your Clinic</header>
-                <ul className="clinic-cards-list">
-                    {clinics.map((clinic) => (
-                        <li 
-                            key={clinic._id} 
-                            className={`admin-selection-card ${selectedClinic._id === clinic._id ? 'active' : ''}`}
-                            onClick={() => handleClinicChange(clinic)}
-                            role="button"
-                            tabIndex={0}
-                        >
-                            <h3 className="admin-card-title">{clinic.practiceName}</h3>
-                            <p className="admin-card-desc">{clinic.practiceTypeDescription || 'General Practice'}</p>
-                            <p className="admin-card-address">{clinic.physicalAddress}</p>
-                        </li>
-                    ))}
-                </ul>
-            </section>
 
+       
+          {!clinics || clinics.length === 0 ? (
+    <section className="clinic-selection-area">
+        <header className="selection-header">You are not assigned to any clinics yet.</header>
+    </section>
+) : (
+    <section className="clinic-selection-area">
+        <header className="selection-header">Select your Clinic</header>
+        <ul className="clinic-cards-list">
+            {clinics.map((clinic) => (
+                <li 
+                    key={clinic._id} 
+                    className={`admin-selection-card ${selectedClinic?._id === clinic._id ? 'active' : ''}`}
+                    onClick={() => handleClinicChange(clinic)}
+                    role="button"
+                    tabIndex={0}
+                >
+                    <h3 className="admin-card-title">{clinic.practiceName}</h3>
+                    <p className="admin-card-desc">{clinic.practiceTypeDescription || 'General Practice'}</p>
+                    <p className="admin-card-address">{clinic.physicalAddress}</p>
+                </li>
+            ))}
+        </ul>
+    </section>
+)}
             <nav className="admin-action-buttons">
                 <button className="action-btn-large" onClick={() => toggleSection('manage-clinic')}>Manage Clinic</button>
                 <button className="action-btn-large" onClick={() => toggleSection('manage-staff')}>Manage Staff</button>
