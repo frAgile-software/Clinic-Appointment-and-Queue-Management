@@ -5,19 +5,19 @@ import { useNavigate } from 'react-router';
 import { useApi } from '../../api/useApi';
 import { useApiAuth } from '../../hooks/apiAuth';
 import { useRef } from 'react';
+
 function StaffProfile() {
+
   const nameRef = useRef(); //for changing of details
   const surnameRef = useRef();
   const titleRef = useRef();
   const emailRef = useRef();
   const api = useApi();
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-
-
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
   const {apiFetch} = useApiAuth();
 
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState("");
@@ -26,11 +26,11 @@ function StaffProfile() {
   const [isClinicDetailsModalOpen, setIsClinicDetailsModalOpen] = useState(false);
   const [clinics, setClinics] = useState(null);
   const [specialities, setSpecialities] = useState([]);
-  console.log("Current state of clinics:", clinics?.practiceName);
   const [loading, setLoading] = useState(false);
   void clinics;
   const staffId = user?.sub;
 
+  //sort notifs new -> last
   const sortNotifications = (items) => {
     return [...items].sort((a, b) => new Date(b.Time) - new Date(a.Time));
   };
@@ -51,6 +51,7 @@ function StaffProfile() {
     setIsClinicDetailsModalOpen(!isClinicDetailsModalOpen);
   };
 
+  //deletes all seen notifications
   const handleClearSeen = async () => {
     if (!profileData?._id) return;
 
@@ -108,6 +109,7 @@ function StaffProfile() {
     }
   };
 
+  //marks all notifs as seen
   const handleMarkSeen = async () => {
     if (!profileData?._id) return;
 
@@ -213,26 +215,24 @@ useEffect(() => {
 
   
 return (
-  <div
-    className="landing profile-page-container"
-    style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/bg2.png)` }}
-  > 
+  <div className="landing"> 
     <nav className="landing-nav" aria-label="Main navigation">
+      
       <button
-  className="btn-secondary"
-  onClick={async () => {
-    if (!profileData?._id) return;
+      className="btn-secondary"
+      onClick={async () => {
+      if (!profileData?._id) return;
 
-    try {
-      const notif = await api.notifications.createNotif(
-        profileData._id,
-        `Test notification created at ${new Date().toLocaleTimeString()}`
-      );
+      try {
+        const notif = await api.notifications.createNotif(
+          profileData._id,
+          `Test notification created at ${new Date().toLocaleTimeString()}`
+        );
 
-      setNotifications((prev) => sortNotifications([...prev, notif]));
-    } catch (error) {
-      console.error("Could not create test notification:", error);
-    }
+        setNotifications((prev) => sortNotifications([...prev, notif]));
+      } catch (error) {
+        console.error("Could not create test notification:", error);
+      }
   }}
 >
   Create Test Notification
@@ -271,11 +271,15 @@ return (
                     hour12: true
                   })}</small>
                 </div>
+                
               ))
+              
             ) : (
               <p className="notif-empty">No new notifications</p>
-            )}
+            )}  
+            
           </div>
+          <button className="btn-text" onClick= {handleClearSeen}> Delete seen </button>
         </div>
       )}
     </div>
