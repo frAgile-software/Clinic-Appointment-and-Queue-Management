@@ -191,12 +191,23 @@ function AdminDashboard() {
         try {
             let specialityId = selectedSpecialityByStaff[staffId];
             const newSpecialityName = newSpecialityByStaff[staffId]?.trim();
-            if(!specialityId && newSpecialityName) {
-                const created=await api.specialities.create({SpecialityName: newSpecialityName});
-                specialityId=created.speciality._id;
-                const updatedSpecialities= await api.specialities.getAll();
-                setAllSpecialities(updatedSpecialities);
+            if (!specialityId && newSpecialityName) {
+            const existingSpeciality = allSpecialities.find((speciality) =>
+                    speciality.SpecialityName?.trim().toLowerCase() ===
+                    newSpecialityName.toLowerCase());
+            if (existingSpeciality) {
+                specialityId = existingSpeciality._id;
+            } else {
+                const created = await api.specialities.create({
+                    SpecialityName: newSpecialityName
+                });
+
+                specialityId = created.speciality?._id || created._id;
+
+                const updatedSpecialities = await api.specialities.getAll();
+                setAllSpecialities(updatedSpecialities || []);
             }
+        }
             if(!specialityId) {
                 alert("Please select or enter a speciality to add.");
                 return;
