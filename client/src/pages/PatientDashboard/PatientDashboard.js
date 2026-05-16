@@ -16,7 +16,6 @@ const status = {
   NO_SHOW: "No-show",
 };
 const activeStatus = [status.WAITING, status.BEING_SEEN];
-const inactiveStatus = [status.CONCLUDED, status.CANCELLED, status.NO_SHOW];
 
 function PatientDashboard() {
   const { user, logout: auth0Logout } = useAuth0();
