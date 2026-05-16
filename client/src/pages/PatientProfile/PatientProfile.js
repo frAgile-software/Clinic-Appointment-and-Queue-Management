@@ -4,6 +4,8 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useApiAuth } from '../../hooks/apiAuth';
 import { useRef } from 'react';
+import NotificationCenter from '../../components/NotificationCenter';
+
 function PatientProfile() {
     const nameRef = useRef(); //for changing of details
     const surnameRef = useRef();

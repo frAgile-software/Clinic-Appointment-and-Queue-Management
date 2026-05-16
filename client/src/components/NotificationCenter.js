@@ -13,8 +13,32 @@ export default function NotificationCenter({ userId }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+const fetchNotifications = async () => {
+  if (!userId) {
+    setNotifications([]);
+    return;
+  }
+
+  try {
+    setLoading(true);
+    setError("");
+    const data = await api.notifications.getNotifs(userId);
+    setNotifications(Array.isArray(data) ? sortNotifications(data) : []);
+  } catch (fetchError) {
+    console.error("Could not fetch notifications:", fetchError);
+    setNotifications([]);
+    setError("Could not load notifications.");
+  } finally {
+    setLoading(false);
+  }
+};
+
   const toggleNotifications = async () => {
     setIsOpen((prev) => !prev);
+    if (!isOpen){
+    await api.notifications.createNotif(userId,"CLINIC OVERRUN BY ZOMBIES")
+    }
+    else fetchNotifications();
   };
 
   const handleClearSeen = async () => {
@@ -47,28 +71,8 @@ export default function NotificationCenter({ userId }) {
   };
 
   useEffect(() => {
-    if (!userId) {
-      setNotifications([]);
-      return;
-    }
-
-    async function fetchNotifications() {
-      try {
-        setLoading(true);
-        setError("");
-        const data = await api.notifications.getNotifs(userId);
-        setNotifications(Array.isArray(data) ? sortNotifications(data) : []);
-      } catch (fetchError) {
-        console.error("Could not fetch notifications:", fetchError);
-        setNotifications([]);
-        setError("Could not load notifications.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchNotifications();
-  }, [api, userId]);
+  }, [userId]);
 
   return (
     <aside className="notif-wrapper">

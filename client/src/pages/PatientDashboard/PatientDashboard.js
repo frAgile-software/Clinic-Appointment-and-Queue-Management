@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import "./PatientDashboard.css";
 import { useAuth0 } from '@auth0/auth0-react';
+import NotificationCenter from '../../components/NotificationCenter';
 // import logo from './logo.svg';
 
 import { useApi } from "../../api/useApi";

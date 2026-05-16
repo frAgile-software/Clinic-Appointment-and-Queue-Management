@@ -4,6 +4,7 @@ import { LuUser } from "react-icons/lu";
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../../api/useApi';
 import { useNavigate } from 'react-router';
+import NotificationCenter from '../../components/NotificationCenter';
 
 const activeStatus = ["Waiting", "In Consult"];
 const inactiveStatus = ["Completed", "Cancelled", "No-show"];
@@ -251,6 +252,7 @@ function StaffDashboard() {
           <LuUser />
         </button>
         <button className="logout-btn-canva" onClick={logout}>Logout</button>
+        <NotificationCenter userId={user?.sub} />
       </nav>
     </header>
   );
