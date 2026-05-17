@@ -231,13 +231,15 @@ function AdminDashboard() {
             setAddingStaff(true);
  
             //linking existing staff user to this clinic
-            await api.clinics.linkStaff(selectedClinic._id, {
-                auth0Id: staffSearchResult.user.auth0Id,
-            });
+           const linkResult = await api.clinics.linkStaff(selectedClinic._id, {
+            auth0Id: staffSearchResult.user.auth0Id,
+        });
+
  
             //create default schedule
             const defaultEntries = buildDefaultScheduleEntries(selectedClinic);
-            await api.schedules.createDefault(staffSearchResult.user._id, defaultEntries);
+            await api.schedules.createDefault(linkResult.staffId, defaultEntries);
+
  
             
             const data = await api.clinics.listStaff(selectedClinic._id);
