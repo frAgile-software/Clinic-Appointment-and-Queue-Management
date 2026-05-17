@@ -10,7 +10,34 @@
   min-height: 100vh;
   padding-bottom: 50px;
 }
+.export-nav {
 
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  width: fit-content;
+  margin: 1rem 0;
+  
+  justify-content: flex-end;
+  margin-left: auto;
+  margin-right: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+.export-nav h2 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a5568; /* Elegant slate grey */
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
 .admin-header-canva {
   display: flex;
   justify-content: space-between;
@@ -412,4 +439,223 @@
 
 .custom-tooltip .tooltip-value {
     font-size: 12px;
+}
+
+.staff-card {
+    width: 100%;
+    max-width: 720px;
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.staff-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #eeeeee;
+    padding-bottom: 1rem;
+}
+
+.staff-name {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1f1f1f;
+}
+
+.staff-role {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.staff-section-title {
+    margin: 0 0 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.staff-speciality-section,
+.add-speciality-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.empty-specialities {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #777;
+    background: #f7f7f7;
+    padding: 0.75rem;
+    border-radius: 12px;
+}
+
+.speciality-chip-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.speciality-chip {
+    border: none;
+    background: #f0e6ff;
+    color: #5f18b8;
+    border-radius: 999px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.speciality-chip:hover {
+    background: #e1ccff;
+    transform: translateY(-1px);
+}
+
+.chip-remove {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.speciality-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.speciality-select,
+.speciality-input {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid #d8d8d8;
+    font-size: 0.9rem;
+    outline: none;
+    background: #ffffff;
+}
+
+.speciality-select:focus,
+.speciality-input:focus {
+    border-color: #7b22c8;
+    box-shadow: 0 0 0 3px rgba(123, 34, 200, 0.12);
+}
+
+.add-speciality-btn {
+    align-self: flex-start;
+    min-width: 180px;
+}
+
+.staff-fire-btn {
+    min-width: 90px;
+    padding: 0.55rem 1rem;
+}
+
+@media (max-width: 700px) {
+    .staff-card-header {
+        flex-direction: column;
+    }
+
+    .speciality-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .add-speciality-btn,
+    .staff-fire-btn {
+        width: 100%;
+    }
+}
+
+.staff-search-area {
+  background: #ffffff;
+  padding: 20px 30px 0 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.staff-search-input {
+  width: 100%;
+  max-width: 500px;
+  padding: 12px 16px;
+  border: 1px solid #d8d8d8;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  outline: none;
+  background: #ffffff;
+}
+
+.staff-search-input:focus {
+  border-color: #6b1fad;
+  box-shadow: 0 0 0 3px rgba(107, 31, 173, 0.14);
+.edit-times-form {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.times-fields {
+  display: flex;
+  gap: 24px;
+  border: none;
+}
+
+.times-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.time-input {
+  padding: 8px 10px;
+  border: 1px solid #6b1fad;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+  color: #333;
+}
+
+.time-input:focus {
+  box-shadow: 0 0 0 2px rgba(107, 31, 173, 0.2);
+}
+
+.times-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.pill-btn-grey {
+  background-color: #9ca3af;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.pill-btn-grey:hover {
+  background-color: #6b7280;
+}
 }
