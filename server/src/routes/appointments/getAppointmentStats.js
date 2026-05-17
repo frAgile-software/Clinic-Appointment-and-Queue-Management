@@ -49,10 +49,9 @@ router.get("/:clinicID", async (req, res) => {
             ...dateRangeParam,
             ...statusesParam,
             ...specialitiesParam
-        }, '-Remarks -ReasonDetails')
+        }, 'BookingDateTime Speciality Staff Status createdAt updatedAt -type')
             .sort({ [targetField]: sortOrder })
             .populate([
-                { path: 'Patient', select: 'name' },
                 { path: 'Staff', select: 'name' },
                 { path: 'Speciality', select: 'SpecialityName' }
             ]);
