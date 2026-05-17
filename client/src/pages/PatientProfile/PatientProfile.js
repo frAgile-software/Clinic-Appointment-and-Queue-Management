@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './PatientProfile.css'; 
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useApiAuth } from '../../hooks/apiAuth';
-import { useRef } from 'react';
+
+import NotificationCenter from '../../components/NotificationCenter';
+
 function PatientProfile() {
     const nameRef = useRef(); //for changing of details
     const surnameRef = useRef();
@@ -46,8 +48,7 @@ function PatientProfile() {
 
         if (Object.keys(updatedData).length === 0) {
             alert('No changes made.');
-            toggleChangeDetailsModal();
-            return;
+            return; 
         }
 
         try {
@@ -69,7 +70,6 @@ function PatientProfile() {
         };
     };
 
-    //fetch profile data
     useEffect(() => {
         if (!patientId) {
             console.log("No user, cannot find profile details.");
@@ -99,13 +99,27 @@ function PatientProfile() {
             <span className="landing-logo">Clinics and Qs</span>
             <section className="landing-nav-btns">
                 <button className="btn" onClick={logout}>Logout</button>
+                <NotificationCenter userId={user?.sub} />
                 <button className="btn btn-primary" onClick={() => navigate('/dashboard/patient')}>Back</button>
             </section>
             </nav>
 
             <main className="profile-container">
-                <header className="profile-header">
+                <header className="profile-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <h1 className="profile-title">My Profile</h1>
+                    {user?.picture && (
+                        <img 
+                            src={user.picture} 
+                            alt="Profile" 
+                            className="profile-picture" 
+                            style={{
+                                width: '150px',
+                                height: '150px',
+                                borderRadius: '50%',
+                                objectFit: 'cover'
+                            }}
+                        />
+                    )}
                 </header>
 
                 {loading ? (
@@ -162,7 +176,7 @@ function PatientProfile() {
                                 </fieldset>
                                 <fieldset className='inline-components'>
                                     <label>Email</label> 
-                                    <input type="email" disabled={!patientId || !patientId?.startsWith("auth0|")} ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+                                    <input type="email" disabled={!patientId || !patientId?.startsWith("auth0|")} ref={emailRef} defaultValue={profileData?.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
                                 </fieldset>
 
                                 <footer className="landing-nav-btns" style={{marginTop: '20px'}}>
@@ -175,7 +189,7 @@ function PatientProfile() {
                     </aside>
                 )}
             </main>
-        </section>
+        </section>   
     );
 }
 

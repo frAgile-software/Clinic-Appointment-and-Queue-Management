@@ -58,6 +58,7 @@ fieldset {
 .profile-details-card:hover {
   transform: none; 
 }
+
 .search-bar {
   padding: 8px 12px;
   font-size: 14px;
@@ -65,6 +66,7 @@ fieldset {
   background: var(--color-surface);
   color: var(--color-text);
 }
+
 .inline-components {
   display: flex;
   flex-direction: row;
@@ -88,7 +90,22 @@ fieldset {
 .profile-display {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: 8px;
+  padding: 20px;
+}
+
+.profile-avatar-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--color-brand);
+  box-shadow: var(--shadow-card);
 }
 
 .details-content {

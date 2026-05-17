@@ -15,6 +15,7 @@ useApi (hook)
         |-> AppointmentService  (done)
         |-> QueueService        (done)
         |-> SpecialityService   (done)
+        |-> ConsultService      (done)
 ```
 
 ---
@@ -34,6 +35,7 @@ src/
         |-- AppointmentService.js
         |-- QueueService.js
         |-- SpecialityService.js
+        |-- ConsultService.js
 ```
 
 ---
@@ -101,6 +103,7 @@ Returns:
   appointments,  // AppointmentService
   queues,        // QueueService
   specialities,  // SpecialityService
+  consults,      // ConsultService
 }
 ```
 
@@ -328,6 +331,24 @@ const summary = await api.appointments.summary("clnc2", { _fromdate: date.toISOS
 ```
 ---
 
+### `ConsultService`
+
+Base path: `/consults`. All routes are private.
+
+| Method | auth | Server route |
+|---|---|---|
+| `getForAuth0Id(auth0Id)` | Private | `GET /api/consults/:auth0Id` |
+
+**Example usage in a component**
+```js
+const api = useApi();
+
+// get consults for a user
+const consults = await api.consults.getForAuth0Id("auth0|123");
+```
+
+---
+
 ## How to Create a New Service
 
 Follow this pattern for `ScheduleService`, `AppointmentService`, `QueueService` and `SpecialityService`.
@@ -395,6 +416,18 @@ try {
 ```
 
 ---
+## NotificationCenter.js
+To use:
+import NotificationCenter from '../../components/NotificationCenter';
+Then use <NotificationCenter userId={ id } /> 
+component anywhere, usually in the header,
+where id is either the user's auth0Id or object id.
+The component is a white button (may conflict with white headers) which allows a user
+to view their notifications (ordered chronologically), mark notifications as seen, and 
+delete their seen notifications (all view buttons within the dropdown). 
+
+
+
 
 ## Known Problems to fix
 

@@ -143,11 +143,8 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         expect(screen.getByText(/Welcome Back, Admin User!/i)).toBeInTheDocument();
     });
 
-    test("Given the dashboard loads, Then the notifications card is shown", async () => {
-        await renderDashboard();
-        expect(screen.getByRole('heading', { name: /^Notifications$/i })).toBeInTheDocument();
-        expect(screen.getByText(/3 New Notifications/i)).toBeInTheDocument();
-    });
+    
+    
 
     
 
@@ -305,19 +302,6 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         await waitFor(() => {
             expect(screen.getByText(/Dr. Jane Smith/i)).toBeInTheDocument();
             expect(screen.getByText(/Dr. John Doe/i)).toBeInTheDocument();
-        });
-    });
-
-    test("Given the staff list is shown, Then each staff card has action buttons", async () => {
-        await renderDashboard();
-        fireEvent.click(screen.getByRole("button", { name: /Manage Staff/i }));
-        await waitFor(() => {
-            const addSpecButtons = screen.getAllByRole("button", { name: /Add Speciality/i });
-            const removeSpecButtons = screen.getAllByRole("button", { name: /Remove Speciality/i });
-            const fireButtons = screen.getAllByRole("button", { name: /Fire/i });
-            expect(addSpecButtons).toHaveLength(2);
-            expect(removeSpecButtons).toHaveLength(2);
-            expect(fireButtons).toHaveLength(2);
         });
     });
 

@@ -3,7 +3,6 @@ const router = express.Router();
 const User = require("../../database/models/User");
 const Staff = require("../../database/models/Staff");
 const StaffSpeciality = require("../../database/models/StaffSpeciality");
-const Speciality = require("../../database/models/Speciality");
 
 router.get("/staff/:staffID", async (req, res)=> {
     try {
@@ -27,20 +26,24 @@ router.get("/staff/:staffID", async (req, res)=> {
         const staffDoc = await Staff.findOne({ User: staffID });
         if (!staffDoc) {
             console.log("User not assigned to a clinic.");
-            res.status(404).json({message: "User not assigned to a clinic."});
+            return res.status(404).json({message: "User not assigned to a clinic."});
         }
 
         console.log("Staff doc found. Finding specialities...");
         
         const results = await StaffSpeciality.find({Staff: staffDoc._id}).populate('Speciality');
-
+        const specialityObjects = results.map((record) => record.Speciality).filter(Boolean);
         console.log("Specialities found:", results);
         console.log("Names list:", results.map(r => r.Speciality.SpecialityName));
 
         // returns list of specialities
         return res.status(200).json({
             UserId: staffID, 
-            Specialities: results.map(r => r.Speciality.SpecialityName)
+            Specialities: results.map(r => r.Speciality.SpecialityName),
+            staffId: staffDoc._id,
+            SpecialityObjects: specialityObjects.map((speciality) => ({
+                _id: speciality._id,
+                SpecialityName: speciality.SpecialityName}))
         });
 
     } catch (error) {

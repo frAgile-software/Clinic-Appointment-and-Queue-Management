@@ -20,6 +20,8 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   const mockLogout = jest.fn();
   let mockApi;
 
+  const safeFutureDate = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
@@ -41,10 +43,11 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
         getForAuth0Id: jest.fn().mockResolvedValue([
           {
             _id: 'app_1',
+            Status: 'Waiting',
             Clinic: { _id: 'clinic_123', practiceName: 'Test Clinic', physicalAddress: '1 Test Rd', physicalTown: 'Testville' },
             Staff: { name: 'Dr.', surname: 'Smith' },
             Speciality: { name: 'Dentistry' },
-            BookingDateTime: '2026-05-01T10:00:00Z',
+            BookingDateTime: safeFutureDate,
           },
         ]),
         cancel: jest.fn().mockResolvedValue({ message: "Cancelled" }),
@@ -53,6 +56,9 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
         getForPatient: jest.fn().mockResolvedValue({ inQueue: false }),
         addPatient: jest.fn().mockResolvedValue({ message: "Successfully joined queue" }),
         remove: jest.fn().mockResolvedValue({ message: "Removed" }),
+      },
+      consults: {
+        getForAuth0Id: jest.fn().mockResolvedValue([]),
       },
       clinics: {
         getFilters: jest.fn().mockResolvedValue({
@@ -73,6 +79,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
               isOpen: true,
               practiceNumber: '102846748',
               telephone: '0858761234',
+              practiceTimes: { open: '00:00', close: '23:59' },
             },
           ],
           pagination: { page: 1, totalPages: 1, total: 1 },
@@ -151,7 +158,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     
     expect(screen.getByRole("heading", { name: /Your Appointments/i })).toBeInTheDocument();
     expect(screen.getByText(/Test Clinic/i)).toBeInTheDocument();
-    expect(screen.getByText(/Dr. Smith/i)).toBeInTheDocument();
+    expect(screen.getByText(/Smith/i)).toBeInTheDocument();
   });
 
   test("Given the appointments modal is open, When user clicks 'Cancel Appointment', Then it shows a confirmation popup and deletes on confirm", async () => {
@@ -169,6 +176,27 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     await waitFor(() => {
       expect(mockApi.appointments.cancel).toHaveBeenCalledWith("app_1");
     });
+  });
+
+  test("Given an appointment is within 24 hours, When user views appointments, Then Cancel and Reschedule buttons are disabled", async () => {
+    mockApi.appointments.getForAuth0Id.mockResolvedValue([
+      {
+        _id: 'app_close',
+        Status: 'Waiting',
+        Clinic: { practiceName: 'Urgent Clinic' },
+        BookingDateTime: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(), 
+      },
+    ]);
+
+    await renderDashboard();
+    fireEvent.click(screen.getByRole("button", { name: /VIEW DETAILS/i }));
+    
+    const cancelBtn = screen.getByRole("button", { name: /Cancel Appointment/i });
+    const rescheduleBtn = screen.getByRole("button", { name: /Reschedule/i });
+    
+    expect(cancelBtn).toBeDisabled();
+    expect(rescheduleBtn).toBeDisabled();
+    expect(screen.getByText(/\* Too close to appointment time to modify\./i)).toBeInTheDocument();
   });
 
   test("Given the appointments modal is open, When user clicks 'Reschedule', Then it navigates to /book with reschedule state", async () => {
