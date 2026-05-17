@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { LuUser, LuBell } from "react-icons/lu";
 import { useApi } from "../../api/useApi";  
 import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import * as statExport from './exportHelper';
 import './AdminDashboard.css';
 
 const STATS = {QUEUE_WAIT: 'queue-waits', APPOINTMENTS: 'appts', DAYS_OFF: 'days-off'}
@@ -63,19 +64,14 @@ function AdminDashboard() {
     const [apptGranularity, setApptGranularity] = useState('week');
     const [apptSearchOptions, setApptSearchOptions] = useState({});
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            if (user?.sub) {
-            try {
-                const data = await api.users.get(user.sub);
-                setAdminName(data.name);
-            } catch (error) {
-                console.error("Failed to fetch user profile:", error);
-            }
-            }
-        };
-        fetchUserData();
-    }, [user, api]);
+    const [staffEmail, setStaffEmail] = useState('');
+    const [staffSearchResult, setStaffSearchResult] = useState(null); 
+    const [loadingStaffSearch, setLoadingStaffSearch] = useState(false);
+    const [hasSearchedStaff, setHasSearchedStaff] = useState(false);
+    const [addingStaff, setAddingStaff] = useState(false);
+    const staffDebounceTimer = useRef(null);
+    const [specialities, setSpecialities] = useState({});
+    const [selectedSpeciality, setSelectedSpeciality] = useState('');
 
     useEffect(() => {
         const fetchAssignedClinics = async () => {
@@ -98,6 +94,20 @@ function AdminDashboard() {
     }, [user, isAuthenticated, isLoading, api]);
 
     useEffect(() => {
+            const fetchUserData = async () => {
+                if (user?.sub) {
+                try {
+                    const data = await api.users.get(user.sub);
+                    setAdminName(data.name);
+                } catch (error) {
+                    console.error("Failed to fetch user profile:", error);
+                }
+                }
+            };
+            fetchUserData();
+        }, [user, api]);
+
+    useEffect(() => {
         const fetchStaff = async () => {
             try {
                 if (!selectedClinic || !user?.sub) return;
@@ -115,6 +125,109 @@ function AdminDashboard() {
         fetchStaff();
     }, [selectedClinic, user, api]);
 
+
+     // email search 
+
+    useEffect(() => {
+        const email = staffEmail.trim();
+ 
+        if (!email) {
+            setStaffSearchResult(null);
+            setHasSearchedStaff(false);
+            setLoadingStaffSearch(false);
+            return;
+        }
+ 
+        clearTimeout(staffDebounceTimer.current);
+        staffDebounceTimer.current = setTimeout(async () => {
+            setLoadingStaffSearch(true);
+            setHasSearchedStaff(true);
+ 
+        try {
+            const user = await api.users.getByEmail(email, 'Staff');
+            setStaffSearchResult(user ? { user, isLinked: false } : null);
+        } catch (error) {
+            console.error('Staff email check error:', error);
+            setStaffSearchResult(null);
+        } finally {
+            setLoadingStaffSearch(false);
+        }
+        }, 400);
+ 
+        return () => clearTimeout(staffDebounceTimer.current);
+    }, [staffEmail, api]);
+   
+    useEffect(() => {
+        if (activeSection === 'add-staff') {
+            api.specialities.getAll()
+                .then(data => {
+                    const map = {};
+                    data.forEach(s => { map[s._id] = s.SpecialityName; });
+                    setSpecialities(map);
+                })
+                .catch(console.error);
+        }
+    }, [activeSection, api]);
+
+
+    // default schedule from clinic open/close times 
+    const buildDefaultScheduleEntries = (clinic) => {
+        const openHour  = parseInt((clinic.practiceTimes?.open  || '08:00').split(':')[0], 10);
+        const closeHour = parseInt((clinic.practiceTimes?.close || '17:00').split(':')[0], 10);
+
+        const entries = [];
+
+        for (let day = 0; day <= 6; day++) {
+            for (let hour = openHour; hour < closeHour; hour++) {
+                entries.push({
+                    DayOfWeek: day,
+                    StartTime: `${String(hour).padStart(2, '0')}:00`,
+                    EndTime:   `${String(hour + 1).padStart(2, '0')}:00`,
+                });
+            }
+        }
+
+        return entries;
+    };
+
+ 
+    // Add staff 
+    const handleAddStaff = async () => {
+        if (!staffSearchResult?.user || staffSearchResult.isLinked) return;
+ 
+        try {
+            setAddingStaff(true);
+ 
+            //linking existing staff user to this clinic
+            await api.clinics.linkStaff(selectedClinic._id, {
+                auth0Id: staffSearchResult.user.auth0Id,
+            });
+ 
+            //create default schedule
+            const defaultEntries = buildDefaultScheduleEntries(selectedClinic);
+            await api.schedules.createDefault(staffSearchResult.user._id, defaultEntries);
+ 
+            
+            const data = await api.clinics.listStaff(selectedClinic._id);
+            if (data?.users) setStaffList(data.users);
+ 
+            setStaffEmail('');
+            setStaffSearchResult(null);
+            setHasSearchedStaff(false);
+            setSelectedSpeciality('');
+ 
+        } catch (error) {
+            if (error.status === 409) {
+                alert('This staff member is already linked to a clinic.');
+            } else {
+                console.error('Could not add staff member:', error);
+                alert('Failed to add staff. Please try again.');
+            }
+        } finally {
+            setAddingStaff(false);
+        }
+    };
+   
     // creates a cache key for a stats query
     const buildCacheKey = (clinicId, stat, params = {}) => {
         const paramStr = Object.values(params).join('-');
@@ -174,6 +287,8 @@ function AdminDashboard() {
         return <p>Loading dashboard...</p>;
     }
 
+   
+
     const handleClinicChange = (clinic) => {
         setSelectedClinic(clinic);
         setActiveSection(null);
@@ -186,6 +301,14 @@ function AdminDashboard() {
         }, 100);
     };
 
+
+    const staffEmailIndicator = (() => {
+        if (loadingStaffSearch) return 'loading';
+        if (!hasSearchedStaff || !staffEmail.trim()) return null;
+        if (staffSearchResult?.user && !staffSearchResult.isLinked) return 'ok';
+        return 'error';
+    })();
+    
     const QueueTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             const hour = Math.floor(label)
@@ -317,6 +440,17 @@ function AdminDashboard() {
             default:
                 return (<span className="graph-icon">📈</span>);
         }
+    const exportCSV = () => {
+        if (!stats) return;
+        const csvUri = statExport.convertCsv(stats);
+        statExport.downloadFile(csvUri, `${selectedStat}_${new Date().toISOString()}.csv`);
+    };
+
+    const exportPDF = () => {
+        const graph = document.getElementsByClassName("stats-graph");
+        if (!graph || graph.length === 0) return;
+        statExport.convertPdf(graph[0]).then((pdfUri) => 
+            statExport.downloadFile(pdfUri, `${selectedStat}_${new Date().toISOString()}.pdf`));
     };
 
     return (
@@ -352,31 +486,32 @@ function AdminDashboard() {
                 </section>
             </section>
 
-            {!clinics || clinics.length === 0 ? (
-                <section className="clinic-selection-area">
-                    <header className="selection-header">You are not assigned to any clinics yet.</header>
-                </section>
-            ) : (
-            <section>
-            <section className="clinic-selection-area">
-                <header className="selection-header">Select your Clinic</header>
-                <ul className="clinic-cards-list">
-                    {clinics.map((clinic) => (
-                        <li 
-                            key={clinic._id} 
-                            className={`admin-selection-card ${selectedClinic._id === clinic._id ? 'active' : ''}`}
-                            onClick={() => handleClinicChange(clinic)}
-                            role="button"
-                            tabIndex={0}
-                        >
-                            <h3 className="admin-card-title">{clinic.practiceName}</h3>
-                            <p className="admin-card-desc">{clinic.practiceTypeDescription || 'General Practice'}</p>
-                            <p className="admin-card-address">{clinic.physicalAddress}</p>
-                        </li>
-                    ))}
-                </ul>
-            </section>
 
+       
+          {!clinics || clinics.length === 0 ? (
+    <section className="clinic-selection-area">
+        <header className="selection-header">You are not assigned to any clinics yet.</header>
+    </section>
+) : (
+    <section className="clinic-selection-area">
+        <header className="selection-header">Select your Clinic</header>
+        <ul className="clinic-cards-list">
+            {clinics.map((clinic) => (
+                <li 
+                    key={clinic._id} 
+                    className={`admin-selection-card ${selectedClinic?._id === clinic._id ? 'active' : ''}`}
+                    onClick={() => handleClinicChange(clinic)}
+                    role="button"
+                    tabIndex={0}
+                >
+                    <h3 className="admin-card-title">{clinic.practiceName}</h3>
+                    <p className="admin-card-desc">{clinic.practiceTypeDescription || 'General Practice'}</p>
+                    <p className="admin-card-address">{clinic.physicalAddress}</p>
+                </li>
+            ))}
+        </ul>
+    </section>
+)}
             <nav className="admin-action-buttons">
                 <button className="action-btn-large" onClick={() => toggleSection('manage-clinic')}>Manage Clinic</button>
                 <button className="action-btn-large" onClick={() => toggleSection('manage-staff')}>Manage Staff</button>
@@ -421,24 +556,96 @@ function AdminDashboard() {
                     </article>
                 )}
 
-                {activeSection === 'add-staff' && (
-                    <article className="content-block">
-                        <header className="block-header">Add New Clinic Staff</header>
-                        <section className="block-body">
-                            <form className="add-staff-form">
+            {/* Add Staff*/}
+            {activeSection === 'add-staff' && (
+                <article className="content-block">
+                    <header className="block-header">Add New Clinic Staff</header>
+                    <section className="block-body">
+                        <form className="add-staff-form">
+                             {/* Stole from StaffDash */}
+                            <fieldset className="form-row">
+                                <label htmlFor="staff-email-input">Staff Email</label>
+                                <section className="email-input-wrapper">
+                                    <input
+                                        id="staff-email-input"
+                                        type="email"
+                                        className="form-input"
+                                        value={staffEmail}
+                                        onChange={(e) => setStaffEmail(e.target.value)}
+                                        placeholder="staff@example.com"
+                                    />
+
+                                    {staffEmail.trim() && hasSearchedStaff && (
+                                        <span className="email-search-indicator" aria-live="polite">
+                                            {staffEmailIndicator === 'loading' && (
+                                                <span className="spinner" aria-label="Searching" />
+                                            )}
+                                            {staffEmailIndicator === 'ok' && (
+                                                <span className="indicator-tick" aria-label="Staff found and available">✓</span>
+                                            )}
+                                            {staffEmailIndicator === 'error' && (
+                                                <span className="indicator-cross" aria-label="Not found or already linked">✗</span>
+                                            )}
+                                        </span>
+                                    )}
+                                </section>
+                            </fieldset>
+
+                            <fieldset className="form-row">
+                                {staffSearchResult?.user && !loadingStaffSearch && (
+                                    staffSearchResult.isLinked ? (
+                                        <span className="patient-found-name" style={{ color: 'red' }}>
+                                            ⚠ {staffSearchResult.user.title} {staffSearchResult.user.name} {staffSearchResult.user.surname} is already linked to another clinic.
+                                        </span>
+                                    ) : (
+                                        <span className="patient-found-name">
+                                            Found: {staffSearchResult.user.title} {staffSearchResult.user.name} {staffSearchResult.user.surname}
+                                        </span>
+                                    )
+                                )}
+                                {hasSearchedStaff && !loadingStaffSearch && !staffSearchResult && (
+                                    <span style={{ color: 'red', fontSize: '13px' }}>No staff account found with that email.</span>
+                                )}
+                            </fieldset>
+
+                            {staffSearchResult?.user && !loadingStaffSearch && !staffSearchResult.isLinked && (
                                 <fieldset className="form-row">
-                                    <label>Enter Email</label>
-                                    <input type="email" className="form-input" />
+                                    <label htmlFor="speciality-select">Speciality</label>
+                                    <select
+                                        id="speciality-select"
+                                        className="form-input"
+                                        value={selectedSpeciality}
+                                        onChange={(e) => setSelectedSpeciality(e.target.value)}
+                                    >
+                                        <option value="">Select a speciality</option>
+                                        {Object.entries(specialities).map(([id, name]) => (
+                                            <option key={id} value={id}>{name}</option>
+                                        ))}
+                                    </select>
                                 </fieldset>
-                                <fieldset className="form-row">
-                                    <label>Choose speciality</label>
-                                    <input type="text" className="form-input" />
-                                </fieldset>
-                                <button type="button" className="pill-btn-purple submit-staff-btn">Add Staff</button>
-                            </form>
-                        </section>
-                    </article>
-                )}
+                            )}
+
+                            <button
+                                type="button"
+                                aria-label="Submit add staff"
+                                className="pill-btn-purple submit-staff-btn"
+                                disabled={
+                                    !staffSearchResult?.user ||
+                                    staffSearchResult.isLinked ||
+                                    !selectedSpeciality ||
+                                    addingStaff
+                                }
+                                onClick={handleAddStaff}
+                            >
+                                {addingStaff ? 'Adding...' : 'Add Staff'}
+                            </button>
+
+                        </form>
+                    </section>
+                </article>
+            )}
+
+                
 
                 {activeSection === 'view-stats' && (
                     <article className="content-block">
@@ -455,12 +662,14 @@ function AdminDashboard() {
                                 ) : chart()}
                             </section>
                         </section>
+                        <nav className="export-nav" align='right'>
+                            <h2>Export to: </h2>
+                            <button className="pill-btn-purple submit-staff-btn" onClick={exportCSV}>CSV</button>
+                            <button className="pill-btn-purple submit-staff-btn" onClick={exportPDF}>PDF</button>
+                        </nav>
                     </article>
                 )}
             </section>
-            </section>
-            )}
-            
         </main>
     );
 }
