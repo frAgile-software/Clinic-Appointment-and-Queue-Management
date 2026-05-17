@@ -136,8 +136,6 @@ Thank you.`);
       } catch (error) {
         console.error("Could not fetch profile data:", error);
       }
-      console.log("USER SUB: ", user?.sub);
-      
     };
 
     fetchProfileData();
