@@ -410,6 +410,18 @@ try {
 ```
 
 ---
+## NotificationCenter.js
+To use:
+import NotificationCenter from '../../components/NotificationCenter';
+Then use <NotificationCenter userId={ id } /> 
+component anywhere, usually in the header,
+where id is either the user's auth0Id or object id.
+The component is a white button (may conflict with white headers) which allows a user
+to view their notifications (ordered chronologically), mark notifications as seen, and 
+delete their seen notifications (all view buttons within the dropdown). 
+
+
+
 
 ## Known Problems to fix
 

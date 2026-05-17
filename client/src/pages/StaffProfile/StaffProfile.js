@@ -5,7 +5,10 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useApiAuth } from '../../hooks/apiAuth';
 import { useRef } from 'react';
+import NotificationCenter from '../../components/NotificationCenter';
+
 function StaffProfile() {
+
   const nameRef = useRef(); //for changing of details
   const surnameRef = useRef();
   const titleRef = useRef();
@@ -22,7 +25,6 @@ function StaffProfile() {
   const [clinics, setClinics] = useState(null);
   const [admins, setAdmins] = useState([]);
   const [specialities, setSpecialities] = useState([]);
-  console.log("Current state of clinics:", clinics?.practiceName);
   const [loading, setLoading] = useState(false);
   void clinics;
   const staffId = user?.sub;
@@ -79,7 +81,7 @@ Thank you.`);
     setIsChangeDetailsModalOpen(!isChangeDetailsModalOpen);
   };
 
-  const toggleClinicDetailsModal = () => {
+  const toggleClinicDetailsModal = async () => {
     setIsClinicDetailsModalOpen(!isClinicDetailsModalOpen);
   };
 
@@ -128,6 +130,7 @@ Thank you.`);
   };
 
   
+
   //fetch profile data
   useEffect(() => {
     if (!staffId) return;
@@ -137,14 +140,18 @@ Thank you.`);
         const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`);
         const data = await response.json();
         console.log("User data", data);
+       console.log("USER _ID: ", data._id);
         setProfileData(data);
       } catch (error) {
         console.error("Could not fetch profile data:", error);
       }
+      console.log("USER SUB: ", user?.sub);
+      
     };
 
     fetchProfileData();
-  }, [staffId, apiFetch]);
+
+  }, [staffId, apiFetch, user?.sub]);
 
   //fetch specialities
   useEffect(() => {
@@ -164,6 +171,7 @@ Thank you.`);
     fetchSpecialities();
   }, [apiFetch, staffId, profileData]);
 
+  //fetch clinics
     useEffect(() => {
     if (!staffId) return;
     async function fetchClinics() {
@@ -203,12 +211,13 @@ Thank you.`);
   }, [clinics, api]);
 
 return (
-  <div className="landing"> 
+  <section className="landing"> 
     <nav className="landing-nav" aria-label="Main navigation">
       <span className="landing-logo">Clinics and Qs</span>
       <section className="landing-nav-btns">
         <button className="btn" onClick={logout}>Logout</button>
         <button className="btn btn-primary" onClick={() => navigate('/dashboard/staff')}>Back</button>
+        <NotificationCenter userId={profileData?._id} />
       </section>
     </nav>
 
@@ -219,16 +228,16 @@ return (
       </header>
 
       {loading ? (
-        <div className="landing--loading">Loading profile details...</div>
+        <section className="landing--loading">Loading profile details...</section>
       ) : (
         <section className="profile-grid">
-          <div className="clinic-card profile-details-card">
+          <article className="clinic-card profile-details-card">
             <h3 className="clinic-type">Staff Information</h3>
-            <div className="details-content">
+            <section className="details-content">
               <p><strong>Name:</strong> {profileData?.name}</p>
               <p><strong>Email:</strong> {profileData?.email}</p>
-                <div><strong>Specialities:</strong>
-                    <div className="speciality-list">
+                <section><strong>Specialities:</strong>
+                    <section className="speciality-list">
                         {specialities.length > 0 ? (
                             specialities.map((spec, index) => (
                                 <span key={index} className="speciality-item">{spec}</span>
@@ -236,19 +245,19 @@ return (
                         ) : (
                             <p>No specialities found.</p>
                         )}
-                    </div></div>
-              <div className="clinic-assignments">
+                    </section></section>
+              <section className="clinic-assignments">
                 <p><strong>Assigned Clinic:</strong> {clinics ? clinics.practiceName : 'No assigned clinic'}</p>
                 <button className="btn-secondary" onClick={toggleClinicDetailsModal}>
                   View Details
                 </button>
-              </div>
+              </section>
               <span className="clinic-badge clinic-badge--open">Active Staff</span>
-            </div>
-          </div>
+            </section>
+          </article>
 
 
-          <div className="clinic-card profile-actions-card">
+          <article className="clinic-card profile-actions-card">
             <span className="clinic-type">Account Actions</span>
             <h3 className="clinic-name">Management Requests</h3>
             <div className="action-button-list">
@@ -256,48 +265,48 @@ return (
               <button className="action-item-btn" onClick={toggleChangeDetailsModal}>Update personal details</button>
               <button className="action-item-btn action-item-btn--danger" onClick={emailDismissal}>Request dismissal</button>
             </div>
-          </div>
+          </article>
         </section>
       )}
 
       {isChangeDetailsModalOpen && (
-  <div className="modal-overlay">
-    <div className="modal-content clinic-card"> 
-      <h3 className="clinic-name">Edit Personal Details</h3>
+  <section className="modal-overlay">
+    <article className="modal-content clinic-card" role="dialog" aria-modal="true" aria-labelledby="edit-profile-heading"> 
+      <h3 id="edit-profile-heading" className="clinic-name">Edit Personal Details</h3>
       
       <form className="details-content">
           
-          <div className='inline-components'>
+          <section className='inline-components'>
             <label>Name</label>
             <input type="text" ref={nameRef} defaultValue={profileData?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-          </div>
-          <div className='inline-components'>
+          </section>
+          <section className='inline-components'>
             <label>Surname</label>
             <input type="text" ref={surnameRef} defaultValue={profileData?.surname} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-          </div>
-          <div className='inline-components'>
+          </section>
+          <section className='inline-components'>
             <label>Title</label>
             <input type="text" ref={titleRef} defaultValue={profileData?.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-          </div>
-          <div className='inline-components'>
+          </section>
+          <section className='inline-components'>
             <label>Email</label> 
             <input type="email" ref={emailRef} disabled={!staffId?.startsWith("auth0|")} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-          </div> 
+          </section> 
           
 
-        <div className="landing-nav-btns" style={{marginTop: '20px'}}>
+        <footer className="landing-nav-btns" style={{marginTop: '20px'}}>
           <button type="button" className="btn btn-primary" onClick={handleUpdate}>Save Changes</button>
           <button type="button" className="btn" style={{color: 'var(--color-text)'}} onClick={toggleChangeDetailsModal}>Cancel</button>
-        </div>
+        </footer>
         
       </form>
-    </div>
-  </div>
+    </article>
+  </section>
 )}
 {isClinicDetailsModalOpen && (
-  <div className="modal-overlay">
-    <div className="modal-content clinic-card"> 
-      <h3 className="clinic-name">Your Clinic Details</h3>
+  <section className="modal-overlay">
+    <article className="modal-content clinic-card" role="dialog" aria-modal="true" aria-labelledby="clinic-details-heading"> 
+      <h3 id="clinic-details-heading" className="clinic-name">Your Clinic Details</h3>
       
       {clinics ? (
         <>
@@ -306,18 +315,18 @@ return (
           <p><strong>Phone:</strong> {clinics.contactNumber}</p>
         </>
       ) : (
-        <div className="no-clinic-message">
+        <section className="no-clinic-message">
           <p><strong>NO CLINIC ASSIGNED</strong></p>
           <p>Please contact your administrator to have a clinic assigned.</p>
-        </div>
+        </section>
       )}
       
       <button className="btn btn-primary" onClick={toggleClinicDetailsModal}>Close</button>
-    </div>
-  </div>
+    </article>
+  </section>
 )}
     </main>
-  </div>
+  </section>
   
 );
 }

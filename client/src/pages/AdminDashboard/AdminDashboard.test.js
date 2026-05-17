@@ -143,11 +143,8 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         expect(screen.getByText(/Welcome Back, Admin User!/i)).toBeInTheDocument();
     });
 
-    test("Given the dashboard loads, Then the notifications card is shown", async () => {
-        await renderDashboard();
-        expect(screen.getByRole('heading', { name: /^Notifications$/i })).toBeInTheDocument();
-        expect(screen.getByText(/3 New Notifications/i)).toBeInTheDocument();
-    });
+    
+    
 
     
 

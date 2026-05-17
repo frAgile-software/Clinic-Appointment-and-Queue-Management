@@ -1,12 +1,12 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router";
-import { LuUser, LuBell } from "react-icons/lu";
+import { LuUser } from "react-icons/lu";
 import { useApi } from "../../api/useApi";  
 import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import * as statExport from './exportHelper';
 import './AdminDashboard.css';
-
+import NotificationCenter from '../../components/NotificationCenter';
 const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED: 'apps-cancelled', DAYS_OFF: 'days-off'}
 
 function AdminDashboard() {
@@ -500,30 +500,13 @@ function AdminDashboard() {
                     <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/admin/profile')}>
                         <LuUser />
                     </button>
+                    <NotificationCenter userId={user?.sub} />
                     <button className="logout-btn-canva" onClick={logout}>Logout</button>
                 </nav>
             </header>
-
-            <section className="purple-banner-container">
-                <section className="top-section">
-                    <section className="welcome-area">
-                        <h1 className="welcome-title-canva">Welcome Back, {adminName || 'Admin'}!</h1>
-                    </section>
-
-                    <section className="notifications-card">
-                        <section className="notif-header">
-                            <h3>Notifications</h3>
-                            <LuBell className="bell-icon" />
-                        </section>
-                        <section className="notifications-list">
-                            <p style={{ marginTop: '1rem', fontSize: '14px', fontWeight: 'bold' }}>3 New Notifications</p>
-                        </section>
-                    </section>
-                </section>
-            </section>
-
-
-       
+            <section className="welcome-area">
+                <h1 className="welcome-title-canva">Welcome Back, {adminName || 'Admin'}!</h1>
+            </section>  
           {!clinics || clinics.length === 0 ? (
     <section className="clinic-selection-area">
         <header className="selection-header">You are not assigned to any clinics yet.</header>
