@@ -281,19 +281,18 @@ function StaffDashboard() {
   };
 
   const nav_bar = (
-    <header className="staff-header-canva">
-      <section className="brand-section">
-        <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
-        <h2 className="brand-title">Clinics and Qs</h2>
-      </section>
-      <nav className="header-nav-canva">
-        <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/staff/profile')}>
-          <LuUser />
-        </button>
-        <button className="logout-btn-canva" onClick={logout}>Logout</button>
-        <NotificationCenter userId={user?.sub} />
+    <nav className="landing-nav" aria-label="Main navigation">
+          <section className="nav-logo">
+          <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
+          <span className="landing-logo">Clinics and Qs</span>
+          </section>
+          <section className="landing-nav-btns">
+          <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/staff/profile')}>
+          <LuUser /></button>  
+          <button className="logout-btn-canva" onClick={logout}>Logout</button>
+          <NotificationCenter userId={user?.sub} />
+          </section>
       </nav>
-    </header>
   );
 
   if (loading)
