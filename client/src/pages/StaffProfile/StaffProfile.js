@@ -213,9 +213,21 @@ return (
     </nav>
 
     <main className="profile-container">
-      <header className="profile-header">
+      <header className="profile-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <h1 className="profile-title">My Profile</h1>
-        <p className="profile-subtitle">Manage your staff account and clinic assignments</p>
+        {user?.picture && (
+          <img 
+            src={user.picture} 
+            alt="Profile" 
+            className="profile-picture" 
+            style={{
+              width: '150px',
+              height: '150px',
+              borderRadius: '50%',
+              objectFit: 'cover'
+            }}
+          />
+        )}
       </header>
 
       {loading ? (
