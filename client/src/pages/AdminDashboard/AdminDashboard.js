@@ -6,7 +6,7 @@ import { useApi } from "../../api/useApi";
 import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import * as statExport from './exportHelper';
 import './AdminDashboard.css';
-
+import NotificationCenter from '../../components/NotificationCenter';
 const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED: 'apps-cancelled', DAYS_OFF: 'days-off'}
 
 function AdminDashboard() {
@@ -372,6 +372,7 @@ function AdminDashboard() {
                     <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/admin/profile')}>
                         <LuUser />
                     </button>
+                    <NotificationCenter userId={user?.sub} />
                     <button className="logout-btn-canva" onClick={logout}>Logout</button>
                 </nav>
             </header>

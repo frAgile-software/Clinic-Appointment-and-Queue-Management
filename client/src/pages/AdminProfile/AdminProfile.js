@@ -4,6 +4,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useRef } from 'react';
 import { useApi } from '../../api/useApi';
+import NotificationCenter from '../../components/NotificationCenter';
 
 function AdminProfile() {
     const nameRef = useRef(); //for changing of details
@@ -92,6 +93,7 @@ function AdminProfile() {
             <span className="landing-logo">Clinics and Qs</span>
             <section className="landing-nav-btns">
                 <button className="btn" onClick={logout}>Logout</button>
+                <NotificationCenter userId={user?.sub} />
                 <button className="btn btn-primary" onClick={() => navigate('/dashboard/admin')}>Back</button>
             </section>
             </nav>
