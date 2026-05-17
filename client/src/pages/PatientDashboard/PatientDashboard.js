@@ -9,6 +9,15 @@ import { useApi } from "../../api/useApi";
 
 const PAGE_LIMIT = 12;
 
+const status = {
+  WAITING: "Waiting",
+  BEING_SEEN: "In Consult",
+  CONCLUDED: "Completed",
+  CANCELLED: "Cancelled",
+  NO_SHOW: "No-show",
+};
+const activeStatus = [status.WAITING, status.BEING_SEEN];
+
 function PatientDashboard() {
   const { user, logout: auth0Logout } = useAuth0();
   const api = useApi();
@@ -20,6 +29,9 @@ function PatientDashboard() {
   const [showAppointmentsModal, setShowAppointmentsModal] = useState(false);
   const [cancelAppId, setCancelAppId] = useState(null);
   const [patientQueue, setPatientQueue] = useState(null);
+
+  const [historyLogs, setHistoryLogs] = useState([]);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   // --- Search & Filter State ---
   const [showSearch, setShowSearch] = useState(false); 
@@ -73,7 +85,8 @@ function PatientDashboard() {
         setLoadingAppointments(true);
         try {
           const data = await api.appointments.getForAuth0Id(user.sub);
-          setAppointments(data);
+          const activeAppointments = Array.isArray(data) ? data.filter(app => activeStatus.includes(app.Status)) : data;
+          setAppointments(activeAppointments);
         } catch (error) {
           console.error("Error fetching appointments:", error);
         } finally {
@@ -109,6 +122,20 @@ function PatientDashboard() {
       }
     };
     fetchPatientQueue();
+  }, [user, api]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (user?.sub) {
+        try {
+          const data = await api.consults.getForAuth0Id(user.sub);
+          setHistoryLogs(Array.isArray(data) ? data : []);
+        } catch (error) {
+          console.error("Error fetching history:", error);
+        }
+      }
+    };
+    fetchHistory();
   }, [user, api]);
 
   useEffect(() => {
@@ -229,9 +256,14 @@ function PatientDashboard() {
   const handleConfirmCancel = async () => {
     if (!cancelAppId) return;
     try {
-      await api.appointments.cancel(cancelAppId);                         // TODO: use update appointment with the new status "Cancelled"
+      await api.appointments.cancel(cancelAppId);
       setAppointments(prev => prev.filter(a => a._id !== cancelAppId));
       setCancelAppId(null);
+
+      if (user?.sub) {
+        const data = await api.consults.getForAuth0Id(user.sub);
+        setHistoryLogs(Array.isArray(data) ? data : []);
+      }
     } catch (err) {
       console.error("Error cancelling appointment:",err);
     }
@@ -288,6 +320,14 @@ function PatientDashboard() {
     return [1, '…', current - 1, current, current + 1, '…', total];
   };
   const pageRange = buildPageRange(pagination.page, pagination.totalPages);
+
+  const formatHistoryStatus = (statusStr) => {
+    const s = statusStr?.toLowerCase() || '';
+    if (s === 'in consult' || s === 'completed') return 'Attended';
+    if (s === 'cancelled') return 'Cancelled';
+    if (s === 'no-show') return 'You missed it';
+    return statusStr;
+  };
 
   return (
     <section className="dashboard-container">
@@ -362,6 +402,12 @@ function PatientDashboard() {
                 <button className="card-btn" onClick={handleStartSearch}>JOIN A VIRTUAL QUEUE</button>
               </>
             )}
+          </section>
+
+          <section className="grid-card">
+            <h3>My History</h3>
+            <p>You have {historyLogs.length} past record(s).</p>
+            <button className="card-btn" onClick={() => setShowHistoryModal(true)}>VIEW HISTORY</button>
           </section>
         </section>
 
@@ -609,6 +655,7 @@ function PatientDashboard() {
         </section>
       )}
 
+      {/* --- APPOINTMENTS MODAL --- */}
       {showAppointmentsModal && (
         <section className="clinic-modal-overlay" onClick={() => setShowAppointmentsModal(false)}>
           <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
@@ -624,18 +671,89 @@ function PatientDashboard() {
                 ) : appointments.length === 0 ? (
                   <p>You have no upcoming appointments.</p>
                 ) : (
-                  appointments.map((app) => (
+                  appointments.map((app) => {
+                    const appointmentTime = new Date(app.BookingDateTime).getTime();
+                    const isWithin24Hours = (appointmentTime - Date.now()) < (24 * 60 * 60 * 1000);
+                    return (
                     <article key={app._id} style={{ border: '1px solid #e2e4e9', padding: '1rem', borderRadius: '8px', background: '#fff' }}>
                       <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{app.Clinic?.practiceName || 'Unknown Clinic'}</p>
                       <p>Doctor: {app.Staff?.name} {app.Staff?.surname}</p>
                       <p>Date: {new Date(app.BookingDateTime).toLocaleString('en-ZA')}</p>
                       
-                      <section style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                        <button className="clinic-modal-book-btn" onClick={() => handleReschedule(app)}>Reschedule</button>
-                        <button className="btn pagination__btn" style={{ color: '#b91c1c', borderColor: '#b91c1c' }} onClick={() => setCancelAppId(app._id)}>Cancel Appointment</button>
+                      <section style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        
+                        <button 
+                            className="clinic-modal-book-btn" 
+                            style={{ 
+                                backgroundColor: isWithin24Hours ? '#9ca3af' : '', 
+                                cursor: isWithin24Hours ? 'not-allowed' : 'pointer'
+                            }}
+                            disabled={isWithin24Hours}
+                            title={isWithin24Hours ? "Cannot reschedule within 24 hours of appointment" : "Reschedule Appointment"}
+                            onClick={() => handleReschedule(app)}
+                        >
+                            Reschedule
+                        </button>
+                        
+                        <button 
+                            className="btn pagination__btn" 
+                            style={{ 
+                                color: isWithin24Hours ? '#9ca3af' : '#b91c1c', 
+                                borderColor: isWithin24Hours ? '#9ca3af' : '#b91c1c',
+                                cursor: isWithin24Hours ? 'not-allowed' : 'pointer'
+                            }} 
+                            disabled={isWithin24Hours}
+                            title={isWithin24Hours ? "Cannot cancel within 24 hours of appointment" : "Cancel Appointment"}
+                            onClick={() => setCancelAppId(app._id)}
+                        >
+                            Cancel Appointment
+                        </button>
+                        {isWithin24Hours && <span style={{fontSize: '0.8rem', color: '#b91c1c'}}>* Too close to appointment time to modify.</span>}
                       </section>
                     </article>
-                  ))
+                  )})
+                )}
+              </section>
+            </section>
+          </section>
+        </section>
+      )}
+
+      {/* --- HISTORY MODAL --- */}
+      {showHistoryModal && (
+        <section className="clinic-modal-overlay" onClick={() => setShowHistoryModal(false)}>
+          <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+            <section className="clinic-modal-inner" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+              <section className="clinic-modal-header">
+                <h2>Your History</h2>
+                <button className="clinic-modal-close" onClick={() => setShowHistoryModal(false)}>X</button>
+              </section>
+              
+              <section className="clinic-modal-details" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {historyLogs.length === 0 ? (
+                  <p>You have no past records.</p>
+                ) : (
+                  historyLogs.map((log) => {
+                    const statusText = formatHistoryStatus(log.Status);
+                    let statusColor = '#374151'; 
+                    if (statusText === 'Attended') statusColor = '#15803d'; 
+                    if (statusText === 'Cancelled') statusColor = '#b91c1c'; 
+                    if (statusText === 'You missed it') statusColor = '#ea580c'; 
+
+                    return (
+                      <article key={log._id} style={{ border: '1px solid #e2e4e9', padding: '1rem', borderRadius: '8px', background: '#fff' }}>
+                        <p style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: statusColor, fontSize: '1.1rem' }}>
+                          {statusText}
+                        </p>
+                        <p>Speciality: {log.Speciality?.SpecialityName || 'General'}</p>
+                        {log.Staff && <p>Doctor: {log.Staff.name} {log.Staff.surname}</p>}
+                        <p>Date: {new Date(log.createdAt).toLocaleString('en-ZA')}</p>
+                        <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem', fontStyle: 'italic' }}>
+                          Type: {log.type || 'Consult'}
+                        </p>
+                      </article>
+                    )
+                  })
                 )}
               </section>
             </section>

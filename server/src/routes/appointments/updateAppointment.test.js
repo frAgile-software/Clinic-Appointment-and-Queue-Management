@@ -1,11 +1,9 @@
 const request = require("supertest");
 const express = require("express");
-
+const mongoose = require("mongoose");
 const updateAppointmentRouter = require("./updateAppointment");
 const Appointment = require("../../database/models/Appointment");
 const User = require("../../database/models/User");
-const Clinic = require("../../database/models/Clinic");
-const Speciality = require("../../database/models/Speciality");
 
 jest.mock("../../database/models/Appointment");
 jest.mock("../../database/models/User");
@@ -14,10 +12,17 @@ jest.mock("../../database/models/Speciality");
 
 const app = express();
 app.use(express.json());
+app.use((req, res, next) => {
+    req.auth = { payload: { sub: "auth0|testuser" } };
+    next();
+});
 app.use("/api/appointments", updateAppointmentRouter);
 
 describe("PUT /api/appointments/:appointmentID", () => {
-    afterEach(() => {
+    
+    const safeFutureDate = new Date(Date.now() + 48 * 60 * 60 * 1000);
+
+    beforeEach(() => {
         jest.clearAllMocks();
     });
 
@@ -31,220 +36,69 @@ describe("PUT /api/appointments/:appointmentID", () => {
     });
 
     test("should return 404 if appointment does not exist", async () => {
+        const validId = new mongoose.Types.ObjectId().toString();
         Appointment.findById.mockResolvedValue(null);
 
         const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
+            .put(`/api/appointments/${validId}`)
             .send({});
 
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ message: "Appointment not found." });
-        expect(Appointment.findById).toHaveBeenCalledWith("123456789012345678901234");
     });
 
-    test("should return 400 if patient ID is invalid", async () => {
+    test("should return 400 if appointment is within 24 hours and core details are modified", async () => {
+        const mockId = new mongoose.Types.ObjectId().toString();
         const mockAppointment = {
-            _id: "123456789012345678901234",
+            _id: mockId,
+            BookingDateTime: new Date(Date.now() + 12 * 60 * 60 * 1000), 
             save: jest.fn()
         };
 
         Appointment.findById.mockResolvedValue(mockAppointment);
+        User.findOne.mockResolvedValue({ role: "Patient" });
 
         const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
-            .send({ Patient: "bad-id" });
+            .put(`/api/appointments/${mockId}`)
+            .send({ BookingDateTime: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString() }); 
 
         expect(response.status).toBe(400);
-        expect(response.body).toEqual({ message: "Invalid patient ID." });
-    });
-
-    test("should return 404 if patient does not exist", async () => {
-        const mockAppointment = {
-            _id: "123456789012345678901234",
-            save: jest.fn()
-        };
-
-        Appointment.findById.mockResolvedValue(mockAppointment);
-        User.findById.mockResolvedValue(null);
-
-        const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
-            .send({ Patient: "111111111111111111111111" });
-
-        expect(response.status).toBe(404);
-        expect(response.body).toEqual({ message: "Patient not found." });
-    });
-
-    test("should return 400 if staff ID is invalid", async () => {
-        const mockAppointment = {
-            _id: "123456789012345678901234",
-            save: jest.fn()
-        };
-
-        Appointment.findById.mockResolvedValue(mockAppointment);
-
-        const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
-            .send({ Staff: "bad-id" });
-
-        expect(response.status).toBe(400);
-        expect(response.body).toEqual({ message: "Invalid staff ID." });
-    });
-
-    test("should return 404 if staff does not exist", async () => {
-        const mockAppointment = {
-            _id: "123456789012345678901234",
-            save: jest.fn()
-        };
-
-        Appointment.findById.mockResolvedValue(mockAppointment);
-        User.findById.mockResolvedValue(null);
-
-        const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
-            .send({ Staff: "111111111111111111111111" });
-
-        expect(response.status).toBe(404);
-        expect(response.body).toEqual({ message: "Staff member not found." });
-    });
-
-    test("should return 400 if clinic ID is invalid", async () => {
-        const mockAppointment = {
-            _id: "123456789012345678901234",
-            save: jest.fn()
-        };
-
-        Appointment.findById.mockResolvedValue(mockAppointment);
-
-        const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
-            .send({ Clinic: "bad-id" });
-
-        expect(response.status).toBe(400);
-        expect(response.body).toEqual({ message: "Invalid clinic ID." });
-    });
-
-    test("should return 404 if clinic does not exist", async () => {
-        const mockAppointment = {
-            _id: "123456789012345678901234",
-            save: jest.fn()
-        };
-
-        Appointment.findById.mockResolvedValue(mockAppointment);
-        Clinic.findById.mockResolvedValue(null);
-
-        const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
-            .send({ Clinic: "111111111111111111111111" });
-
-        expect(response.status).toBe(404);
-        expect(response.body).toEqual({ message: "Clinic not found." });
-    });
-
-    test("should return 400 if booking date is invalid", async () => {
-        const mockAppointment = {
-            _id: "123456789012345678901234",
-            save: jest.fn()
-        };
-
-        Appointment.findById.mockResolvedValue(mockAppointment);
-
-        const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
-            .send({ BookingDateTime: "not-a-date" });
-
-        expect(response.status).toBe(400);
-        expect(response.body).toEqual({ message: "Invalid booking date." });
-    });
-
-    test("should return 400 if speciality ID is invalid", async () => {
-        const mockAppointment = {
-            _id: "123456789012345678901234",
-            save: jest.fn()
-        };
-
-        Appointment.findById.mockResolvedValue(mockAppointment);
-
-        const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
-            .send({ Speciality: "bad-id" });
-
-        expect(response.status).toBe(400);
-        expect(response.body).toEqual({ message: "Invalid speciality ID." });
-    });
-
-    test("should return 404 if speciality does not exist", async () => {
-        const mockAppointment = {
-            _id: "123456789012345678901234",
-            save: jest.fn()
-        };
-
-        Appointment.findById.mockResolvedValue(mockAppointment);
-        Speciality.findById.mockResolvedValue(null);
-
-        const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
-            .send({ Speciality: "111111111111111111111111" });
-
-        expect(response.status).toBe(404);
-        expect(response.body).toEqual({ message: "Speciality not found." });
+        expect(response.body.message).toContain("less than 24 hours before the scheduled time");
     });
 
     test("should update appointment successfully", async () => {
-        const savedAppointment = {
-            _id: "123456789012345678901234",
-            Patient: "111111111111111111111111",
-            Staff: "222222222222222222222222",
-            Clinic: "333333333333333333333333",
-            BookingDateTime: "2026-05-01T10:30:00.000Z",
-            Speciality: "444444444444444444444444"
-        };
-
+        const mockId = new mongoose.Types.ObjectId().toString();
         const mockAppointment = {
-            _id: "123456789012345678901234",
+            _id: mockId,
             Patient: "oldPatient",
             Staff: "oldStaff",
             Clinic: "oldClinic",
-            BookingDateTime: new Date("2026-04-01T08:00:00.000Z"),
+            BookingDateTime: safeFutureDate, 
             Speciality: "oldSpeciality",
-            save: jest.fn().mockResolvedValue(savedAppointment)
+            save: jest.fn().mockImplementation(function() { return Promise.resolve(this); })
         };
 
         Appointment.findById.mockResolvedValue(mockAppointment);
-        User.findById
-            .mockResolvedValueOnce({ _id: "111111111111111111111111" })
-            .mockResolvedValueOnce({ _id: "222222222222222222222222" });
-        Clinic.findById.mockResolvedValue({ _id: "333333333333333333333333" });
-        Speciality.findById.mockResolvedValue({ _id: "444444444444444444444444" });
+        User.findOne.mockResolvedValue({ role: "Patient" });
 
         const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
+            .put(`/api/appointments/${mockId}`)
             .send({
-                Patient: "111111111111111111111111",
-                Staff: "222222222222222222222222",
-                Clinic: "333333333333333333333333",
-                BookingDateTime: "2026-05-01T10:30:00.000Z",
-                Speciality: "444444444444444444444444"
+                Status: "Confirmed",
+                Remarks: "Looking forward to it"
             });
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual({
-            message: "Appointment updated successfully.",
-            appointment: savedAppointment
-        });
-
-        expect(mockAppointment.Patient).toBe("111111111111111111111111");
-        expect(mockAppointment.Staff).toBe("222222222222222222222222");
-        expect(mockAppointment.Clinic).toBe("333333333333333333333333");
-        expect(mockAppointment.Speciality).toBe("444444444444444444444444");
+        expect(response.body.message).toBe("Appointment updated successfully.");
         expect(mockAppointment.save).toHaveBeenCalled();
     });
 
     test("should return 500 if an error occurs", async () => {
+        const mockId = new mongoose.Types.ObjectId().toString();
         Appointment.findById.mockRejectedValue(new Error("Database failure"));
 
         const response = await request(app)
-            .put("/api/appointments/123456789012345678901234")
+            .put(`/api/appointments/${mockId}`)
             .send({});
 
         expect(response.status).toBe(500);

@@ -15,6 +15,7 @@ useApi (hook)
         |-> AppointmentService  (done)
         |-> QueueService        (done)
         |-> SpecialityService   (done)
+        |-> ConsultService      (done)
 ```
 
 ---
@@ -34,6 +35,7 @@ src/
         |-- AppointmentService.js
         |-- QueueService.js
         |-- SpecialityService.js
+        |-- ConsultService.js
 ```
 
 ---
@@ -101,6 +103,7 @@ Returns:
   appointments,  // AppointmentService
   queues,        // QueueService
   specialities,  // SpecialityService
+  consults,      // ConsultService
 }
 ```
 
@@ -224,6 +227,7 @@ Base path: `/specialities`.
 | `removeFromStaff({staffId, specialityId})`| Private |`DELETE /api/specialities/staff/:staffId/:specialityId` |
 | `getForStaff(staffId)`| Public | `GET /specialities/staff/:staffId` |
 
+
 **Example usage in a component**
 ```js
 const api = useApi();
@@ -255,6 +259,7 @@ Base path: `/schedules`. All methods are login protected.
 |---|---|
 | `getSchedule(userId)` | `GET /api/schedules/:userId` |
 | `update(scheduleId, {Staff, DayOfWeek, StartTime, EndTime})` | `PUT /api/schedules/:scheduleId` |
+| `createDefault(auth0Id, schedules)`|`POST /api/schedules/bulk`|
 
 **Example usage in a component**
 ```js
@@ -270,6 +275,13 @@ await spi.schedules.update("schdl1", {
   StartTime: "01:00",
   EndTime: "23:00"
 });
+
+// create default schedules in bulk
+await api.schedules.createDefault("auth0|123", [
+  { DayOfWeek: 0, StartTime: "08:00", EndTime: "17:00" },
+  { DayOfWeek: 1, StartTime: "08:00", EndTime: "17:00" },
+]);
+
 ```
 
 ---
@@ -311,6 +323,24 @@ await api.appointments.cancel("appt1");
 // get a list of upcoming appointments by auth0Id
 const appointments = await api.appointments.getForAuth0Id("auth0|123", {statuses: ["Waiting"]});
 ```
+---
+
+### `ConsultService`
+
+Base path: `/consults`. All routes are private.
+
+| Method | auth | Server route |
+|---|---|---|
+| `getForAuth0Id(auth0Id)` | Private | `GET /api/consults/:auth0Id` |
+
+**Example usage in a component**
+```js
+const api = useApi();
+
+// get consults for a user
+const consults = await api.consults.getForAuth0Id("auth0|123");
+```
+
 ---
 
 ## How to Create a New Service
