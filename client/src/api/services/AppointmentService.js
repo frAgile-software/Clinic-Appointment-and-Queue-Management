@@ -6,18 +6,19 @@ export class AppointmentService extends ResourceService {
     }
 
     cancel(appointmentId) {
-        return this.priv.delete(`${this.basePath}/${appointmentId}`, null, null);
+        return this.priv.patch(`${this.basePath}/${appointmentId}`, null, null);
     }
 
     // TODO: fix naming in server to stay to one convention
-    create({clinicId, staffUserId, patientAuth0Id, bookingDateTime, description, specialityName}) {
+    create({clinicId, staffUserId, patientAuth0Id, bookingDateTime, description, specialityName, rescheduleAppointmentId}) {
         return this.priv.post(`${this.basePath}/`, {
             Clinic: clinicId, 
             Staff: staffUserId, 
             patientAuth0Id: patientAuth0Id, 
             BookingDateTime: bookingDateTime, 
             description: description, 
-            Speciality: specialityName
+            Speciality: specialityName,
+            rescheduleAppointmentId: rescheduleAppointmentId
         }, null);
     }
 

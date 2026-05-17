@@ -1,97 +1,63 @@
-jest.mock('../../middleware/auth', () => ({
-    requireAuth: (req, res, next) => next() // just skip auth
-}));
+const request = require("supertest");
+const express = require("express");
+const mongoose = require("mongoose");
+const cancelRouter = require("./cancelAppointment");
+const Appointment = require("../../database/models/Appointment");
+const User = require("../../database/models/User");
 
+jest.mock("../../database/models/Appointment");
+jest.mock("../../database/models/User");
 
-jest.mock('../../database/dbConnect', () => jest.fn(() => Promise.resolve()));
-
-jest.mock('../../middleware/auth', () => ({
-    requireAuth: (req, res, next) => next() // just skip auth
-}));
-
-jest.mock('../../database/models/Appointment', () => ({
-    findById: jest.fn(),
-    deleteOne: jest.fn()
-}));
-
-jest.mock('../../database/models/PatientLog', () => {
-    return jest.fn().mockImplementation(() => ({
-        save: jest.fn().mockResolvedValue(true),
-    }));
+const app = express();
+app.use(express.json());
+// Mocking auth middleware
+app.use((req, res, next) => {
+    req.auth = { payload: { sub: "auth0|testuser" } };
+    next();
 });
+app.use("/api/appointments/cancel", cancelRouter);
 
-const request = require('supertest');
-const app = require('../../index');
-const Appointment = require('../../database/models/Appointment');
-const PatientLog = require('../../database/models/PatientLog');
-
-describe('DELETE /api/appointments/:appointmentId', () => {
-
+describe("PATCH /api/appointments/cancel/:id", () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    test('returns 404 if appointment not found', async () => {
-        Appointment.findById.mockResolvedValueOnce(null);
-
-        const res = await request(app).delete('/api/appointments/mockId123');
-
-        expect(res.status).toEqual(404);
+    test("should return 404 if appointment not found", async () => {
+        Appointment.findById.mockResolvedValue(null);
+        const id = new mongoose.Types.ObjectId();
+        const res = await request(app).patch(`/api/appointments/cancel/${id}`);
+        expect(res.status).toBe(404);
+        expect(res.body.message).toBe("Not found.");
     });
 
-    test('returns 200, logs to PatientLog, and delete appointment on success', async () => {
-        const mockAppointment = {
-            _id: "appointment123",
-            Speciality: "General Practice",
-            Patient: "patient123",
-            Staff: "staff456",
-            BookingDateTime: new Date("2026-04-23T10:00:00Z"),
-            createdAt: new Date("2026-04-01T08:00:00Z"),
-            deleteOne: jest.fn().mockResolvedValue(true),
+    test("should cancel appointment successfully if more than 24 hours away", async () => {
+        const id = new mongoose.Types.ObjectId();
+        const mockAppt = {
+            _id: id,
+            BookingDateTime: new Date(Date.now() + 48 * 60 * 60 * 1000) // 48 hours away
         };
 
-        const mockPatientLog = {
-            _id: "log001",
-            Status: "Cancelled",
-            save: jest.fn().mockResolvedValue(true),
-        };
+        Appointment.findById.mockResolvedValue(mockAppt);
+        User.findOne.mockResolvedValue({ role: "Patient" });
+        Appointment.collection = { updateOne: jest.fn().mockResolvedValue({}) };
 
-        Appointment.findById.mockResolvedValueOnce(mockAppointment);
-        PatientLog.mockImplementation(() => mockPatientLog);
-
-        const res = await request(app).delete('/api/appointments/appointment123');
-
-        expect(Appointment.findById).toHaveBeenCalledWith("appointment123");
-
-        expect(PatientLog).toHaveBeenCalledWith(
-            expect.objectContaining({
-                Speciality: "General Practice",
-                Patient: "patient123",
-                Staff: "staff456",
-                VisitType: "Appointment",
-                TimeIn: mockAppointment.BookingDateTime,
-                TimeQStart: mockAppointment.createdAt,
-                Status: "Cancelled",
-            })
-        );
-        expect(mockPatientLog.save).toHaveBeenCalled();
-        expect(mockAppointment.deleteOne).toHaveBeenCalled();
-
-        expect(res.statusCode).toEqual(200);
-        expect(res.body).toEqual({
-            message: "Appointment cancelled",
-            patientLog: expect.objectContaining({
-                _id: "log001",
-                Status: "Cancelled",
-            }),
-        });
+        const res = await request(app).patch(`/api/appointments/cancel/${id}`);
+        expect(res.status).toBe(200);
+        expect(res.body.message).toBe("Appointment cancelled");
     });
 
-    test('returns 500 on server error', async () => {
-        Appointment.findById.mockRejectedValueOnce(new Error('Server error.'));
+    test("should return 400 if patient tries to cancel within 24 hours", async () => {
+        const id = new mongoose.Types.ObjectId();
+        const mockAppt = {
+            _id: id,
+            BookingDateTime: new Date(Date.now() + 12 * 60 * 60 * 1000) // 12 hours away
+        };
 
-        const res = await request(app).delete('/api/appointments/appointment123');
+        Appointment.findById.mockResolvedValue(mockAppt);
+        User.findOne.mockResolvedValue({ role: "Patient" });
 
-        expect(res.statusCode).toEqual(500);
+        const res = await request(app).patch(`/api/appointments/cancel/${id}`);
+        expect(res.status).toBe(400);
+        expect(res.body.message).toContain("less than 24 hours before the scheduled time");
     });
 });
