@@ -120,4 +120,14 @@ describe('AppointmentService', () => {
             expect(service.update(appointmentId, payload)).resolves.toBe(mockResponse);
         });
     });
+    describe('summary', () => {
+        it('should call GET on the correct path', () => {
+            const clinicId = 'cln1';
+            service.summary(clinicId, {});
+            expect(mockPrivateClient.get).toHaveBeenCalledWith(
+                `/appointments/statistics/${clinicId}`,
+                {"_fromdate": undefined, "_order": undefined, "_todate": undefined, "date_search_field": undefined, "specialityIDs": undefined, "statuses": undefined}
+            );
+        });
+    });
 });
