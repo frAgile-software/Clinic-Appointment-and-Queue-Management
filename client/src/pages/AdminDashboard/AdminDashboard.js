@@ -115,7 +115,7 @@ function AdminDashboard() {
                             setStatsCache( prev => ({...prev, [cacheKey]: data.data } ));
                             break;
                         case STATS.APPOINTMENTS:
-                            console.log("Appoitments:");
+                            console.log("Appointments:");
                             data = await api.appointments.summary(selectedClinic._id, apptSearchOptions);
                             setStats(data);
                             setStatsCache( prev => ({...prev, [cacheKey]: data } ));
