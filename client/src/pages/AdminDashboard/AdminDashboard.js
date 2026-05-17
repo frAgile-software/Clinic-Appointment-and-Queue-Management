@@ -380,19 +380,11 @@ function AdminDashboard() {
                 <section className="top-section">
                     <section className="welcome-area">
                         <h1 className="welcome-title-canva">Welcome Back, {adminName || 'Admin'}!</h1>
-                    </section>
-
-                    <section className="notifications-card">
-                        <section className="notif-header">
-                            <h3>Notifications</h3>
-                            <LuBell className="bell-icon" />
-                        </section>
-                        <section className="notifications-list">
-                            <p style={{ marginTop: '1rem', fontSize: '14px', fontWeight: 'bold' }}>3 New Notifications</p>
+               
                         </section>
                     </section>
                 </section>
-            </section>
+
 
 
        
