@@ -44,6 +44,6 @@ export class AppointmentService extends ResourceService {
         const params = { date_search_field, _fromdate, _todate, _order, specialityIDs, statuses };
         if (specialityIDs) params.specialityIDs = Array.isArray(specialityIDs) ? specialityIDs.join(',') : specialityIDs;
         if (statuses) params.statuses = Array.isArray(statuses) ? statuses.join(',') : statuses;
-        return this.pub.get(`${this.basePath}/statistics/${clinicId}`, params);
+        return this.priv.get(`${this.basePath}/statistics/${clinicId}`, params);
     }
 }
