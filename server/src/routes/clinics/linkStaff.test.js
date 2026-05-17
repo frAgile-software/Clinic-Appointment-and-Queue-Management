@@ -1,113 +1,173 @@
-const request = require('supertest');
-const express = require('express');
-const linkStaff = require('./linkStaff');
-const Clinic = require('../../database/models/Clinic');
-const User = require('../../database/models/User');
-const Staff = require('../../database/models/Staff');
+const request = require("supertest");
+const express = require("express");
+
+const linkStaffRouter = require("./linkStaff");
+const User = require("../../database/models/User");
+const Clinic = require("../../database/models/Clinic");
+const Staff = require("../../database/models/Staff");
+
+jest.mock("../../database/models/User");
+jest.mock("../../database/models/Clinic");
+jest.mock("../../database/models/Staff");
 
 const app = express();
 app.use(express.json());
-app.use(linkStaff);
+app.use("/clinics", linkStaffRouter);
 
-jest.mock('../../database/models/Clinic');
-jest.mock('../../database/models/User');
-jest.mock('../../database/models/Staff');
+describe("POST /clinics/:clinicId/staff", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        jest.spyOn(console, "log").mockImplementation(() => {});
+        jest.spyOn(console, "error").mockImplementation(() => {});
+    });
 
-describe('linkStaff API', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+    afterEach(() => {
+        console.log.mockRestore();
+        console.error.mockRestore();
+    });
 
-  it('should link staff successfully', async () => {
-    Clinic.exists.mockResolvedValue({ _id: 'clinicId' });
-    User.findOne.mockResolvedValueOnce({ _id: 'senderId', role: 'Admin' });
-    Staff.exists.mockResolvedValue({});
-    User.findOne.mockResolvedValueOnce({ _id: 'userId', role: 'Staff' });
-    Staff.prototype.save = jest.fn().mockResolvedValue({ id: 'staffId' });
+    // Not Found 
 
-    const response = await request(app)
-      .post('/clinic123/staff')
-      .send({ id: 'user123', email: 'user@example.com', auth0Id: 'auth123' });
+    test("should return 404 if clinic does not exist", async () => {
+        Clinic.findById.mockResolvedValue(null);
 
-    expect(response.status).toBe(201);
-    expect(response.body.message).toBe('Staff linked successfully.');
-    expect(response.body.staffID).toBe('staffId');
-  });
+        const response = await request(app)
+            .post("/clinics/clinic123/staff")
+            .send({ auth0Id: "auth0|abc123" });
 
-  it('should return 404 if clinic not found', async () => {
-    Clinic.exists.mockResolvedValue(null);
+        expect(response.status).toBe(404);
+        expect(response.body).toEqual({ message: "Clinic not found." });
+        expect(Clinic.findById).toHaveBeenCalledWith("clinic123");
+        expect(User.findOne).not.toHaveBeenCalled();
+    });
 
-    const response = await request(app)
-      .post('/clinic123/staff')
-      .send({ id: 'user123', email: 'user@example.com', auth0Id: 'auth123' });
+    test("should return 404 if no staff account is found for the given auth0Id", async () => {
+        Clinic.findById.mockResolvedValue({ _id: "clinic123", name: "Test Clinic" });
+        User.findOne.mockResolvedValue(null);
 
-    expect(response.status).toBe(404);
-    expect(response.body.message).toBe('Clinic not found.');
-  });
+        const response = await request(app)
+            .post("/clinics/clinic123/staff")
+            .send({ auth0Id: "auth0|abc123" });
 
-  it('should return 403 if sender is not Admin', async () => {
-    Clinic.exists.mockResolvedValue({ _id: 'clinicId' });
-    User.findOne.mockResolvedValueOnce({ _id: 'senderId', role: 'Staff' });
+        expect(response.status).toBe(404);
+        expect(response.body).toEqual({ message: "No staff account found." });
+        expect(User.findOne).toHaveBeenCalledWith({ auth0Id: "auth0|abc123", role: "Staff" });
+        expect(Staff.findOne).not.toHaveBeenCalled();
+    });
 
-    const response = await request(app)
-      .post('/clinic123/staff')
-      .send({ id: 'user123', email: 'user@example.com', auth0Id: 'auth123' });
+    //  Conflict
 
-    expect(response.status).toBe(403);
-    expect(response.body.message).toBe('Unauthorized.');
-  });
+    test("should return 409 if staff member is already linked to a clinic", async () => {
+        const mockClinic = { _id: "clinic123", name: "Test Clinic" };
+        const mockUser = { _id: "user123", auth0Id: "auth0|abc123", role: "Staff" };
 
-  it('should return 403 if sender is not staff of clinic', async () => {
-    Clinic.exists.mockResolvedValue({ _id: 'clinicId' });
-    User.findOne.mockResolvedValueOnce({ _id: 'senderId', role: 'Admin' });
-    Staff.exists.mockResolvedValue(null);
+        Clinic.findById.mockResolvedValue(mockClinic);
+        User.findOne.mockResolvedValue(mockUser);
+        Staff.findOne.mockResolvedValue({ _id: "existingLink", User: mockUser._id, Clinic: "otherClinic" });
 
-    const response = await request(app)
-      .post('/clinic123/staff')
-      .send({ id: 'user123', email: 'user@example.com', auth0Id: 'auth123' });
+        const response = await request(app)
+            .post("/clinics/clinic123/staff")
+            .send({ auth0Id: "auth0|abc123" });
 
-    expect(response.status).toBe(403);
-    expect(response.body.message).toBe('Not authorized.');
-  });
+        expect(response.status).toBe(409);
+        expect(response.body).toEqual({ message: "Staff member is already linked to a clinic." });
+        expect(Staff.findOne).toHaveBeenCalledWith({ User: mockUser._id });
+        expect(Staff.create).not.toHaveBeenCalled();
+    });
 
-  it('should return 404 if user not found', async () => {
-    Clinic.exists.mockResolvedValue({ _id: 'clinicId' });
-    User.findOne.mockResolvedValueOnce({ _id: 'senderId', role: 'Admin' });
-    Staff.exists.mockResolvedValue({});
-    User.findOne.mockResolvedValueOnce(null);
+    // Success
 
-    const response = await request(app)
-      .post('/clinic123/staff')
-      .send({ id: 'user123', email: 'user@example.com', auth0Id: 'auth123' });
+    test("should return 201 and staffId when staff is linked successfully", async () => {
+        const mockClinic = { _id: "clinic123", name: "Test Clinic" };
+        const mockUser = { _id: "user123", auth0Id: "auth0|abc123", role: "Staff" };
+        const mockNewLink = { _id: "newLink456", User: mockUser._id, Clinic: mockClinic._id };
 
-    expect(response.status).toBe(404);
-    expect(response.body.message).toBe('User not found.');
-  });
+        Clinic.findById.mockResolvedValue(mockClinic);
+        User.findOne.mockResolvedValue(mockUser);
+        Staff.findOne.mockResolvedValue(null);
+        Staff.create.mockResolvedValue(mockNewLink);
 
-  it('should return 404 if user is Patient', async () => {
-    Clinic.exists.mockResolvedValue({ _id: 'clinicId' });
-    User.findOne.mockResolvedValueOnce({ _id: 'senderId', role: 'Admin' });
-    Staff.exists.mockResolvedValue({});
-    User.findOne.mockResolvedValueOnce({ _id: 'userId', role: 'Patient' });
+        const response = await request(app)
+            .post("/clinics/clinic123/staff")
+            .send({ auth0Id: "auth0|abc123" });
 
-    const response = await request(app)
-      .post('/clinic123/staff')
-      .send({ id: 'user123', email: 'user@example.com', auth0Id: 'auth123' });
+        expect(response.status).toBe(201);
+        expect(response.body).toEqual({ message: "Staff linked successfully.", staffId: mockNewLink._id });
+        expect(Staff.create).toHaveBeenCalledWith({
+            User: mockUser._id,
+            Clinic: mockClinic._id,
+        });
+    });
 
-    expect(response.status).toBe(404);
-    expect(response.body.message).toBe('User not found.');
-  });
+    test("should use the clinic _id and user _id from DB lookups, not from the request", async () => {
+        const mockClinic = { _id: "resolvedClinicId", name: "Test Clinic" };
+        const mockUser = { _id: "resolvedUserId", auth0Id: "auth0|abc123", role: "Staff" };
+        const mockNewLink = { _id: "newLink789", User: mockUser._id, Clinic: mockClinic._id };
 
-  it('should return 500 on server error', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    Clinic.exists.mockRejectedValue(new Error('Database error'));
+        Clinic.findById.mockResolvedValue(mockClinic);
+        User.findOne.mockResolvedValue(mockUser);
+        Staff.findOne.mockResolvedValue(null);
+        Staff.create.mockResolvedValue(mockNewLink);
 
-    const response = await request(app)
-      .post('/clinic123/staff')
-      .send({ id: 'user123', auth0Id: 'auth123' });
+        await request(app)
+            .post("/clinics/clinic123/staff")
+            .send({ auth0Id: "auth0|abc123" });
 
-    expect(response.status).toBe(500);
-    expect(response.body.message).toBe('Server error.');
-    consoleSpy.mockRestore();
-  });
+        expect(Staff.create).toHaveBeenCalledWith({
+            User: "resolvedUserId",
+            Clinic: "resolvedClinicId",
+        });
+    });
+
+    //Server Errors 
+
+    test("should return 500 if Clinic.findById throws", async () => {
+        Clinic.findById.mockRejectedValue(new Error("DB connection lost"));
+
+        const response = await request(app)
+            .post("/clinics/clinic123/staff")
+            .send({ auth0Id: "auth0|abc123" });
+
+        expect(response.status).toBe(500);
+        expect(response.body).toEqual({ message: "Server error." });
+    });
+
+    test("should return 500 if User.findOne throws", async () => {
+        Clinic.findById.mockResolvedValue({ _id: "clinic123" });
+        User.findOne.mockRejectedValue(new Error("User lookup failed"));
+
+        const response = await request(app)
+            .post("/clinics/clinic123/staff")
+            .send({ auth0Id: "auth0|abc123" });
+
+        expect(response.status).toBe(500);
+        expect(response.body).toEqual({ message: "Server error." });
+    });
+
+    test("should return 500 if Staff.findOne throws", async () => {
+        Clinic.findById.mockResolvedValue({ _id: "clinic123" });
+        User.findOne.mockResolvedValue({ _id: "user123" });
+        Staff.findOne.mockRejectedValue(new Error("Staff lookup failed"));
+
+        const response = await request(app)
+            .post("/clinics/clinic123/staff")
+            .send({ auth0Id: "auth0|abc123" });
+
+        expect(response.status).toBe(500);
+        expect(response.body).toEqual({ message: "Server error." });
+    });
+
+    test("should return 500 if Staff.create throws", async () => {
+        Clinic.findById.mockResolvedValue({ _id: "clinic123" });
+        User.findOne.mockResolvedValue({ _id: "user123" });
+        Staff.findOne.mockResolvedValue(null);
+        Staff.create.mockRejectedValue(new Error("Insert failed"));
+
+        const response = await request(app)
+            .post("/clinics/clinic123/staff")
+            .send({ auth0Id: "auth0|abc123" });
+
+        expect(response.status).toBe(500);
+        expect(response.body).toEqual({ message: "Server error." });
+    });
 });
