@@ -32,6 +32,7 @@ function AdminDashboard() {
     const [editingTimes, setEditingTimes] = useState(false);
     const [timesForm, setTimesForm] = useState({ open: '', close: '' });
     const [savingTimes, setSavingTimes] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -152,27 +153,30 @@ function AdminDashboard() {
     };
 
     const handleSaveTimes = async () => {
-        setSavingTimes(true);
-        try {
-            await api.clinics.updateClinic(selectedClinic._id, {
-                practiceTimes: { open: timesForm.open, close: timesForm.close }
-            });
-            
-            setSelectedClinic(prev => ({
-                ...prev,
-                practiceTimes: { open: timesForm.open, close: timesForm.close }
-            }));
-            setClinics(prev => prev.map(c =>
-                c._id === selectedClinic._id
-                    ? { ...c, practiceTimes: { open: timesForm.open, close: timesForm.close } }
-                    : c
-            ));
-            setEditingTimes(false);
-        } catch (error) {
-            console.error('Failed to update clinic times:', error);
-        } finally {
-            setSavingTimes(false);
-        }
+    setSavingTimes(true);
+    setSaveSuccess(false);
+    setTimeout(() => setSaveSuccess(false), 3000);
+    try {
+        await api.clinics.updateClinic(selectedClinic._id, {
+            'practiceTimes.open': timesForm.open,
+            'practiceTimes.close': timesForm.close,
+        });
+        setSelectedClinic(prev => ({
+            ...prev,
+            practiceTimes: { open: timesForm.open, close: timesForm.close }
+        }));
+        setClinics(prev => prev.map(c =>
+            c._id === selectedClinic._id
+                ? { ...c, practiceTimes: { open: timesForm.open, close: timesForm.close } }
+                : c
+        ));
+        setSaveSuccess(true);
+        setEditingTimes(false);
+    } catch (error) {
+        console.error('Failed to update clinic times:', error);
+    } finally {
+        setSavingTimes(false);
+    }
     };
 
 
@@ -277,16 +281,24 @@ function AdminDashboard() {
 
             <section className="dynamic-content-area" ref={contentRef}>
                 {activeSection === 'manage-clinic' && (
-                    <article className="content-block">
-                        <header className="block-header">Manage {selectedClinic.practiceName}</header>
-                        <section className="block-body">
-                            <p>Practice Type: {selectedClinic.practiceTypeDescription || 'General Practice'}</p>
-                            <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalSuburb}, {selectedClinic.physicalTown}</p>
-                            <p>Practice Number: {selectedClinic.practiceNumber}</p>
-                            <p>Contact Number: {selectedClinic.contactNumber}</p>
-                             <p>Times: {selectedClinic.practiceTimes?.open && selectedClinic.practiceTimes?.close ? `${selectedClinic.practiceTimes.open} - ${selectedClinic.practiceTimes.close}`: 'Not set'}</p>
-                            <p>Services: {selectedClinic.services?.join(', ') || ''}</p>
-                            {editingTimes ? (
+    <article className="content-block">
+        <header className="block-header">Manage {selectedClinic.practiceName}</header>
+        <section className="block-body">
+            <p>Practice Type: {selectedClinic.practiceTypeDescription || 'General Practice'}</p>
+            <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalSuburb}, {selectedClinic.physicalTown}</p>
+            <p>Practice Number: {selectedClinic.practiceNumber}</p>
+            <p>Contact Number: {selectedClinic.contactNumber}</p>
+            <p>Times: {selectedClinic.practiceTimes?.open && selectedClinic.practiceTimes?.close
+                ? `${selectedClinic.practiceTimes.open} - ${selectedClinic.practiceTimes.close}`
+                : 'Not set'}
+            </p>
+            <p>Services: {selectedClinic.services?.join(', ') || ''}</p>
+            {saveSuccess && (
+                <p style={{ color: '#16a34a', fontSize: '13px', fontWeight: '600', marginTop: '8px' }}>
+                    Clinic times saved successfully
+                </p>
+            )}
+            {editingTimes ? (
                 <section className="edit-times-form">
                     <fieldset className="times-fields">
                         <label>
@@ -322,9 +334,9 @@ function AdminDashboard() {
                     Edit Clinic Times
                 </button>
             )}
-                        </section>
-                    </article>
-                )}
+        </section>
+    </article>
+)}
 
                 {activeSection === 'manage-staff' && (
                     <article className="content-block">
