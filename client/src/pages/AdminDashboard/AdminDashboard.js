@@ -5,9 +5,42 @@ import { LuUser } from "react-icons/lu";
 import { useApi } from "../../api/useApi";  
 import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import * as statExport from './exportHelper';
-import './AdminDashboard.css';
 import NotificationCenter from '../../components/NotificationCenter';
-const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED: 'apps-cancelled', DAYS_OFF: 'days-off'}
+import './AdminDashboard.css';
+
+const STATS = {QUEUE_WAIT: 'queue-waits', APPOINTMENTS: 'appointments', DAYS_OFF: 'days-off'}
+
+// ----- a little bit of 'outsourcing' -----
+
+// Source - https://stackoverflow.com/a/2536445
+// Posted by T.J. Crowder, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-05-17, License - CC BY-SA 4.0
+
+function monthDiff(d1, d2) {
+    var months;
+    months = (d2.getFullYear() - d1.getFullYear()) * 12;
+    months -= d1.getMonth();
+    months += d2.getMonth();
+    return months <= 0 ? 0 : months;
+}
+
+// Source - https://stackoverflow.com/a/64215557
+// Posted by localhost
+// Retrieved 2026-05-17, License - CC BY-SA 4.0
+
+const week = 7 * 24 * 60 * 60 * 1000;
+const day = 24 * 60 * 60 * 1000;
+
+function startOfWeek(dt) {
+    const weekday = dt.getDay();
+    return new Date(dt.getTime() - Math.abs(0 - weekday) * day);
+}
+
+function weeksBetween(d1, d2) {
+    return Math.ceil((startOfWeek(d2) - startOfWeek(d1)) / week);
+}
+
+// ----- end of 'outsourcing' -----
 
 function AdminDashboard() {
     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
@@ -35,6 +68,8 @@ function AdminDashboard() {
     const [selectedStat, setSelectedStat] = useState('');
     const [loadingStats, setLoadingStats] = useState(false);
     const [queueGranularity, setQueueGranularity] = useState('day');
+    const [apptGranularity, setApptGranularity] = useState('week');
+    const [apptSearchOptions, setApptSearchOptions] = useState({});
 
     const [editingTimes, setEditingTimes] = useState(false);
     const [timesForm, setTimesForm] = useState({ open: '', close: '' });
@@ -271,8 +306,10 @@ function AdminDashboard() {
             const fetchStats = async () => {
 
                 // Cache stats (so we dont refetch them on every button click)
-                const cacheKey = buildCacheKey(selectedClinic._id, selectedStat,
-                    selectedStat === STATS.QUEUE_WAIT ? {granularity: queueGranularity } : {}
+                const cacheKey = buildCacheKey(selectedClinic._id, selectedStat, {
+                    ...(selectedStat === STATS.QUEUE_WAIT ? { granularity: queueGranularity } : {}),
+                    ...(selectedStat === STATS.APPOINTMENTS ? apptSearchOptions : {}),
+                }
                 );
 
                 if (statsCache[cacheKey]) {
@@ -282,18 +319,19 @@ function AdminDashboard() {
 
                 setLoadingStats(true);
                 try {
+                    let data;
                     switch(selectedStat) {
                         case STATS.QUEUE_WAIT:
                             console.log("Queue waits:");
-                            const data = await api.queues.getAverageWaitTime(selectedClinic._id, {_groupby: queueGranularity});
+                            data = await api.queues.getAverageWaitTime(selectedClinic._id, {_groupby: queueGranularity});
                             setStats(data.data);
                             setStatsCache( prev => ({...prev, [cacheKey]: data.data } ));
                             break;
-                        case STATS.APPS_MADE:
-                            console.log("Appoitments made:");
-                            break;
-                        case STATS.APPS_CANCELLED:
-                            console.log("Appoitments cancelled:");
+                        case STATS.APPOINTMENTS:
+                            console.log("Appointments:");
+                            data = await api.appointments.summary(selectedClinic._id, apptSearchOptions);
+                            setStats(data);
+                            setStatsCache( prev => ({...prev, [cacheKey]: data } ));
                             break;
                         case STATS.DAYS_OFF:
                             console.log("Staff days off:");
@@ -310,7 +348,7 @@ function AdminDashboard() {
             }
             fetchStats();
         }
-    }, [activeSection, selectedClinic, queueGranularity, selectedStat, api, statsCache]);
+    }, [activeSection, selectedClinic, queueGranularity, apptSearchOptions, selectedStat, api, statsCache]);
 
     if (isLoading) {
         return <p>Loading dashboard...</p>;
@@ -476,6 +514,120 @@ function AdminDashboard() {
         hourNum: parseInt(item.label) + 0.5,
     }));
 
+    const granularityDiff = (d1, d2) => {
+        if (apptGranularity === 'month') return monthDiff(d1,d2);
+        return weeksBetween(d1,d2)
+    };
+
+    const startOfByGranularity = (d) => {
+        if (apptGranularity === 'month') return new Date(d.getFullYear(), d.getMonth())
+        if (apptGranularity === 'week') return startOfWeek(d);
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    };
+
+    const getProcessedApptStats = () => {
+        if (!stats) return [];
+        let processed = {};
+        const startDate = new Date(stats[0].BookingDateTime);
+        const endDate = new Date(stats[stats.length - 1].BookingDateTime);
+        let itrDate = startOfByGranularity(startDate);
+        for (let i = -1; i < granularityDiff(startDate, endDate); i++) {
+            const dateStamp = apptGranularity === 'month' ? itrDate.toLocaleString('default', {month: 'long', year: 'numeric'}) : startOfWeek(itrDate).toLocaleDateString();
+            processed[itrDate.toDateString()] = {DateStamp: dateStamp, "Scheduled": 0, "Completed": 0, "Cancelled": 0, "No-show": 0 };
+            if (apptGranularity === 'month') itrDate.setMonth(itrDate.getMonth() + 1);
+            else itrDate.setDate(itrDate.getDate() + 7);
+        }
+        if (Object.entries(processed).length === 0) return [];
+        stats.forEach((a) => {
+            const d = startOfByGranularity(new Date(a.BookingDateTime)).toDateString();
+            if (a.Status === 'Waiting' || a.Status === 'In Consult')
+                processed[d]["Scheduled"] += 1;
+            else 
+                processed[d][a.Status] += 1;
+        });
+        return Object.entries(processed).map((o) => o[1]);
+    };
+
+    const chart = () => {
+        if (!stats)
+            return (<span className="graph-icon">📈</span>);
+
+        switch (selectedStat) {
+            case STATS.QUEUE_WAIT:
+                return (
+                    <>
+                        <h2 className="chart-title">Average Queue Wait Time</h2>
+                        <nav className="granularity-toggle">
+                            <button className={queueGranularity === 'day' ? 'active' : ''} onClick={() => setQueueGranularity('day')}>Per Day</button>
+                            <button className={queueGranularity === 'hour' ? 'active' : ''} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
+                        </nav>
+                        <ResponsiveContainer width="100%" height={300}>
+                            {queueGranularity === 'hour' ? (
+                                <LineChart data={shiftHours}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis
+                                        dataKey="hourNum"
+                                        type="number"
+                                        domain={['dataMin - 0.5', 'dataMax + 0.5']}
+                                        tickFormatter={(val) => `${String(Math.floor(val)).padStart(2, '0')}:00`}
+                                        ticks={shiftHours.map(d => d.hourNum - 0.5)}
+                                    />
+                                    <YAxis unit=' min' />
+                                    <Tooltip content={QueueTooltip} />
+                                    <Line type="monotone" dataKey="avgWait" stroke="#6b1fad" strokeWidth={2} dot={{ fill: '#6b1fad' }} />
+                                </LineChart>
+                            ) : (
+                                <BarChart data={stats}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="label" />
+                                    <YAxis unit=" min" />
+                                    <Tooltip content={QueueTooltip} />
+                                    <Bar dataKey="avgWait" fill="#6b1fad" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            )}
+                        </ResponsiveContainer>
+                    </>
+                );
+            case STATS.APPOINTMENTS:
+                const apstats = getProcessedApptStats();
+                return (
+                    <>
+                        <h2 className="chart-title">Appointment history summary</h2>
+                        <nav className="granularity-toggle">
+                            <button className={apptGranularity === 'week' ? 'active' : ''} onClick={() => setApptGranularity('week')}>Per Week</button>
+                            <button className={apptGranularity === 'month' ? 'active' : ''} onClick={() => setApptGranularity('month')}>Per Month</button>
+                            <input
+                                hidden='true'
+                                type="date"
+                                value={!apptSearchOptions._fromdate ? "" : apptSearchOptions._fromdate}
+                                onChange={(e) => setApptSearchOptions(prev => ({ ...prev, _fromdate: e.target.value }))}
+                            />
+                            <input
+                                hidden='true'
+                                type="date"
+                                value={!apptSearchOptions._todate ? "" : apptSearchOptions._todate}
+                                onChange={(e) => setApptSearchOptions(prev => ({ ...prev, _todate: e.target.value }))}
+                            />
+                        </nav>
+                        <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={apstats}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="DateStamp" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Bar dataKey="Scheduled" stackId="a" fill="#5cc3ff" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="Completed" stackId="a" fill="#6b1fad" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="Cancelled" stackId="a" fill="#ffa600" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="No-show" stackId="a" fill="#df1616" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                        </ResponsiveContainer>
+                    </>
+                );
+            default:
+                return (<span className="graph-icon">📈</span>);
+        }
+    }
+    
     const exportCSV = () => {
         if (!stats) return;
         const csvUri = statExport.convertCsv(stats);
@@ -803,50 +955,14 @@ function AdminDashboard() {
                         <header className="block-header">{selectedClinic?.practiceName}<br />Clinic Stats</header>
                         <section className="block-body">
                             <nav className="stats-nav">
-                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat("days-off")}>Staff<br/>Off Days</button>
-                                <button className={`stat-btn ${selectedStat === STATS.APPS_CANCELLED ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat("apps-cancelled")}>Cancelled<br/>Appointments</button>
-                                <button className={`stat-btn ${selectedStat === STATS.APPS_MADE ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat("apps-made")}>Appointments<br/>Made</button>
-                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat("queue-waits")}>Queue<br/>Waits</button>
+                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.DAYS_OFF)}>Staff<br/>Off Days</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPOINTMENTS ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.APPOINTMENTS)}>Appointments</button>
+                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.QUEUE_WAIT)}>Queue<br/>Waits</button>
                             </nav>
                             <section className="stats-graph">
                                 { loadingStats ? (
                                     <span>Loading {selectedStat}...</span>
-                                ) : stats && selectedStat === STATS.QUEUE_WAIT ? (
-                                    <>
-                                        <h2 className="chart-title">Average Queue Wait Time</h2>
-                                        <nav className="granularity-toggle">
-                                            <button className={queueGranularity === 'day' ? 'active' : ''} onClick={() => setQueueGranularity('day')}>Per Day</button>
-                                            <button className={queueGranularity === 'hour' ? 'active' : ''} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
-                                        </nav>
-                                        <ResponsiveContainer width="100%" height={300}>
-                                            {queueGranularity === 'hour' ? (
-                                                <LineChart data={shiftHours}>
-                                                    <CartesianGrid strokeDasharray="3 3" />
-                                                    <XAxis 
-                                                        dataKey="hourNum"
-                                                        type="number"
-                                                        domain={['dataMin - 0.5', 'dataMax + 0.5']}
-                                                        tickFormatter={(val) => `${String(Math.floor(val)).padStart(2, '0')}:00`}
-                                                        ticks={shiftHours.map(d => d.hourNum - 0.5)}
-                                                    />
-                                                    <YAxis unit=' min'/>
-                                                    <Tooltip content={QueueTooltip}/>
-                                                    <Line type="monotone" dataKey="avgWait" stroke="#6b1fad" strokeWidth={2} dot={{ fill: '#6b1fad' }} />
-                                                </LineChart>
-                                            ) : (
-                                                <BarChart data={stats}>
-                                                    <CartesianGrid strokeDasharray="3 3" />
-                                                    <XAxis dataKey="label" />
-                                                    <YAxis unit=" min" />
-                                                    <Tooltip content={QueueTooltip}/>
-                                                    <Bar dataKey="avgWait" fill="#6b1fad" radius={[4, 4, 0, 0]} />
-                                                </BarChart>
-                                            )}
-                                        </ResponsiveContainer>
-                                    </>
-                                ) : (
-                                    <span className="graph-icon">📈</span>
-                                )}
+                                ) : chart()}
                             </section>
                         </section>
                         <nav className="export-nav pdf-print-ignore" align='right'>
