@@ -280,6 +280,21 @@ function PatientDashboard() {
     }
   };
 
+  const isClinicOpen = (clinic) => {
+    if (!clinic.practiceTimes?.open || !clinic.practiceTimes?.close) return false;
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const [openH, openM]   = clinic.practiceTimes.open.split(':').map(Number);
+    const [closeH, closeM] = clinic.practiceTimes.close.split(':').map(Number);
+
+    const openMinutes  = openH  * 60 + openM;
+    const closeMinutes = closeH * 60 + closeM;
+
+    return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+  };
+
   const buildPageRange = (current, total) => {
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
     if (current <= 4) return [1, 2, 3, 4, 5, '…', total];
@@ -467,8 +482,8 @@ function PatientDashboard() {
                           <span className="clinic-addr">
                             {clinic.physicalAddress}, {clinic.physicalTown}
                           </span>
-                          <span className={`clinic-badge ${clinic.isOpen ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
-                            {clinic.isOpen ? 'Open now' : 'Closed'}
+                          <span className={`clinic-badge ${isClinicOpen(clinic) ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
+                            {isClinicOpen(clinic) ? 'Open now' : 'Closed'}
                           </span>
                         </li>
                       ))}
