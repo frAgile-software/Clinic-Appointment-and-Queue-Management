@@ -375,19 +375,9 @@ function AdminDashboard() {
                     <button className="logout-btn-canva" onClick={logout}>Logout</button>
                 </nav>
             </header>
-
-            <section className="purple-banner-container">
-                <section className="top-section">
-                    <section className="welcome-area">
-                        <h1 className="welcome-title-canva">Welcome Back, {adminName || 'Admin'}!</h1>
-               
-                        </section>
-                    </section>
-                </section>
-
-
-
-       
+            <section className="welcome-area">
+                <h1 className="welcome-title-canva">Welcome Back, {adminName || 'Admin'}!</h1>
+            </section>  
           {!clinics || clinics.length === 0 ? (
     <section className="clinic-selection-area">
         <header className="selection-header">You are not assigned to any clinics yet.</header>
