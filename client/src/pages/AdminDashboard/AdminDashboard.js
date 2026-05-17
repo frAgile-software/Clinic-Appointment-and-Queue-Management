@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { LuUser, LuBell } from "react-icons/lu";
 import { useApi } from "../../api/useApi";  
 import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import * as statExport from './exportHelper';
 import './AdminDashboard.css';
 
 const STATS = {QUEUE_WAIT: 'queue-waits', APPS_MADE: 'apps-made', APPS_CANCELLED: 'apps-cancelled', DAYS_OFF: 'days-off'}
@@ -292,6 +293,19 @@ function AdminDashboard() {
         hourNum: parseInt(item.label) + 0.5,
     }));
 
+    const exportCSV = () => {
+        if (!stats) return;
+        const csvUri = statExport.convertCsv(stats);
+        statExport.downloadFile(csvUri, `${selectedStat}_${new Date().toISOString()}.csv`);
+    };
+
+    const exportPDF = () => {
+        const graph = document.getElementsByClassName("stats-graph");
+        if (!graph || graph.length === 0) return;
+        statExport.convertPdf(graph[0]).then((pdfUri) => 
+            statExport.downloadFile(pdfUri, `${selectedStat}_${new Date().toISOString()}.pdf`));
+    };
+
     return (
         <main className="admin-dashboard-wrapper">
             <header className="admin-header-canva">
@@ -537,6 +551,11 @@ function AdminDashboard() {
                                 )}
                             </section>
                         </section>
+                        <nav className="export-nav" align='right'>
+                            <h2>Export to: </h2>
+                            <button className="pill-btn-purple submit-staff-btn" onClick={exportCSV}>CSV</button>
+                            <button className="pill-btn-purple submit-staff-btn" onClick={exportPDF}>PDF</button>
+                        </nav>
                     </article>
                 )}
             </section>
