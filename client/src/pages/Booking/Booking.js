@@ -239,6 +239,7 @@ export default function Booking() {
         BookingDateTime: bookingDate.toISOString(),
         description:     visitDescription,
         Speciality:      specialty,
+        rescheduleAppointmentId: rescheduleAppointmentId,
       };
 
       const res = await apiFetch(
