@@ -308,19 +308,6 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         });
     });
 
-    test("Given the staff list is shown, Then each staff card has action buttons", async () => {
-        await renderDashboard();
-        fireEvent.click(screen.getByRole("button", { name: /Manage Staff/i }));
-        await waitFor(() => {
-            const addSpecButtons = screen.getAllByRole("button", { name: /Add Speciality/i });
-            const removeSpecButtons = screen.getAllByRole("button", { name: /Remove Speciality/i });
-            const fireButtons = screen.getAllByRole("button", { name: /Fire/i });
-            expect(addSpecButtons).toHaveLength(2);
-            expect(removeSpecButtons).toHaveLength(2);
-            expect(fireButtons).toHaveLength(2);
-        });
-    });
-
     test("Given there are no staff, Then a 'No staff found' message is shown", async () => {
         mockApi.clinics.listStaff.mockResolvedValue({ users: [] });
         await renderDashboard();

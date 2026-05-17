@@ -22,6 +22,12 @@ function AdminDashboard() {
     const [selectedClinic, setSelectedClinic] = useState(null);
     const [staffList, setStaffList] = useState([]);
     const [activeSection, setActiveSection] = useState(null);
+    const [staffSpecialities, setStaffSpecialities] = useState({});
+    const [allSpecialities, setAllSpecialities]= useState([]);
+    const [selectedSpecialityByStaff, setSelectedSpecialityByStaff]= useState({});
+    const [newSpecialityByStaff, setNewSpecialityByStaff]= useState({});
+    const [staffSearchTerm, setStaffSearchTerm] = useState("");
+
     const [adminName, setAdminName] = useState("");
     const contentRef = useRef(null);
     const [stats, setStats] = useState(null);
@@ -105,9 +111,51 @@ function AdminDashboard() {
                 console.error('Error fetching staff:', error);
             }
         };
-
+        
         fetchStaff();
-    }, [selectedClinic, user, api]);
+    },[selectedClinic, user, api]);
+
+    useEffect(() => {
+        const loadStaffSpecialities = async () => {
+            try {
+                const result = {};
+
+                for (const member of staffList) {
+                    const userId = member.userId || member._id;
+
+                    if (!userId || !member.staffId) continue;
+
+                    const data = await api.specialities.getForStaff(userId);
+
+                    result[member.staffId] = data.SpecialityObjects || [];
+                }
+
+                setStaffSpecialities(result);
+            } catch (error) {
+                console.error("Error loading staff specialities:", error);
+            }
+        };
+
+        if (staffList.length > 0) {
+            loadStaffSpecialities();
+        } else {
+            setStaffSpecialities({});
+        }
+    },[staffList, api]);
+
+    useEffect(() => {
+        const loadSpecialities = async () => {
+            try {
+                const specialities=await api.specialities.getAll();
+                setAllSpecialities(specialities || []);
+            } catch (error) {
+                console.error("Error loading specialities:", error);
+            }
+        };
+        loadSpecialities();
+    },[api]);
+        
+
 
 
      // email search 
@@ -312,6 +360,86 @@ function AdminDashboard() {
         setEditingTimes(false);
     };
 
+    const handleAddSpeciality = async (staffId) => {
+        try {
+            let specialityId = selectedSpecialityByStaff[staffId];
+            const newSpecialityName = newSpecialityByStaff[staffId]?.trim();
+            if (!specialityId && newSpecialityName) {
+            const existingSpeciality = allSpecialities.find((speciality) =>
+                    speciality.SpecialityName?.trim().toLowerCase() ===
+                    newSpecialityName.toLowerCase());
+            if (existingSpeciality) {
+                specialityId = existingSpeciality._id;
+            } else {
+                const created = await api.specialities.create({
+                    SpecialityName: newSpecialityName
+                });
+
+                specialityId = created.speciality?._id || created._id;
+
+                const updatedSpecialities = await api.specialities.getAll();
+                setAllSpecialities(updatedSpecialities || []);
+            }
+        }
+            if(!specialityId) {
+                alert("Please select or enter a speciality to add.");
+                return;
+            }
+            
+            await api.specialities.addToStaff({staffId, specialityId});
+
+            const member = staffList.find((staff) => staff.staffId === staffId);
+            const userId = member?.userId || member?._id;
+            if (userId) {
+                const updatedData = await api.specialities.getForStaff(userId);
+
+                setStaffSpecialities((prev) => ({
+                    ...prev,
+                    [staffId]: updatedData.SpecialityObjects || []
+                }));
+            }
+
+            setSelectedSpecialityByStaff((prev)=> ({
+                ...prev,
+                [staffId]: ""
+            }));
+            setNewSpecialityByStaff((prev)=> ({
+                ...prev,
+                [staffId]: ""
+            }));
+            alert("Speciality added successfully.");
+        } catch (error) {
+            console.error("Error adding speciality to staff:", error);
+            alert("Failed to add speciality. Please try again.");
+        }
+    };
+
+    const handleRemoveSpeciality = async (staffId, specialityId) => {
+        try {
+            await api.specialities.removeFromStaff({
+                staffId,
+                specialityId
+            });
+
+            setStaffSpecialities((prev) => ({
+                ...prev,
+                [staffId]: (prev[staffId] || []).filter(
+                    (speciality) => speciality._id !== specialityId
+                )
+            }));
+
+            alert("Speciality removed successfully.");
+        } catch (error) {
+            console.error("Error removing speciality from staff:", error);
+            alert("Failed to remove speciality. Please try again.");
+        }
+    };
+
+    const filteredStaffList = staffList.filter((member) => {
+        const fullName = `${member.title || ""} ${member.name || ""} ${member.surname || ""}`.toLowerCase();
+        return fullName.includes(staffSearchTerm.toLowerCase().trim());
+    });
+
     const toggleSection = (sectionName) => {
         setActiveSection(activeSection === sectionName ? null : sectionName);
         setTimeout(() => {
@@ -489,19 +617,108 @@ function AdminDashboard() {
                 {activeSection === 'manage-staff' && (
                     <article className="content-block">
                         <header className="block-header">Manage Clinic Staff</header>
+                        <section className="staff-search-area">
+                        <input
+                            type="text"
+                            className="staff-search-input"
+                            placeholder="Search staff by name..."
+                            value={staffSearchTerm}
+                            onChange={(e) => setStaffSearchTerm(e.target.value)}
+                        />
+                        </section>
                         <section className="block-body flex-list">
-                            {staffList.length === 0 ? <p>No staff found.</p> : staffList.map((member) => (
+                            {staffList.length === 0 ? (<p>No staff found.</p>) : filteredStaffList.length === 0 ? (<p>No staff match your search.</p>
+                        ) : filteredStaffList.map((member) => (
                                 <article key={member._id} className="staff-card">
-                                    <section className="staff-info">
-                                        <h4>{member.title} {member.name} {member.surname}</h4>
-                                        <p>{member.speciality || 'General'}</p>
+                                <section className="staff-card-header">
+                                    <section>
+                                        <h4 className="staff-name">
+                                            {member.title} {member.name} {member.surname}
+                                        </h4>
+                                        <p className="staff-role">{member.role || 'Staff Member'}</p>
                                     </section>
-                                    <section className="staff-actions">
-                                        <button className="pill-btn-purple">Add Speciality</button>
-                                        <button className="pill-btn-purple">Remove Speciality</button>
-                                        <button className="pill-btn-red">Fire</button>
+
+                                    <button className="pill-btn-red staff-fire-btn">
+                                        Fire
+                                    </button>
+                                </section>
+
+                                <section className="staff-speciality-section">
+                                    <h5 className="staff-section-title">Current Specialities</h5>
+
+                                    {(staffSpecialities[member.staffId] || []).length === 0 ? (
+                                        <p className="empty-specialities">No specialities assigned.</p>
+                                    ) : (
+                                        <ul className="speciality-chip-list">
+                                            {(staffSpecialities[member.staffId] || []).map((speciality) => (
+                                                <li key={speciality._id}>
+                                                    <button
+                                                        type="button"
+                                                        className="speciality-chip"
+                                                        onClick={() =>
+                                                            handleRemoveSpeciality(member.staffId, speciality._id)
+                                                        }
+                                                        title="Click to remove speciality"
+                                                    >
+                                                        {speciality.SpecialityName || speciality.name}
+                                                        <span className="chip-remove">×</span>
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </section>
+
+                                <section className="add-speciality-section">
+                                    <h5 className="staff-section-title">Add Speciality</h5>
+
+                                    <section className="speciality-controls">
+                                        <select
+                                            className="speciality-select"
+                                            value={selectedSpecialityByStaff[member.staffId] || ""}
+                                            onChange={(e) =>
+                                                setSelectedSpecialityByStaff((prev) => ({
+                                                    ...prev,
+                                                    [member.staffId]: e.target.value
+                                                }))
+                                            }
+                                        >
+                                            <option value="">Choose existing speciality</option>
+                                            {allSpecialities.filter((speciality) => {
+                                                const currentSpecialities = staffSpecialities[member.staffId] || [];
+                                                return !currentSpecialities.some(
+                                                    (current) => current._id === speciality._id
+                                                );
+                                            })
+                                            .map((speciality) => (
+                                                <option key={speciality._id} value={speciality._id}>
+                                                    {speciality.SpecialityName}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <input
+                                            className="speciality-input"
+                                            type="text"
+                                            placeholder="Or enter new speciality"
+                                            value={newSpecialityByStaff[member.staffId] || ""}
+                                            onChange={(e) =>
+                                                setNewSpecialityByStaff((prev) => ({
+                                                    ...prev,
+                                                    [member.staffId]: e.target.value
+                                                }))
+                                            }
+                                        />
                                     </section>
-                                </article>
+
+                                    <button
+                                        className="pill-btn-purple add-speciality-btn"
+                                        onClick={() => handleAddSpeciality(member.staffId)}
+                                    >
+                                        Add Speciality
+                                    </button>
+                                </section>
+                            </article>
                             ))}
                         </section>
                     </article>

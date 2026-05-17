@@ -25,10 +25,18 @@ router.get("/:clinicID/staff", async (req, res) => {
             });
         }
 
-        // Extract populated user objects, keep Staff role only (exclude Admins)
         const staffUsers = linkedStaff
-            .map(s => s.User)
-            .filter(u => u && u.role === 'Staff');
+        .filter((staffRecord) => staffRecord.User && staffRecord.User.role === "Staff")
+        .map((staffRecord) => ({
+            _id: staffRecord.User._id,          
+            userId: staffRecord.User._id,       
+            staffId: staffRecord._id,           
+            name: staffRecord.User.name,
+            surname: staffRecord.User.surname,
+            email: staffRecord.User.email,
+            role: staffRecord.User.role,
+            title: staffRecord.User.title
+        }));
 
         
         res.status(200).json({ 
