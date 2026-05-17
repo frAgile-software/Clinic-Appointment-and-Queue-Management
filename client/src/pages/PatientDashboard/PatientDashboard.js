@@ -157,19 +157,19 @@ function PatientDashboard() {
       setLoadingList(true);
       setHasSearched(true);
       try {
-        const params = new URLSearchParams();
-        if (search.trim()) params.set('name', search.trim());
-        if (filters.province) params.set('province', filters.province);
-        if (filters.town) params.set('town', filters.town);
-        if (filters.suburb) params.set('suburb', filters.suburb);
-        if (filters.type) params.set('type', filters.type);
-        if (filters.service) params.set('service', filters.service); 
-        params.set('_orderby', filters._orderby);
-        params.set('_order', filters._order);
-        params.set("_page", page);
-        params.set("_page_len", PAGE_LIMIT);
+        const params = {};
+        if (search.trim()) params.name = search.trim();
+        if (filters.province) params.province = filters.province;
+        if (filters.town) params.town = filters.town;
+        if (filters.suburb) params.suburb = filters.suburb;
+        if (filters.type) params.type = filters.type;
+        if (filters.service) params.service = filters.service;
+        params._orderby = filters._orderby;
+        params._order = filters._order;
+        params._page = page;
+        params._page_len = PAGE_LIMIT;
 
-        const json  = await api.clinics.filterAll(filters);
+        const json  = await api.clinics.filterAll(params);
 
         setClinics(json.data || []);
         setPagination({
@@ -310,6 +310,21 @@ function PatientDashboard() {
     } catch (error) {
       console.log("Error leaving queue:", error);
     }
+  };
+
+  const isClinicOpen = (clinic) => {
+    if (!clinic.practiceTimes?.open || !clinic.practiceTimes?.close) return false;
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const [openH, openM]   = clinic.practiceTimes.open.split(':').map(Number);
+    const [closeH, closeM] = clinic.practiceTimes.close.split(':').map(Number);
+
+    const openMinutes  = openH  * 60 + openM;
+    const closeMinutes = closeH * 60 + closeM;
+
+    return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
   };
 
   const buildPageRange = (current, total) => {
@@ -513,8 +528,8 @@ function PatientDashboard() {
                           <span className="clinic-addr">
                             {clinic.physicalAddress}, {clinic.physicalTown}
                           </span>
-                          <span className={`clinic-badge ${clinic.isOpen ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
-                            {clinic.isOpen ? 'Open now' : 'Closed'}
+                          <span className={`clinic-badge ${isClinicOpen(clinic) ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
+                            {isClinicOpen(clinic) ? 'Open now' : 'Closed'}
                           </span>
                         </li>
                       ))}
