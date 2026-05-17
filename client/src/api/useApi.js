@@ -10,6 +10,7 @@ import { SpecialityService } from './services/SpecialityService';
 import { AppointmentService } from './services/AppointmentService';
 import { ScheduleService } from './services/ScheduleService';
 import { ConsultService } from './services/ConsultService'; 
+import {NotifService} from './services/NotifService';
 
 export const useApi = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -32,6 +33,7 @@ export const useApi = () => {
       queues: new QueueService(pub, priv),
       specialities: new SpecialityService(pub, priv),
       consults: new ConsultService(pub, priv),
+      notifications: new NotifService(pub,priv),
     };
     
   }, [getAccessTokenSilently]);

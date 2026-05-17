@@ -33,7 +33,7 @@ describe("GET /api/appointments/statistics/:clinicID", () => {
 
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ message: "Clinic not found." });
-        expect(Clinic.findById).toHaveBeenCalledWith({ id: "clinic123" });
+        expect(Clinic.findById).toHaveBeenCalledWith("clinic123");
     });
 
     test("should return 403 if requester is not an admin", async () => {
@@ -68,7 +68,6 @@ describe("GET /api/appointments/statistics/:clinicID", () => {
         const mockAppointments = [
             {
                 _id: "appt1",
-                Patient: { name: "Patient One" },
                 Staff: { name: "Staff One" },
                 Speciality: { SpecialityName: "General Practice" },
                 BookingDateTime: "2026-05-10T09:00:00.000Z",
@@ -101,11 +100,10 @@ describe("GET /api/appointments/statistics/:clinicID", () => {
                 Status: { $in: ["Confirmed", "Pending"] },
                 Speciality: { $in: ["spec1", "spec2"] },
             },
-            "-Remarks -ReasonDetails"
+            "BookingDateTime Speciality Staff Status createdAt updatedAt -type"
         );
         expect(findChain.sort).toHaveBeenCalledWith({ BookingDateTime: -1 });
         expect(findChain.populate).toHaveBeenCalledWith([
-            { path: "Patient", select: "name" },
             { path: "Staff", select: "name" },
             { path: "Speciality", select: "SpecialityName" },
         ]);

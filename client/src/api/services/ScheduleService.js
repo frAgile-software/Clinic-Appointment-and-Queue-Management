@@ -15,9 +15,9 @@ export class ScheduleService extends ResourceService {
         }, null);
     }
     
-    createDefault(auth0Id, schedules) {
+    createDefault(staffId, schedules) {
         return this.priv.post(`${this.basePath}/bulk`, {
-            staffId: auth0Id,schedules,
+            userId: staffId,schedules,
         }, null);
     }
 
