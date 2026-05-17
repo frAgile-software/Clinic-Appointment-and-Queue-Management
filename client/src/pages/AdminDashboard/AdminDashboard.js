@@ -23,6 +23,7 @@ function AdminDashboard() {
     const [allSpecialities, setAllSpecialities]= useState([]);
     const [selectedSpecialityByStaff, setSelectedSpecialityByStaff]= useState({});
     const [newSpecialityByStaff, setNewSpecialityByStaff]= useState({});
+    const [staffSearchTerm, setStaffSearchTerm] = useState("");
 
     const [adminName, setAdminName] = useState("");
     const contentRef = useRef(null);
@@ -262,6 +263,11 @@ function AdminDashboard() {
         }
     };
 
+    const filteredStaffList = staffList.filter((member) => {
+        const fullName = `${member.title || ""} ${member.name || ""} ${member.surname || ""}`.toLowerCase();
+        return fullName.includes(staffSearchTerm.toLowerCase().trim());
+    });
+
     const toggleSection = (sectionName) => {
         setActiveSection(activeSection === sectionName ? null : sectionName);
         setTimeout(() => {
@@ -374,8 +380,18 @@ function AdminDashboard() {
                 {activeSection === 'manage-staff' && (
                     <article className="content-block">
                         <header className="block-header">Manage Clinic Staff</header>
+                        <section className="staff-search-area">
+                        <input
+                            type="text"
+                            className="staff-search-input"
+                            placeholder="Search staff by name..."
+                            value={staffSearchTerm}
+                            onChange={(e) => setStaffSearchTerm(e.target.value)}
+                        />
+                        </section>
                         <section className="block-body flex-list">
-                            {staffList.length === 0 ? <p>No staff found.</p> : staffList.map((member) => (
+                            {staffList.length === 0 ? (<p>No staff found.</p>) : filteredStaffList.length === 0 ? (<p>No staff match your search.</p>
+                        ) : filteredStaffList.map((member) => (
                                 <article key={member._id} className="staff-card">
                                 <section className="staff-card-header">
                                     <section>
