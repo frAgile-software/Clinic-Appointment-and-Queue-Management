@@ -8,6 +8,38 @@ import './AdminDashboard.css';
 
 const STATS = {QUEUE_WAIT: 'queue-waits', APPOINTMENTS: 'appts', DAYS_OFF: 'days-off'}
 
+// ----- a little bit of 'outsourcing' -----
+
+// Source - https://stackoverflow.com/a/2536445
+// Posted by T.J. Crowder, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-05-17, License - CC BY-SA 4.0
+
+function monthDiff(d1, d2) {
+    var months;
+    months = (d2.getFullYear() - d1.getFullYear()) * 12;
+    months -= d1.getMonth();
+    months += d2.getMonth();
+    return months <= 0 ? 0 : months;
+}
+
+// Source - https://stackoverflow.com/a/64215557
+// Posted by localhost
+// Retrieved 2026-05-17, License - CC BY-SA 4.0
+
+const week = 7 * 24 * 60 * 60 * 1000;
+const day = 24 * 60 * 60 * 1000;
+
+function startOfWeek(dt) {
+    const weekday = dt.getDay();
+    return new Date(dt.getTime() - Math.abs(0 - weekday) * day);
+}
+
+function weeksBetween(d1, d2) {
+    return Math.ceil((startOfWeek(d2) - startOfWeek(d1)) / week);
+}
+
+// ----- end of 'outsourcing' -----
+
 function AdminDashboard() {
     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
     const api = useApi(); 
@@ -28,6 +60,7 @@ function AdminDashboard() {
     const [selectedStat, setSelectedStat] = useState('');
     const [loadingStats, setLoadingStats] = useState(false);
     const [queueGranularity, setQueueGranularity] = useState('day');
+    const [apptGranularity, setApptGranularity] = useState('week');
     const [apptSearchOptions, setApptSearchOptions] = useState({});
 
     useEffect(() => {
@@ -174,13 +207,38 @@ function AdminDashboard() {
         hourNum: parseInt(item.label) + 0.5,
     }));
 
+    const granularityDiff = (d1, d2) => {
+        if (apptGranularity === 'month') return monthDiff(d1,d2);
+        return weeksBetween(d1,d2)
+    };
+
+    const startOfByGranularity = (d) => {
+        if (apptGranularity === 'month') return new Date(d.getFullYear(), d.getMonth())
+        if (apptGranularity === 'week') return startOfWeek(d);
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    };
 
     const getProcessedApptStats = () => {
+        if (!stats) return [];
         let processed = {};
+        const startDate = new Date(stats[0].BookingDateTime);
+        const endDate = new Date(stats[stats.length - 1].BookingDateTime);
+        let itrDate = startOfByGranularity(startDate);
+        for (let i = -1; i < granularityDiff(startDate, endDate); i++) {
+            const dateStamp = apptGranularity === 'month' ? itrDate.toLocaleString('default', {month: 'long', year: 'numeric'}) : startOfWeek(itrDate).toLocaleDateString();
+            processed[itrDate.toDateString()] = {DateStamp: dateStamp, "Scheduled": 0, "Completed": 0, "Cancelled": 0, "No-show": 0 };
+            if (apptGranularity === 'month') itrDate.setMonth(itrDate.getMonth() + 1);
+            else itrDate.setDate(itrDate.getDate() + 7);
+        }
+        if (Object.entries(processed).length === 0) return [];
         stats.forEach((a) => {
-            processed[a.Status] = (a.Status in processed) ? processed[a.Status] + 1 : 1;
+            const d = startOfByGranularity(new Date(a.BookingDateTime)).toDateString();
+            if (a.Status === 'Waiting' || a.Status === 'In Consult')
+                processed[d]["Scheduled"] += 1;
+            else 
+                processed[d][a.Status] += 1;
         });
-        return Object.entries(processed).map((o) => {return {Status: o[0], Count: o[1]}});
+        return Object.entries(processed).map((o) => o[1]);
     };
 
     const chart = () => {
@@ -229,6 +287,8 @@ function AdminDashboard() {
                     <>
                         <h2 className="chart-title">Appointment history summary</h2>
                         <nav className="granularity-toggle">
+                            <button className={apptGranularity === 'week' ? 'active' : ''} onClick={() => setApptGranularity('week')}>Per Week</button>
+                            <button className={apptGranularity === 'month' ? 'active' : ''} onClick={() => setApptGranularity('month')}>Per Month</button>
                             <input
                                 type="date"
                                 value={!apptSearchOptions._fromdate ? "" : apptSearchOptions._fromdate}
@@ -243,10 +303,13 @@ function AdminDashboard() {
                         <ResponsiveContainer width="100%" height={300}>
                                 <BarChart data={apstats}>
                                     <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="Status" />
+                                    <XAxis dataKey="DateStamp" />
                                     <YAxis />
                                     <Tooltip />
-                                    <Bar dataKey="Count" fill="#6b1fad" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="Scheduled" stackId="a" fill="#5cc3ff" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="Completed" stackId="a" fill="#6b1fad" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="Cancelled" stackId="a" fill="#ffa600" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="No-show" stackId="a" fill="#df1616" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                         </ResponsiveContainer>
                     </>
