@@ -1,10 +1,34 @@
 import { jsPDF } from 'jspdf';
 import { toCanvas, toPng } from 'html-to-image';
 
-export function convertCsv(values, keys = Object.keys(values[0])) { // why and how does Javascript let you do this for a default value
+// Source - https://stackoverflow.com/a/53739792
+// Posted by Muthukrishnan
+// Retrieved 2026-05-17, License - CC BY-SA 4.0
+
+function flattenObject(ob) {
+    var toReturn = {};
+
+    for (var i in ob) {
+        if (!ob.hasOwnProperty(i)) continue;
+
+        if ((typeof ob[i]) == 'object' && ob[i] !== null) {
+            var flatObject = flattenObject(ob[i]);
+            for (var x in flatObject) {
+                if (!flatObject.hasOwnProperty(x)) continue;
+
+                toReturn[i + '.' + x] = flatObject[x];
+            }
+        } else {
+            toReturn[i] = ob[i];
+        }
+    }
+    return toReturn;
+}
+
+export function convertCsv(values, keys = Object.keys(flattenObject(values[0]))) { 
     let csvContent = "data:text/csv;charset=utf-8," + keys.join(",") + "\n";
     csvContent += values.map((v) => {
-        const ev = Object.values(v);
+        const ev = Object.values(flattenObject(v));
         let ret = [];
         for (const k in keys) {
             ret.push(ev[k]);
