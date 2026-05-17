@@ -558,8 +558,8 @@ function AdminDashboard() {
                     <>
                         <h2 className="chart-title">Average Queue Wait Time</h2>
                         <nav className="granularity-toggle">
-                            <button className={queueGranularity === 'day' ? 'active' : ''} onClick={() => setQueueGranularity('day')}>Per Day</button>
-                            <button className={queueGranularity === 'hour' ? 'active' : ''} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
+                            <button className={queueGranularity === 'day' ? 'active' : 'pdf-print-ignore'} onClick={() => setQueueGranularity('day')}>Per Day</button>
+                            <button className={queueGranularity === 'hour' ? 'active' : 'pdf-print-ignore'} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
                         </nav>
                         <ResponsiveContainer width="100%" height={300}>
                             {queueGranularity === 'hour' ? (
@@ -594,8 +594,8 @@ function AdminDashboard() {
                     <>
                         <h2 className="chart-title">Appointment history summary</h2>
                         <nav className="granularity-toggle">
-                            <button className={apptGranularity === 'week' ? 'active' : ''} onClick={() => setApptGranularity('week')}>Per Week</button>
-                            <button className={apptGranularity === 'month' ? 'active' : ''} onClick={() => setApptGranularity('month')}>Per Month</button>
+                            <button className={apptGranularity === 'week' ? 'active' : 'pdf-print-ignore'} onClick={() => setApptGranularity('week')}>Per Week</button>
+                            <button className={apptGranularity === 'month' ? 'active' : 'pdf-print-ignore'} onClick={() => setApptGranularity('month')}>Per Month</button>
                             <input
                                 hidden='true'
                                 type="date"
