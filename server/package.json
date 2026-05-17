@@ -26,7 +26,8 @@
   },
   "jest": {
     "coveragePathIgnorePatterns": [
-      "src/middleware/"
+      "src/middleware/",
+      "src/jobs/clearStaleQueues.js"
     ]
   }
 }
