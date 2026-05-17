@@ -296,6 +296,7 @@ Base path: `/appointments`.
 | `create({clinicId, staffUserId, patientAuth0Id, bookingDateTime, description, specialityName})`| Private |`POST /api/appointments/` |
 | `getForAuth0Id(auth0Id)`| Private | `GET /api/appointments/:auth0Id?statuses=...` |
 | `update(appointmentId, {patientUID, staffUID, clinicId, bookingDateTime, specialityId})`| Private | `PUT /api/appointments/:appointmentId` |
+| `summary(clinicId, { date_search_field, _fromdate, _todate, _order, specialityIDs, statuses })`| Private | `GET /api/appointments/statistics/:clinicId` |
 
 **Example usage in a component**
 ```js
@@ -322,6 +323,11 @@ await api.appointments.cancel("appt1");
 
 // get a list of upcoming appointments by auth0Id
 const appointments = await api.appointments.getForAuth0Id("auth0|123", {statuses: ["Waiting"]});
+
+// get the cancelled and no-show appointments for a speciality in the last month
+const date = new Date();
+date.setMonth(date.getMonth() - 1); 
+const summary = await api.appointments.summary("clnc2", { _fromdate: date.toISOString(), specialityIDs: "spc1", statuses: ["Cancelled", "No-show"] })
 ```
 ---
 

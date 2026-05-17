@@ -697,8 +697,8 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         await renderDashboard();
         fireEvent.click(screen.getByRole("button", { name: /View Stats/i }));
         expect(screen.getByRole("button", { name: /Staff.*Off Days/i })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /Cancelled.*Appointments/i })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /Appointments.*Made/i })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Appointments/i })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Queue.*Waits/i })).toBeInTheDocument();
     });
 
 
