@@ -153,19 +153,18 @@ function AdminDashboard() {
     useEffect(() => {
         const loadStaffSpecialities = async () => {
             try {
-                const result = {};
-
+                const result = [];
                 for (const member of staffList) {
                     const userId = member.userId || member._id;
 
                     if (!userId || !member.staffId) continue;
 
-                    const data = await api.specialities.getForStaff(userId);
+                    const data = api.specialities.getForStaff(userId);
 
-                    result[member.staffId] = data.SpecialityObjects || [];
+                    result.push([member.staffId, data]);
                 }
-
-                setStaffSpecialities(result);
+                const resolvedResult = await Promise.all(result);
+                setStaffSpecialities(Object.fromEntries(resolvedResult.map(r => [r[0], r[1].SpecialityObjects || []])));
             } catch (error) {
                 console.error("Error loading staff specialities:", error);
             }
