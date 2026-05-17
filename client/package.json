@@ -53,7 +53,9 @@
       "src/hooks/apiAuth.js",
       "src/api/ApiClient.js",
       "src/api/ResourceService.js",
-      "src/api/useApi.js"
+      "src/api/useApi.js",
+      "src/pages/AdminDashboard/exportHelper.js",
+      "src/context/UserRoleContext.js"
     ]
   }
 }
