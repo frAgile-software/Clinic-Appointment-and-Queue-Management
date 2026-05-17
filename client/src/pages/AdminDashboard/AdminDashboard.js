@@ -21,7 +21,7 @@ function AdminDashboard() {
     const [selectedClinic, setSelectedClinic] = useState(null);
     const [staffList, setStaffList] = useState([]);
     const [activeSection, setActiveSection] = useState(null);
-    const [adminName] = useState(user?.name || "");
+    const [adminName, setAdminName] = useState("");
     const contentRef = useRef(null);
     const [stats, setStats] = useState(null);
     const [statsCache, setStatsCache] = useState({});
@@ -57,6 +57,20 @@ function AdminDashboard() {
             fetchAssignedClinics();
         }
     }, [user, isAuthenticated, isLoading, api]);
+
+    useEffect(() => {
+            const fetchUserData = async () => {
+                if (user?.sub) {
+                try {
+                    const data = await api.users.get(user.sub);
+                    setAdminName(data.name);
+                } catch (error) {
+                    console.error("Failed to fetch user profile:", error);
+                }
+                }
+            };
+            fetchUserData();
+        }, [user, api]);
 
     useEffect(() => {
         const fetchStaff = async () => {
