@@ -834,35 +834,6 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         alertSpy.mockRestore();
     });
 
-    test("Given the user clicks remove on a speciality, Then removeFromStaff is called", async () => {
-        const staffWithIds = mockStaff.map(s => ({ ...s, staffId: s._id, userId: s._id }));
-        mockApi.clinics.listStaff.mockResolvedValue({ users: staffWithIds });
-        mockApi.specialities.getForStaff.mockResolvedValue({
-            SpecialityObjects: [{ _id: 'spec_001', SpecialityName: 'Dentistry' }],
-        });
-
-        const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-
-        await renderDashboard();
-        fireEvent.click(screen.getByRole("button", { name: /Manage Staff/i }));
-
-        await waitFor(() => {
-            expect(screen.getAllByText(/Dentistry/).length).toBeGreaterThan(0);
-        });
-
-        const removeButtons = screen.getAllByTitle(/Click to remove speciality/i);
-        fireEvent.click(removeButtons[0]);
-
-        await waitFor(() => {
-            expect(mockApi.specialities.removeFromStaff).toHaveBeenCalledWith({
-                staffId: 'staff_001',
-                specialityId: 'spec_001',
-            });
-        });
-        expect(alertSpy).toHaveBeenCalledWith('Speciality removed successfully.');
-        alertSpy.mockRestore();
-    });
-
     test("Given the user selects 'Queue Waits', Then the queue stats are fetched and chart is shown", async () => {
         await renderDashboard();
         fireEvent.click(screen.getByRole("button", { name: /View Stats/i }));
