@@ -94,6 +94,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
                 linkStaff: jest.fn().mockResolvedValue({ message: 'Staff linked successfully' }),
             },
             users: {
+              get: jest.fn().mockResolvedValue({ name: 'Admin User' }),
                 getByEmail: jest.fn().mockResolvedValue({
                     _id: 'user_new',
                     title: 'Dr.',
