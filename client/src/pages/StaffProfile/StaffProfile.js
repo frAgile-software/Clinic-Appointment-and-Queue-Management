@@ -3,7 +3,6 @@ import { useApi } from '../../api/useApi';
 import './StaffProfile.css'; 
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
-import { useApiAuth } from '../../hooks/apiAuth';
 import { useRef } from 'react';
 
 function StaffProfile() {
