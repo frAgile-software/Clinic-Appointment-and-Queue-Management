@@ -597,11 +597,13 @@ function AdminDashboard() {
                             <button className={apptGranularity === 'week' ? 'active' : ''} onClick={() => setApptGranularity('week')}>Per Week</button>
                             <button className={apptGranularity === 'month' ? 'active' : ''} onClick={() => setApptGranularity('month')}>Per Month</button>
                             <input
+                                hidden='true'
                                 type="date"
                                 value={!apptSearchOptions._fromdate ? "" : apptSearchOptions._fromdate}
                                 onChange={(e) => setApptSearchOptions(prev => ({ ...prev, _fromdate: e.target.value }))}
                             />
                             <input
+                                hidden='true'
                                 type="date"
                                 value={!apptSearchOptions._todate ? "" : apptSearchOptions._todate}
                                 onChange={(e) => setApptSearchOptions(prev => ({ ...prev, _todate: e.target.value }))}
