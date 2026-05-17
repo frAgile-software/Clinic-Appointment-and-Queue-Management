@@ -130,19 +130,19 @@ function PatientDashboard() {
       setLoadingList(true);
       setHasSearched(true);
       try {
-        const params = new URLSearchParams();
-        if (search.trim()) params.set('name', search.trim());
-        if (filters.province) params.set('province', filters.province);
-        if (filters.town) params.set('town', filters.town);
-        if (filters.suburb) params.set('suburb', filters.suburb);
-        if (filters.type) params.set('type', filters.type);
-        if (filters.service) params.set('service', filters.service); 
-        params.set('_orderby', filters._orderby);
-        params.set('_order', filters._order);
-        params.set("_page", page);
-        params.set("_page_len", PAGE_LIMIT);
+        const params = {};
+        if (search.trim()) params.name = search.trim();
+        if (filters.province) params.province = filters.province;
+        if (filters.town) params.town = filters.town;
+        if (filters.suburb) params.suburb = filters.suburb;
+        if (filters.type) params.type = filters.type;
+        if (filters.service) params.service = filters.service;
+        params._orderby = filters._orderby;
+        params._order = filters._order;
+        params._page = page;
+        params._page_len = PAGE_LIMIT;
 
-        const json  = await api.clinics.filterAll(filters);
+        const json  = await api.clinics.filterAll(params);
 
         setClinics(json.data || []);
         setPagination({
