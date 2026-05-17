@@ -5,6 +5,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useApiAuth } from '../../hooks/apiAuth';
 import { useRef } from 'react';
+
 function StaffProfile() {
   const nameRef = useRef(); //for changing of details
   const surnameRef = useRef();
@@ -14,7 +15,6 @@ function StaffProfile() {
 
   const { user, logout: auth0Logout } = useAuth0();
   const navigate = useNavigate();
-  const {apiFetch} = useApiAuth();
 
   const [profileData, setProfileData] = useState(null);
   const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
@@ -84,44 +84,38 @@ Thank you.`);
   };
 
   const handleUpdate = async () => {
-  if (!staffId){
-    console.error("No user found, cannot update.");
-    return;
-  };
+    if (!staffId){
+      console.error("No user found, cannot update.");
+      return;
+    };
     const changes = {
-            name: nameRef.current.value,
-            surname: surnameRef.current.value,
-            title: titleRef.current.value,
-            email: emailRef.current.value,
-        };
-     const updatedData = Object.fromEntries(
+      name: nameRef.current.value,
+      surname: surnameRef.current.value,
+      title: titleRef.current.value,
+      email: emailRef.current.value,
+    };
+    const updatedData = Object.fromEntries(
       Object.entries(changes).filter(([key, value]) => value !== profileData?.[key])
     );
-    
+      
     if (Object.keys(updatedData).length === 0) {
       alert("No changes detected.");
       toggleChangeDetailsModal();
       return;
-  };
-  try {
-    if (emailRef.current.value !== profileData.email && !staffId?.startsWith("auth0|")) {
-      alert("auth0 Email change is not allowed. Please contact support.");
-      emailRef.current.value = profileData.email;
-      return;
-    }
-
-    console.log("Updating with data:", updatedData);    
-    const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(updatedData),
-      });
-
-      if (response.ok) {
-        setProfileData(prev=> ({ ...prev, ...updatedData }));
-        toggleChangeDetailsModal();
-        alert("Details updated successfully!");
+    };
+    try {
+      if (emailRef.current.value !== profileData.email && !staffId?.startsWith("auth0|")) {
+        alert("auth0 Email change is not allowed. Please contact support.");
+        emailRef.current.value = profileData.email;
+        return;
       }
+
+      console.log("Updating with data:", updatedData);    
+      await api.users.update(staffId, updatedData);
+
+      setProfileData(prev=> ({ ...prev, ...updatedData }));
+      toggleChangeDetailsModal();
+      alert("Details updated successfully!");
     } catch (error) {
       console.error("Update failed:", error);
     }
@@ -134,8 +128,7 @@ Thank you.`);
 
     const fetchProfileData = async () => {
       try {
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${staffId}`);
-        const data = await response.json();
+        const data = await api.users.get(staffId);
         console.log("User data", data);
         setProfileData(data);
       } catch (error) {
@@ -144,7 +137,7 @@ Thank you.`);
     };
 
     fetchProfileData();
-  }, [staffId, apiFetch]);
+  }, [staffId, api]);
 
   //fetch specialities
   useEffect(() => {
@@ -152,8 +145,7 @@ Thank you.`);
     async function fetchSpecialities() {
       try { 
         console.log("Fetching specialities...");
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/specialities/staff/${profileData._id}`);
-        const data = await response.json();
+        const data = await api.specialities.getForStaff(profileData._id);
         console.log("Fetched specialities response:", data);
         setSpecialities(data.Specialities || []);
         console.log("Fetched specialities:", data);
@@ -162,7 +154,7 @@ Thank you.`);
       };
     }
     fetchSpecialities();
-  }, [apiFetch, staffId, profileData]);
+  }, [api, staffId, profileData]);
 
     useEffect(() => {
     if (!staffId) return;
@@ -170,11 +162,9 @@ Thank you.`);
       try {
         console.log("Fetching clinics for staffId:", staffId);
         setLoading(true);
-        const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned?auth0Id=${staffId}`);
-        const data = await response.json();
+        const data = await api.clinics.getAssignedClinics(staffId);
         console.log("Fetched clinics:", data);
         setClinics(data[0]);
-        
       } catch (error) {
         console.error("Could not fetch clinics:", error);
       } finally {
@@ -183,7 +173,7 @@ Thank you.`);
     }
     fetchClinics();
 
-  }, [staffId, apiFetch]);
+  }, [staffId, api]);
 
 
  useEffect(() => {
@@ -225,7 +215,7 @@ return (
           <div className="clinic-card profile-details-card">
             <h3 className="clinic-type">Staff Information</h3>
             <div className="details-content">
-              <p><strong>Name:</strong> {profileData?.name}</p>
+              <p><strong>Name:</strong> {profileData?.name} {profileData?.surname}</p>
               <p><strong>Email:</strong> {profileData?.email}</p>
                 <div><strong>Specialities:</strong>
                     <div className="speciality-list">
