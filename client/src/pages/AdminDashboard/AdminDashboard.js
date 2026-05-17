@@ -7,7 +7,7 @@ import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, R
 import * as statExport from './exportHelper';
 import './AdminDashboard.css';
 
-const STATS = {QUEUE_WAIT: 'queue-waits', APPOINTMENTS: 'appts', DAYS_OFF: 'days-off'}
+const STATS = {QUEUE_WAIT: 'queue-waits', APPOINTMENTS: 'appointments', DAYS_OFF: 'days-off'}
 
 // ----- a little bit of 'outsourcing' -----
 
@@ -654,9 +654,9 @@ function AdminDashboard() {
                         <header className="block-header">Clinic Stats</header>
                         <section className="block-body">
                             <nav className="stats-nav">
-                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : ''}`} onClick={() => setSelectedStat("days-off")}>Staff<br/>Off Days</button>
-                                <button className={`stat-btn ${selectedStat === STATS.APPOINTMENTS ? 'active' : ''}`} onClick={() => setSelectedStat("appts")}>Appointments</button>
-                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : ''}`} onClick={() => setSelectedStat("queue-waits")}>Queue<br/>Waits</button>
+                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : ''}`} onClick={() => setSelectedStat(STATS.DAYS_OFF)}>Staff<br/>Off Days</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPOINTMENTS ? 'active' : ''}`} onClick={() => setSelectedStat(STATS.APPOINTMENTS)}>Appointments</button>
+                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : ''}`} onClick={() => setSelectedStat(STATS.QUEUE_WAIT)}>Queue<br/>Waits</button>
                             </nav>
                             <section className="stats-graph">
                                 { loadingStats ? (
