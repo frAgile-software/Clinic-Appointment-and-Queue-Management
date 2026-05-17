@@ -138,5 +138,79 @@ describe('QueueService', () => {
                 })
             );
         });
+
+        it('should pass specialityIDs through unchanged when already a string', () => {
+            service.get(clinicId, { ...baseParams, specialityIDs: 'spec-1' });
+
+            expect(mockPrivateClient.get).toHaveBeenCalledWith(
+                `/queues/${clinicId}`,
+                expect.objectContaining({ specialityIDs: 'spec-1' })
+            );
+        });
+
+        it('should pass statuses through unchanged when already a string', () => {
+            service.get(clinicId, { ...baseParams, statuses: 'Waiting' });
+
+            expect(mockPrivateClient.get).toHaveBeenCalledWith(
+                `/queues/${clinicId}`,
+                expect.objectContaining({ statuses: 'Waiting' })
+            );
+        });
+    });
+
+    describe('getAverageWaitTime', () => {
+        const clinicId = 'clinic-123';
+
+        it('should call GET on the estimate path with base params', () => {
+            service.getAverageWaitTime(clinicId, {
+                _fromdate: '2026-01-01',
+                _todate: '2026-05-14',
+                _groupby: 'day',
+            });
+
+            expect(mockPublicClient.get).toHaveBeenCalledWith(
+                `/queues/estimate/${clinicId}`,
+                { _fromdate: '2026-01-01', _todate: '2026-05-14', _groupby: 'day' }
+            );
+        });
+
+        it('should join specialityIDs array into a comma-separated string', () => {
+            service.getAverageWaitTime(clinicId, {
+                specialityIDs: ['spec-1', 'spec-2'],
+                _fromdate: '2026-01-01',
+                _todate: '2026-05-14',
+                _groupby: 'week',
+            });
+
+            expect(mockPublicClient.get).toHaveBeenCalledWith(
+                `/queues/estimate/${clinicId}`,
+                expect.objectContaining({ specialityIDs: 'spec-1,spec-2' })
+            );
+        });
+
+        it('should pass specialityIDs through unchanged when already a string', () => {
+            service.getAverageWaitTime(clinicId, {
+                specialityIDs: 'spec-1',
+                _fromdate: '2026-01-01',
+                _todate: '2026-05-14',
+                _groupby: 'month',
+            });
+
+            expect(mockPublicClient.get).toHaveBeenCalledWith(
+                `/queues/estimate/${clinicId}`,
+                expect.objectContaining({ specialityIDs: 'spec-1' })
+            );
+        });
+
+        it('should omit specialityIDs from params when not provided', () => {
+            service.getAverageWaitTime(clinicId, {
+                _fromdate: '2026-01-01',
+                _todate: '2026-05-14',
+                _groupby: 'day',
+            });
+
+            const params = mockPublicClient.get.mock.calls[0][1];
+            expect(params).not.toHaveProperty('specialityIDs');
+        });
     });
 });
