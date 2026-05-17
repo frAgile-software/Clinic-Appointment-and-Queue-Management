@@ -93,7 +93,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
                 .mockResolvedValueOnce(mockClinics)
                 .mockRejectedValue({ status: 404 }),
                 listStaff: jest.fn().mockResolvedValue({ users: mockStaff }),
-                linkStaff: jest.fn().mockResolvedValue({ message: 'Staff linked successfully' }),
+                linkStaff: jest.fn().mockResolvedValue({ message: 'Staff linked successfully',staffId: 'staff_record_id',staffId: 'user_new' }),
             },
             users: {
               get: jest.fn().mockResolvedValue({ name: 'Admin User' }),
@@ -209,6 +209,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
     });
 
     test("Given the clinic fetch fails, Then an error is logged", async () => {
+        mockApi.clinics.getAssignedClinics.mockReset();
         mockApi.clinics.getAssignedClinics.mockRejectedValue(new Error("Network error"));
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         render(<AdminDashboard />);
