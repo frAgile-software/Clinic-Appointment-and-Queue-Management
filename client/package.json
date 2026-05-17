@@ -55,7 +55,8 @@
       "src/api/ResourceService.js",
       "src/api/useApi.js",
       "src/pages/AdminDashboard/exportHelper.js",
-      "src/context/UserRoleContext.js"
+      "src/context/UserRoleContext.js",
+      "src/components/NotificationCenter.js"
     ]
   }
 }
