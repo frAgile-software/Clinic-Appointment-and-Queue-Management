@@ -89,7 +89,9 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
 
         mockApi = {
             clinics: {
-                getAssignedClinics: jest.fn().mockResolvedValue(mockClinics),
+                getAssignedClinics: jest.fn()
+                .mockResolvedValueOnce(mockClinics)
+                .mockRejectedValue({ status: 404 }),
                 listStaff: jest.fn().mockResolvedValue({ users: mockStaff }),
                 linkStaff: jest.fn().mockResolvedValue({ message: 'Staff linked successfully' }),
             },
