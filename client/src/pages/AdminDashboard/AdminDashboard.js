@@ -210,16 +210,29 @@ function AdminDashboard() {
             setLoadingStaffSearch(true);
             setHasSearchedStaff(true);
  
+  try {
+    const result = await api.users.getByEmail(email, { role: 'Staff' });
+    console.log('result:', result);
+    if (result) {
         try {
-            const user = await api.users.getByEmail(email, 'Staff');
-            setStaffSearchResult(user ? { user, isLinked: false } : null);
-        } catch (error) {
-            console.error('Staff email check error:', error);
-            setStaffSearchResult(null);
-        } finally {
-            setLoadingStaffSearch(false);
+            const clinics = await api.clinics.getAssignedClinics(result.auth0Id);
+            console.log('clinics:', clinics);
+            setStaffSearchResult({ user: result, isLinked: true });
+        } catch (err) {
+            console.log('err status:', err.status);
+            setStaffSearchResult({ user: result, isLinked: err.status === 404 ? false : true });
         }
-        }, 400);
+    } else {
+        setStaffSearchResult(null);
+    }
+} catch (error) {
+    console.error('Staff email check error:', error);
+    setStaffSearchResult(null);
+} finally {
+    setLoadingStaffSearch(false);
+}
+
+          }, 400);
  
         return () => clearTimeout(staffDebounceTimer.current);
     }, [staffEmail, api]);
@@ -266,13 +279,15 @@ function AdminDashboard() {
             setAddingStaff(true);
  
             //linking existing staff user to this clinic
-            await api.clinics.linkStaff(selectedClinic._id, {
-                auth0Id: staffSearchResult.user.auth0Id,
-            });
+           const linkResult = await api.clinics.linkStaff(selectedClinic._id, {
+            auth0Id: staffSearchResult.user.auth0Id,
+        });
+
  
             //create default schedule
             const defaultEntries = buildDefaultScheduleEntries(selectedClinic);
-            await api.schedules.createDefault(staffSearchResult.user._id, defaultEntries);
+            await api.schedules.createDefault(linkResult.staffId, defaultEntries);
+
  
             
             const data = await api.clinics.listStaff(selectedClinic._id);
