@@ -483,7 +483,7 @@ function AdminDashboard() {
     };
 
     const exportPDF = () => {
-        const graph = document.getElementsByClassName("stats-graph");
+        const graph = document.getElementsByClassName("pdf-print");
         if (!graph || graph.length === 0) return;
         statExport.convertPdf(graph[0]).then((pdfUri) => 
             statExport.downloadFile(pdfUri, `${selectedStat}_${new Date().toISOString()}.pdf`));
@@ -799,14 +799,14 @@ function AdminDashboard() {
                 
 
                 {activeSection === 'view-stats' && (
-                    <article className="content-block">
-                        <header className="block-header">Clinic Stats</header>
+                    <article className="content-block pdf-print">
+                        <header className="block-header">{selectedClinic?.practiceName}<br />Clinic Stats</header>
                         <section className="block-body">
                             <nav className="stats-nav">
-                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : ''}`} onClick={() => setSelectedStat("days-off")}>Staff<br/>Off Days</button>
-                                <button className={`stat-btn ${selectedStat === STATS.APPS_CANCELLED ? 'active' : ''}`} onClick={() => setSelectedStat("apps-cancelled")}>Cancelled<br/>Appointments</button>
-                                <button className={`stat-btn ${selectedStat === STATS.APPS_MADE ? 'active' : ''}`} onClick={() => setSelectedStat("apps-made")}>Appointments<br/>Made</button>
-                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : ''}`} onClick={() => setSelectedStat("queue-waits")}>Queue<br/>Waits</button>
+                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat("days-off")}>Staff<br/>Off Days</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPS_CANCELLED ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat("apps-cancelled")}>Cancelled<br/>Appointments</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPS_MADE ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat("apps-made")}>Appointments<br/>Made</button>
+                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat("queue-waits")}>Queue<br/>Waits</button>
                             </nav>
                             <section className="stats-graph">
                                 { loadingStats ? (
@@ -849,7 +849,7 @@ function AdminDashboard() {
                                 )}
                             </section>
                         </section>
-                        <nav className="export-nav" align='right'>
+                        <nav className="export-nav pdf-print-ignore" align='right'>
                             <h2>Export to: </h2>
                             <button className="pill-btn-purple submit-staff-btn" onClick={exportCSV}>CSV</button>
                             <button className="pill-btn-purple submit-staff-btn" onClick={exportPDF}>PDF</button>
