@@ -23,7 +23,7 @@ router.get("/:clinicID", async (req, res) => {
         const auth0Id = req.auth.payload.sub;
 
         // Get referenced clinic
-        const clinic = await Clinic.findById({ id: clinicID });
+        const clinic = await Clinic.findById(clinicID);
         if (!clinic)
             return res.status(404).json({ message: "Clinic not found." });
 
