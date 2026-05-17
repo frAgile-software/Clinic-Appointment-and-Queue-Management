@@ -372,7 +372,7 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         act(() => { jest.runAllTimers(); });
 
         await waitFor(() => {
-            expect(mockApi.users.getByEmail).toHaveBeenCalledWith('alice@clinic.com', 'Staff');
+            expect(mockApi.users.getByEmail).toHaveBeenCalledWith('alice@clinic.com', { role: 'Staff' });
         });
     });
 
