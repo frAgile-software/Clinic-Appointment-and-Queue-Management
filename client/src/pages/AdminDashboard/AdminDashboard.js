@@ -572,8 +572,8 @@ function AdminDashboard() {
                     <>
                         <h2 className="chart-title">Average Queue Wait Time</h2>
                         <nav className="granularity-toggle">
-                            <button className={queueGranularity === 'day' ? 'active' : ''} onClick={() => setQueueGranularity('day')}>Per Day</button>
-                            <button className={queueGranularity === 'hour' ? 'active' : ''} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
+                            <button className={queueGranularity === 'day' ? 'active' : 'pdf-print-ignore'} onClick={() => setQueueGranularity('day')}>Per Day</button>
+                            <button className={queueGranularity === 'hour' ? 'active' : 'pdf-print-ignore'} onClick={() => setQueueGranularity('hour')}>Per Hour</button>
                         </nav>
                         <ResponsiveContainer width="100%" height={300}>
                             {queueGranularity === 'hour' ? (
@@ -608,8 +608,8 @@ function AdminDashboard() {
                     <>
                         <h2 className="chart-title">Appointment history summary</h2>
                         <nav className="granularity-toggle">
-                            <button className={apptGranularity === 'week' ? 'active' : ''} onClick={() => setApptGranularity('week')}>Per Week</button>
-                            <button className={apptGranularity === 'month' ? 'active' : ''} onClick={() => setApptGranularity('month')}>Per Month</button>
+                            <button className={apptGranularity === 'week' ? 'active' : 'pdf-print-ignore'} onClick={() => setApptGranularity('week')}>Per Week</button>
+                            <button className={apptGranularity === 'month' ? 'active' : 'pdf-print-ignore'} onClick={() => setApptGranularity('month')}>Per Month</button>
                             <input
                                 hidden='true'
                                 type="date"
@@ -649,7 +649,7 @@ function AdminDashboard() {
     };
 
     const exportPDF = () => {
-        const graph = document.getElementsByClassName("stats-graph");
+        const graph = document.getElementsByClassName("pdf-print");
         if (!graph || graph.length === 0) return;
         statExport.convertPdf(graph[0]).then((pdfUri) => 
             statExport.downloadFile(pdfUri, `${selectedStat}_${new Date().toISOString()}.pdf`));
@@ -965,13 +965,13 @@ function AdminDashboard() {
                 
 
                 {activeSection === 'view-stats' && (
-                    <article className="content-block">
-                        <header className="block-header">Clinic Stats</header>
+                    <article className="content-block pdf-print">
+                        <header className="block-header">{selectedClinic?.practiceName}<br />Clinic Stats</header>
                         <section className="block-body">
                             <nav className="stats-nav">
-                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : ''}`} onClick={() => setSelectedStat(STATS.DAYS_OFF)}>Staff<br/>Off Days</button>
-                                <button className={`stat-btn ${selectedStat === STATS.APPOINTMENTS ? 'active' : ''}`} onClick={() => setSelectedStat(STATS.APPOINTMENTS)}>Appointments</button>
-                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : ''}`} onClick={() => setSelectedStat(STATS.QUEUE_WAIT)}>Queue<br/>Waits</button>
+                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.DAYS_OFF)}>Staff<br/>Off Days</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPOINTMENTS ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.APPOINTMENTS)}>Appointments</button>
+                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.QUEUE_WAIT)}>Queue<br/>Waits</button>
                             </nav>
                             <section className="stats-graph">
                                 { loadingStats ? (
@@ -979,7 +979,7 @@ function AdminDashboard() {
                                 ) : chart()}
                             </section>
                         </section>
-                        <nav className="export-nav" align='right'>
+                        <nav className="export-nav pdf-print-ignore" align='right'>
                             <h2>Export to: </h2>
                             <button className="pill-btn-purple submit-staff-btn" onClick={exportCSV}>CSV</button>
                             <button className="pill-btn-purple submit-staff-btn" onClick={exportPDF}>PDF</button>

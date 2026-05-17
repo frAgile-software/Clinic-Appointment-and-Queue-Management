@@ -39,10 +39,11 @@ export function convertCsv(values, keys = Object.keys(flattenObject(values[0])))
     return csvContent;
 }
 
+const print_filter = (node) => !node.classList?.contains('pdf-print-ignore');
 export async function convertPdf(element) {
-    const canv = await toCanvas(element);
+    const canv = await toCanvas(element, {filter: print_filter});
     const doc = new jsPDF({ orientation: canv.width > canv.height ? 'l' : 'p', unit: 'pt', format: [canv.width, canv.height] });
-    const png = await toPng(element);
+    const png = await toPng(element, {filter: print_filter});
 
     doc.addImage(png, "PNG", 0, 0, canv.width, canv.height);
     return doc.output("datauristring");
