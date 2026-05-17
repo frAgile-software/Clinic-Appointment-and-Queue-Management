@@ -1,7 +1,7 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router";
-import { LuUser, LuBell } from "react-icons/lu";
+import { LuUser } from "react-icons/lu";
 import { useApi } from "../../api/useApi";  
 import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import * as statExport from './exportHelper';
