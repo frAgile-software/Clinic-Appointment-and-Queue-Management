@@ -29,6 +29,10 @@ function AdminDashboard() {
     const [loadingStats, setLoadingStats] = useState(false);
     const [queueGranularity, setQueueGranularity] = useState('day');
 
+    const [editingTimes, setEditingTimes] = useState(false);
+    const [timesForm, setTimesForm] = useState({ open: '', close: '' });
+    const [savingTimes, setSavingTimes] = useState(false);
+
     useEffect(() => {
         const fetchUserData = async () => {
             if (user?.sub) {
@@ -137,9 +141,45 @@ function AdminDashboard() {
         return <p>Loading dashboard...</p>;
     }
 
+
+
+    const handleEditTimesClick = () => {
+    setTimesForm({
+        open: selectedClinic.practiceTimes?.open || '',
+        close: selectedClinic.practiceTimes?.close || '',
+    });
+    setEditingTimes(true);
+    };
+
+    const handleSaveTimes = async () => {
+        setSavingTimes(true);
+        try {
+            await api.clinics.updateClinic(selectedClinic._id, {
+                practiceTimes: { open: timesForm.open, close: timesForm.close }
+            });
+            
+            setSelectedClinic(prev => ({
+                ...prev,
+                practiceTimes: { open: timesForm.open, close: timesForm.close }
+            }));
+            setClinics(prev => prev.map(c =>
+                c._id === selectedClinic._id
+                    ? { ...c, practiceTimes: { open: timesForm.open, close: timesForm.close } }
+                    : c
+            ));
+            setEditingTimes(false);
+        } catch (error) {
+            console.error('Failed to update clinic times:', error);
+        } finally {
+            setSavingTimes(false);
+        }
+    };
+
+
     const handleClinicChange = (clinic) => {
         setSelectedClinic(clinic);
         setActiveSection(null);
+        setEditingTimes(false);
     };
 
     const toggleSection = (sectionName) => {
@@ -244,9 +284,44 @@ function AdminDashboard() {
                             <p>Address: {selectedClinic.physicalAddress}, {selectedClinic.physicalSuburb}, {selectedClinic.physicalTown}</p>
                             <p>Practice Number: {selectedClinic.practiceNumber}</p>
                             <p>Contact Number: {selectedClinic.contactNumber}</p>
-                            <p>Times: {selectedClinic.practiceTimes?.open || '08:00'} - {selectedClinic.practiceTimes?.close || '17:00'}</p>
+                             <p>Times: {selectedClinic.practiceTimes?.open && selectedClinic.practiceTimes?.close ? `${selectedClinic.practiceTimes.open} - ${selectedClinic.practiceTimes.close}`: 'Not set'}</p>
                             <p>Services: {selectedClinic.services?.join(', ') || ''}</p>
-                            <button className="pill-btn-purple edit-times-btn">Edit Clinic Times</button>
+                            {editingTimes ? (
+                <section className="edit-times-form">
+                    <fieldset className="times-fields">
+                        <label>
+                            Open
+                            <input
+                                type="time"
+                                value={timesForm.open}
+                                onChange={e => setTimesForm(prev => ({ ...prev, open: e.target.value }))}
+                                className="time-input"
+                            />
+                        </label>
+                        <label>
+                            Close
+                            <input
+                                type="time"
+                                value={timesForm.close}
+                                onChange={e => setTimesForm(prev => ({ ...prev, close: e.target.value }))}
+                                className="time-input"
+                            />
+                        </label>
+                    </fieldset>
+                    <section className="times-actions">
+                        <button className="pill-btn-purple" onClick={handleSaveTimes} disabled={savingTimes}>
+                            {savingTimes ? 'Saving...' : 'Save Times'}
+                        </button>
+                        <button className="pill-btn-grey" onClick={() => setEditingTimes(false)}>
+                            Cancel
+                        </button>
+                    </section>
+                </section>
+            ) : (
+                <button className="pill-btn-purple edit-times-btn" onClick={handleEditTimesClick}>
+                    Edit Clinic Times
+                </button>
+            )}
                         </section>
                     </article>
                 )}
