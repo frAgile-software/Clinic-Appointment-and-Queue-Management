@@ -440,6 +440,8 @@ function AdminDashboard() {
             default:
                 return (<span className="graph-icon">📈</span>);
         }
+    }
+    
     const exportCSV = () => {
         if (!stats) return;
         const csvUri = statExport.convertCsv(stats);
