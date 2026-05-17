@@ -73,6 +73,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
               isOpen: true,
               practiceNumber: '102846748',
               telephone: '0858761234',
+              practiceTimes: { open: '00:00', close: '23:59' },
             },
           ],
           pagination: { page: 1, totalPages: 1, total: 1 },
