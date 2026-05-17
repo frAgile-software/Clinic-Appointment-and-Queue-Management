@@ -93,7 +93,7 @@ describe('ScheduleService', () => {
 
             expect(mockPrivateClient.post).toHaveBeenCalledWith(
                 '/schedules/bulk',
-                { staffId: auth0Id, schedules },
+                { userId: auth0Id, schedules },
                 null
             );
         });

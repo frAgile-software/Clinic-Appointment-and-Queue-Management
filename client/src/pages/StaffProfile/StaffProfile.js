@@ -232,19 +232,20 @@ return (
         <section className="profile-grid">
           <article className="clinic-card profile-details-card">
             <h3 className="clinic-type">Staff Information</h3>
-            <div className="details-content">
+            <section className="details-content">
               <p><strong>Name:</strong> {profileData?.name} {profileData?.surname}</p>
               <p><strong>Email:</strong> {profileData?.email}</p>
                 <section><strong>Specialities:</strong>
-                    <section className="speciality-list">
-                        {specialities.length > 0 ? (
-                            specialities.map((spec, index) => (
-                                <span key={index} className="speciality-item">{spec}</span>
-                            ))
-                        ) : (
-                            <p>No specialities found.</p>
-                        )}
-                    </section></section>
+                  <section className="speciality-list">
+                    {specialities.length > 0 ? (
+                        specialities.map((spec, index) => (
+                            <span key={index} className="speciality-item">{spec}</span>
+                        ))
+                    ) : (
+                        <p>No specialities found.</p>
+                    )}
+                  </section>
+                </section>
               <section className="clinic-assignments">
                 <p><strong>Assigned Clinic:</strong> {clinics ? clinics.practiceName : 'No assigned clinic'}</p>
                 <button className="btn-secondary" onClick={toggleClinicDetailsModal}>

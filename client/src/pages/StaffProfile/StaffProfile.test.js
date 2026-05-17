@@ -44,6 +44,12 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
+jest.mock('../../components/NotificationCenter', () => {
+  return function MockNotificationCenter() {
+    return <section data-testid="notification-center" />;
+  };
+});
+
 const profileData = {
   _id: 'staff-1',
   name: 'Alex',
