@@ -1,12 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './StaffDashboard.css';
 import { LuUser } from "react-icons/lu";
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../../api/useApi';
 import { useNavigate } from 'react-router';
+import NotificationCenter from '../../components/NotificationCenter';
 
-const activeStatus = ["Waiting", "In Consult"];
-const inactiveStatus = ["Completed", "Cancelled", "No-show"];
+const status = {
+  WAITING: "Waiting",
+  BEING_SEEN: "In Consult",
+  CONCLUDED: "Completed",
+  CANCELLED: "Cancelled",
+  NO_SHOW: "No-show",
+}
+
+const activeStatus = [status.WAITING, status.BEING_SEEN];
+const inactiveStatus = [status.CONCLUDED, status.CANCELLED, status.NO_SHOW];
 
 function StaffDashboard() {
   const {
@@ -18,6 +27,9 @@ function StaffDashboard() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalDetails, setModalDetails] = useState({});
+  const [showAddToQueue, setShowAddToQueue] = useState(false);
+
+  const debounceTimer = useRef(null);
 
   const logout = () => {
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -31,7 +43,17 @@ function StaffDashboard() {
   const [viewingHistory, setViewingHistory] = useState(false); // Ok, these state things are genuinely black magic
   const [loadingAppointments, setLoadingAppointments] = useState(false);
   const [loadingQueues, setLoadingQueues] = useState(false);
+  const [loadingEmailSearch, setLoadingEmailSearch] = useState(false);
+  const [hasSearchedEmail, setHasSearchedEmail] = useState(false);
+  const [patientEmail, setPatientEmail] = useState('');
+  const [patient, setPatient] = useState(null);
+  const [clinicSpecialities, setClinicSpecialities] = useState({});
+  const [selectedSpeciality, setSelectedSpeciality] = useState('');
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [newBookingDateTime, setNewBookingDateTime] = useState('');
   const statusList = !viewingHistory ? activeStatus : inactiveStatus;
+
+  const [addingToQueue, setAddingToQueue] = useState(false);
 
   const handleCardClick = (details) => {
     setModalDetails(details);
@@ -65,7 +87,7 @@ function StaffDashboard() {
       try {
         setLoadingQueues(true);
         console.log("Finding queues...");
-        const data = await api.queues.get(clinics[0]._id, {auth0Id: staffId, statuses: statusList});
+        const data = await api.queues.get(clinics[0]._id, { auth0Id: staffId, statuses: statusList });
         console.log("Queues found:", data);
         setPatientQueue(data);
       } catch (error) {
@@ -83,7 +105,7 @@ function StaffDashboard() {
       try {
         setLoadingAppointments(true);
         console.log("Finding appointments...");
-        const data = await api.appointments.getForAuth0Id(staffId, {statuses: statusList});
+        const data = await api.appointments.getForAuth0Id(staffId, { statuses: statusList });
         console.log("Appointments found:", data);
         setAppointments(data);
       } catch (error) {
@@ -95,6 +117,105 @@ function StaffDashboard() {
     fetchAppointments();
   }, [staffId, api, statusList]);
 
+  useEffect(() => {
+    if (!clinics || clinics.length === 0) return;
+
+    async function getClinicSpecialities() {
+      try {
+        console.log("Finding clinic specialities...");
+        const specs = await api.specialities.getForClinic(clinics[0]._id);
+        console.log("Found clinic specialities:", specs);
+        setClinicSpecialities(specs);
+      } catch (error) {
+        console.log("Could not find clinic specialities:", error);
+        setClinicSpecialities({});
+      }
+    }
+    getClinicSpecialities();
+  }, [clinics, api]);
+
+  const handleAddToQueue = async () => {
+    try {
+      setAddingToQueue(true);
+      await api.queues.addPatient(
+        clinics[0]._id,
+        { patientId: patient._id },
+        selectedSpeciality,
+      );
+
+      setPatientEmail('');
+      setSelectedSpeciality('');
+      setPatient(null);
+      setHasSearchedEmail(false);
+    } catch (error) {
+      if (error.status === 409) {
+        alert('This patient is already in a queue.');
+      } else {
+        console.error('Could not add patient to queue:', error);
+      }
+    } finally {
+      setAddingToQueue(false);
+    }
+  };
+
+  useEffect(() => {
+    const email = patientEmail.trim();
+
+    if (!email) {
+      setPatient(null);
+      setHasSearchedEmail(false);
+      setLoadingEmailSearch(false);
+      return;
+    }
+
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(async () => {
+      setLoadingEmailSearch(true);
+      setHasSearchedEmail(true);
+
+      try {
+        const user = await api.users.getByEmail(email, { role: "Patient" });
+        console.log("Fetched user:", user);
+        setPatient(user);
+      } catch (error) {
+        if (error.status !== 404) {
+          console.log(error);
+        }
+        setPatient(null); // set patient back to null
+      } finally {
+        setLoadingEmailSearch(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(debounceTimer.current);
+  }, [patientEmail, api]);
+
+  const handleReschedule = async () => {
+    if (!newBookingDateTime) {
+      alert('Please select a new date and time.');
+      return;
+    }
+    const selectedDate = new Date(newBookingDateTime);
+    if (selectedDate <= new Date()) {
+      alert('Please select a future date and time.');
+      return;
+    }
+
+    try {
+      await api.appointments.update(modalDetails._id, { bookingDateTime: newBookingDateTime });
+
+      const updatedItem = { ...modalDetails, BookingDateTime: newBookingDateTime };
+      setModalDetails(updatedItem);
+      setAppointments((prev) => prev.map((item) => (item._id === modalDetails._id ? updatedItem : item)));
+
+      setIsRescheduleModalOpen(false);
+      setNewBookingDateTime('');
+    } catch (error) {
+      console.error('Could not reschedule appointment:', error);
+      alert('Failed to reschedule. Please try again.');
+    }
+  };
+
   const toAppointmentCard = (appointmentItem) => {
     const bookingDate = new Date(appointmentItem.BookingDateTime);
     const patient = appointmentItem.Patient;
@@ -104,7 +225,7 @@ function StaffDashboard() {
         <span className="data-card-detail">ID: {patient._id}</span>
         <span className="data-card-detail">{bookingDate.toLocaleString()}</span>
         <span className="data-card-detail">{appointmentItem.ReasonDetails}</span>
-        <span className={`status-badge ${appointmentItem.Status === 'In Consult' ? 'status-purple' : 'status-white'}`}>
+        <span className={`status-badge ${appointmentItem.Status === status.BEING_SEEN ? 'status-purple' : 'status-white'}`}>
           {appointmentItem.Status}
         </span>
       </li>
@@ -120,7 +241,7 @@ function StaffDashboard() {
         <span className="data-card-detail">ID: {patient._id}</span>
         <span className="data-card-detail">{queueTime.toLocaleTimeString()}</span>
         <span className="data-card-detail">{queueItem.Speciality.SpecialityName}</span>
-        <span className="status-badge status-white">
+        <span className={`status-badge ${queueItem.Status === status.BEING_SEEN ? 'status-purple' : 'status-white'}`}>
           {queueItem.Status}
         </span>
       </li>
@@ -134,11 +255,15 @@ function StaffDashboard() {
     }
 
     const isQueueItem = consultItem.type === 'Queue' || (!!consultItem.createdAt && !consultItem.BookingDateTime);
-    
+
     try {
-      
-      if (isQueueItem)
-        await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
+
+      if (isQueueItem) {
+        if (newStatus === status.BEING_SEEN && consultItem.Status !== status.BEING_SEEN)
+          await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks, timeSeen: new Date() });
+        else
+          await api.queues.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
+      }
       else
         await api.appointments.update(consultItem._id, { status: newStatus, remarks: modalDetails.Remarks });
 
@@ -156,18 +281,18 @@ function StaffDashboard() {
   };
 
   const nav_bar = (
-    <header className="staff-header-canva">
-      <section className="brand-section">
-        <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
-        <h2 className="brand-title">Clinics and Qs</h2>
-      </section>
-      <nav className="header-nav-canva">
-        <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/staff/profile')}>
-          <LuUser />
-        </button>
-        <button className="logout-btn-canva" onClick={logout}>Logout</button>
+    <nav className="landing-nav" aria-label="Main navigation">
+          <section className="nav-logo">
+          <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
+          <span className="landing-logo">Clinics and Qs</span>
+          </section>
+          <section className="landing-nav-btns">
+          <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/staff/profile')}>
+          <LuUser /></button>  
+          <button className="logout-btn-canva" onClick={logout}>Logout</button>
+          <NotificationCenter userId={user?.sub} />
+          </section>
       </nav>
-    </header>
   );
 
   if (loading)
@@ -198,7 +323,18 @@ function StaffDashboard() {
       <section className="quick-actions-row">
         <article className="quick-action-card">
           <h3 className="quick-action-title">Add Patient to Queue</h3>
-          <button className="pill-btn-purple">ADD TO QUEUE</button>
+          <button className="pill-btn-purple" onClick={() => {
+            setShowAddToQueue(!showAddToQueue);
+            if (showAddToQueue) {
+              setPatientEmail('');
+              setSelectedSpeciality('');
+              setPatient(null);
+              setHasSearchedEmail(false);
+            }
+          }
+          }>
+            {showAddToQueue ? 'CLOSE' : 'ADD TO QUEUE'}
+          </button>
         </article>
 
         <article className="quick-action-card">
@@ -232,31 +368,75 @@ function StaffDashboard() {
         {/* <button className="next-action-btn">Next Queue Patient -&gt;</button> */}
       </section>
 
-      {/* <section className="data-section">
-        <header className="data-section-header">Add Patient to Queue</header>
-        <section className="add-queue-container">
-          <form className="add-queue-form">
-            <fieldset className="form-group">
-              <label className="form-label">Patient Name:</label>
-              <input type="text" className="form-input-canva" />
-            </fieldset>
+      {showAddToQueue && (
+        <section className="data-section">
+          <header className="data-section-header">Add Patient to Queue</header>
+          <section className="add-queue-container">
+            <form className="add-queue-form">
+              <fieldset className="form-group">
+                <label className="form-label" htmlFor="patient-email-input">Patient Email:</label>
+                <section className="email-input-wrapper">
+                  <input
+                    type="text"
+                    className="form-input-canva"
+                    value={patientEmail}
+                    onChange={(e) => setPatientEmail(e.target.value)}
+                    id="patient-email-input"
+                  />
+                  {patientEmail.trim() && hasSearchedEmail && (
+                    <span className='email-search-indicator' aria-live='polite'>
+                      {loadingEmailSearch ? (
+                        <span className='spinner' aria-label='Searching' />
+                      ) : patient ? (
+                        <span className='indicator-tick' aria-label='Patient found'>✓</span>
+                      ) : (
+                        <span className='indicator-cross' aria-label='Patient not found'>✗</span>
+                      )}
+                    </span>
+                  )}
+                </section>
+              </fieldset>
 
-            <fieldset className="form-group">
-              <label className="form-label">Arrival time:</label>
-              <input type="text" className="form-input-canva" />
-            </fieldset>
+              <fieldset className="form-group">
+                {patient && !loadingEmailSearch && (
+                  <span className="patient-found-name">
+                    Patient found: {patient.title} {patient.name} {patient.surname} - id: {patient._id}
+                  </span>
+                )}
+              </fieldset>
 
-            <fieldset className="form-group">
-              <label className="form-label">Reason:</label>
-              <input type="text" className="form-input-canva" />
-            </fieldset>
+              <fieldset className="form-group">
+                <label className="form-label" htmlFor="service-select">Service:</label>
+                <select
+                  className="form-input-canva"
+                  value={selectedSpeciality}
+                  onChange={(e) => setSelectedSpeciality(e.target.value)}
+                  id="service-select"
+                >
+                  <option value="">Select a service...</option>
+                  {Object.entries(clinicSpecialities).map(([id, name]) => (
+                    <option key={id} value={name}>{name}</option>
+                  ))}
+                </select>
+              </fieldset>
 
-            <section className="form-submit-row">
-              <button type="button" className="pill-btn-purple form-submit-btn">ADD TO QUEUE</button>
-            </section>
-          </form>
+              <section className="form-submit-row">
+                <button type="button" disabled={!patient || !selectedSpeciality || addingToQueue} className="pill-btn-purple form-submit-btn" onClick={handleAddToQueue}>
+                  {addingToQueue ? (
+                    <>
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      Add to Queue
+                    </>
+                  )}
+                </button>
+              </section>
+            </form>
+          </section>
         </section>
-      </section> */}
+      )}
 
       {isModalOpen && (
         <section className="modal-overlay-canva" onClick={closeModal}>
@@ -283,11 +463,45 @@ function StaffDashboard() {
               </section>
 
               <footer className="modal-actions-footer">
-                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "Waiting")}>Set waiting</button>
-                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, "In Consult")}>Check in</button>
-                <button className="modal-action-btn btn-green" onClick={() => updateConsult(modalDetails, "Completed")}>Done</button>
-                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "Cancelled")}>Cancel</button>
-                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, "No-show")}>No show</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, status.BEING_SEEN)}>Check in</button>
+                <button className="modal-action-btn btn-purple" onClick={() => updateConsult(modalDetails, status.WAITING)}>Reset status</button>
+                <button className="modal-action-btn btn-green" onClick={() => updateConsult(modalDetails, status.CONCLUDED)}>Conclude session</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, status.CANCELLED)}>Cancel</button>
+                <button className="modal-action-btn btn-red" onClick={() => updateConsult(modalDetails, status.NO_SHOW)}>No show</button>
+                {modalDetails.type === 'Queue' ? <></> : <button
+                  className="modal-action-btn btn-blue"
+                  onClick={() => setIsRescheduleModalOpen(true)}>
+                  Reschedule
+                </button>}
+              </footer>
+
+            </section>
+          </article>
+        </section>
+      )}
+
+      {isRescheduleModalOpen && (
+        <section className="modal-overlay-canva" onClick={() => setIsRescheduleModalOpen(false)}>
+          <article className="modal-outer-box" onClick={(e) => e.stopPropagation()}>
+            <section className="modal-inner-box">
+              <header className="modal-header-canva">
+                <h2>Reschedule Appointment</h2>
+                <button className="modal-close-x" onClick={() => setIsRescheduleModalOpen(false)}>X</button>
+              </header>
+              <section className="modal-details-canva">
+                <p>Current Date/Time: {new Date(modalDetails.BookingDateTime).toLocaleString()}</p>
+                <label htmlFor="new-datetime">New Date/Time:</label>
+                <input
+                  type="datetime-local"
+                  id="new-datetime"
+                  value={newBookingDateTime}
+                  onChange={(e) => setNewBookingDateTime(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}  // Prevent past dates
+                />
+              </section>
+              <footer className="modal-actions-footer">
+                <button className="modal-action-btn btn-green" onClick={handleReschedule}>Confirm Reschedule</button>
+                <button className="modal-action-btn btn-red" onClick={() => setIsRescheduleModalOpen(false)}>Cancel</button>
               </footer>
             </section>
           </article>

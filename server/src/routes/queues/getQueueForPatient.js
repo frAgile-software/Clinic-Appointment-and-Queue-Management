@@ -11,7 +11,7 @@ router.get("/patient/:auth0Id", async (req, res) => {
         if (!patient)
             return res.status(404).json({ message: "Patient not found." });
 
-        const queue = await Queue.findOne({ Patient: patient._id })
+        const queue = await Queue.findOne({ Patient: patient._id, Status: "Waiting", })
             .populate('Clinic')
             .populate('Speciality');
         if (!queue)
@@ -20,7 +20,8 @@ router.get("/patient/:auth0Id", async (req, res) => {
         // getting their position in the queue
         const queueList = await Queue.find({
             Clinic: queue.Clinic._id,
-            Speciality: queue.Speciality._id
+            Speciality: queue.Speciality._id,
+            Status: "Waiting",
         }).sort({ updatedAt: 1 });
         const position = queueList.findIndex(q => q.Patient.toString() === patient._id.toString()) + 1;
 

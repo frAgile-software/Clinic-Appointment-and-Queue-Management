@@ -83,4 +83,33 @@ describe('SpecialityService', () => {
             );
         });
     });
+
+    describe('getForClinic', () => {
+        it('should call GET on the correct path', () => {
+            const clinicId = 'clnc1';
+            service.getForClinic(clinicId);
+            expect(mockPrivateClient.get).toHaveBeenCalledWith(
+                '/specialities/clinic/clnc1',
+                null
+            );
+        });
+    });
+
+    describe('create', () => {
+        it('should call POST with the speciality name', () => {
+            service.create({ SpecialityName: 'Dermatology' });
+            expect(mockPrivateClient.post).toHaveBeenCalledWith(
+                '/specialities',
+                { SpecialityName: 'Dermatology' },
+                null
+            );
+        });
+    });
+
+    describe('getAll', () => {
+        it('should call GET on the base path', () => {
+            service.getAll();
+            expect(mockPublicClient.get).toHaveBeenCalledWith('/specialities/');
+        });
+    });
 });

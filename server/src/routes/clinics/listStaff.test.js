@@ -22,7 +22,15 @@ describe('listStaff API', () => {
     Clinic.exists.mockResolvedValue({ _id: 'clinicId' });
     Staff.find.mockImplementation(() => ({
       populate: jest.fn().mockResolvedValue([
-        { User: { _id: 'userId', name: 'Alice', surname: 'Smith', email: 'alice@example.com', role: 'Staff' } }
+        { _id: 'staffRecordId',
+          User: {
+            _id: 'userId',
+            name: 'Alice',
+            surname: 'Smith',
+            email: 'alice@example.com',
+            role: 'Staff',
+            title: 'Dr'
+          } } 
       ])
     }));
 
@@ -31,8 +39,17 @@ describe('listStaff API', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe('Retrieved linked staff successfully.');
-    expect(response.body.users).toEqual([
-      { _id: 'userId', name: 'Alice', surname: 'Smith', email: 'alice@example.com', role: 'Staff' }
+     expect(response.body.users).toEqual([
+      {
+        _id: 'userId',
+        userId: 'userId',
+        staffId: 'staffRecordId',
+        name: 'Alice',
+        surname: 'Smith',
+        email: 'alice@example.com',
+        role: 'Staff',
+        title: 'Dr'
+      }
     ]);
   });
 

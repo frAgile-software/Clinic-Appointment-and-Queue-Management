@@ -1,4 +1,4 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 const mongoose = require("mongoose");
 const User = require("../../database/models/User");
@@ -17,6 +17,40 @@ router.put("/:appointmentID", async (req, res) => {
         if(!appointment) {
             return res.status(404).json({ message: "Appointment not found." });
         }
+
+        const updateKeys = Object.keys(req.body);
+        const isModifyingCoreDetails = updateKeys.some(key => 
+            ['BookingDateTime', 'Clinic', 'Speciality', 'Patient', 'Staff'].includes(key)
+        );
+
+        if (isModifyingCoreDetails) {
+            let isStaffOrAdmin = false;
+            const requesterAuth0Id = req.auth?.payload?.sub;
+            
+            if (requesterAuth0Id) {
+                const requester = await User.findOne({ auth0Id: requesterAuth0Id });
+                if (requester && (requester.role === 'Staff' || requester.role === 'Admin')) {
+                    isStaffOrAdmin = true;
+                }
+            }
+
+            if (!isStaffOrAdmin) {
+                const appointmentTime = new Date(appointment.BookingDateTime).getTime();
+                const hoursDifference = (appointmentTime - Date.now()) / (1000 * 60 * 60);
+
+                if (hoursDifference < 24) {
+                    let tryingToChangeCore = false;
+                    if (BookingDateTime && new Date(BookingDateTime).getTime() !== appointmentTime) tryingToChangeCore = true;
+                    if (clinicId && clinicId !== appointment.Clinic?.toString()) tryingToChangeCore = true;
+                    if (specialityId && specialityId !== appointment.Speciality?.toString()) tryingToChangeCore = true;
+                    
+                    if (tryingToChangeCore) {
+                        return res.status(400).json({ message: "Appointments cannot be rescheduled or updated less than 24 hours before the scheduled time." });
+                    }
+                }
+            }
+        }
+
         if(Patient!== undefined) {
             if(!mongoose.Types.ObjectId.isValid(Patient)) {
                 return res.status(400).json({ message: "Invalid patient ID." });

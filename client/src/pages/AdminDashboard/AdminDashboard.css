@@ -1,117 +1,667 @@
-.dashboard {
-  font-family: Arial, sans-serif;
-  background-color: purple;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
-#navCliniQ{
-    display:flex;
-    justify-content: flex-start;
-    flex-direction: row;
+
+.admin-dashboard-wrapper {
+  background-color: #e5e5e5;
+  min-height: 100vh;
+  padding-bottom: 50px;
 }
-#top_section {
+.export-nav {
+
   display: flex;
   align-items: center;
-  flex-direction: column;
-  background-color: purple;
-  padding: 20px;
+  gap: 1rem;
+  background-color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  width: fit-content;
+  margin: 1rem 0;
+  
+  justify-content: flex-end;
+  margin-left: auto;
+  margin-right: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
-.nav{
-    display:flex;
-    align-items: center;
-    gap: 15px;
+.export-nav h2 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a5568; /* Elegant slate grey */
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
-.nav_button{
-    display: inline-block;
-    text-decoration: none;
-    color: black;
-    padding: 10px 20px;
-    background-color: transparent;
-
-}
-.nav_button:hover {
-    background-color: lightgray;
-    cursor: pointer;
-}
-
-
-.navbar {
-  display:flex;
+.admin-header-canva {
+  display: flex;
   justify-content: space-between;
-  flex-direction: row;
   align-items: center;
   padding: 10px 20px;
-  background-color:white;
-  color: black;
-  border: 2px solid black;
+  background-color: #6b1fad;
 }
 
-.section {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: white;
-  border-radius: 8px;
-  border: 1px solid black;
-}
-
-.clinic_list {
-  list-style-type: none;
-  padding: 0;
-}
-button{
-    cursor: pointer;
-}
-#dropdown_content_clinic {
-  position: absolute;
-  display: none;
-  background-color: gainsboro;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-}
-.dropdown_item{/* Style for items in dropdown */
-    background-color: transparent;
-    border: none;
-    padding: 10px 20px;
-    text-align: center;
-}
-#dropdown_clinic:hover #dropdown_content_clinic{/* Style for button that shows dropdown */
-    display:block;
-
-}
-#dropdown_content_staff {
-  position: absolute;
-  display: none;
-  background-color: gainsboro;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-}
-
-#dropdown_staff:hover #dropdown_content_staff{/* Style for button that shows dropdown */
-    display:block;
-
-}
-#dropdown_content_stats {
-  position: absolute;
-  display: none;
-  background-color: gainsboro;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-}
-
-#dropdown_stats:hover #dropdown_content_stats{/* Style for button that shows dropdown */
-    display:block;
-
-}
-  footer{
-      background-color: purple;
-    margin: 100px 0;
-}
-
-#dropdown_content_clinicList {
-  position: absolute;
-  display: none;
-  background-color: gainsboro;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+.brand-section {
   
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-#dropdown_clinicList:hover #dropdown_content_clinicList{/* Style for button that shows dropdown */
-    display:flex;
-    align-items: center;
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  background-color: #6b1fad; 
+  border-radius: 50%;
+  padding: 4px;
+}
 
+.brand-title {
+  font-size: 22px;
+  font-weight: 500;
+  color: #ffff !important;
+}
+
+.header-nav-canva {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.icon-btn-user {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.logout-btn-canva {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 8px 24px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.purple-banner-container {
+  background-color: #fff; 
+  padding: 3rem;
+  margin-bottom: 2rem;
+}
+
+.top-section {
+  background-color: #6b1fad;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.welcome-area {
+  color: #fff ;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 2rem;
+  padding-top: 1rem;
+}
+
+.welcome-title-canva {
+  
+  color: #ffffff !important;
+  font-size: 2.8rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.notifications-card {
+  background-color: #dcdcdc;
+  border-radius: 24px;
+  padding: 1.5rem 2rem;
+  min-height: 150px;
+  color: #000;
+}
+
+.notif-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notif-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.bell-icon {
+  font-size: 20px;
+}
+
+.clinic-selection-area {
+  padding: 20px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.selection-header {
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 20px;
+}
+
+.clinic-cards-list {
+  display: flex;
+  gap: 20px;
+  list-style: none;
+  overflow-x: auto;
+  padding: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
+.admin-selection-card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 15px;
+  width: 300px;
+  flex: 0 0 auto;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+  color: #000;
+}
+
+.admin-selection-card.active {
+  background-color: #6b1fad; 
+  color: #fff;
+}
+
+.admin-card-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.admin-card-desc, .admin-card-address {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.admin-action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.action-btn-large {
+  background-color: #6b1fad; 
+  color: #fff;
+  border: none;
+  padding: 20px 30px;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  min-width: 200px;
+  max-width: 250px;
+  flex: 1;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.action-btn-large:hover {
+  background-color: #55168a;
+}
+
+.dynamic-content-area {
+  padding: 0 20px;
+  margin: 20px auto 0 auto;
+  max-width: 1200px; 
+}
+
+.content-block {
+  background-color: #d1d5db;
+  border: 2px solid #6b1fad; 
+  margin-bottom: 20px;
+}
+
+.block-header {
+  background-color: #6b1fad; 
+  color: #fff;
+  padding: 15px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.block-body {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.block-body p {
+  font-size: 14px;
+  color: #000;
+  margin-bottom: 8px;
+}
+
+.edit-times-btn {
+  align-self: flex-end;
+  margin-top: 20px;
+}
+
+.pill-btn-purple {
+  background-color: #6b1fad; 
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.pill-btn-red {
+  background-color: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.flex-list {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  background-color: #fff;
+  margin: 20px;
+  border: 1px solid #6b1fad; 
+  flex-direction: row; 
+}
+
+.staff-card {
+  background-color: #e5e5e5;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  width: 320px;
+  flex: 0 0 auto;
+}
+
+.staff-info h4 {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.staff-info p {
+  font-size: 12px;
+  color: #555;
+}
+
+.staff-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.add-staff-form {
+  background-color: #e5e5e5;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+}
+
+.form-row label {
+  width: 150px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-input {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  outline: none;
+}
+
+.submit-staff-btn {
+  padding: 10px 40px;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.stats-nav {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 40px;
+  flex-direction: row; 
+}
+
+.stat-btn {
+  color: #6b1fad;
+  background-color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  min-width: 180px;
+}
+
+.stat-btn.active {
+  background: #6b1fad;
+  color: white;
+}
+
+.stats-graph {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  width: 100%;
+  padding: 1rem 0;
+  flex-direction: column;
+}
+
+.stats-graph h2 {
+  color: #6b1fad;
+  margin-bottom: 0.5rem;
+  padding-bottom: 10px;
+}
+
+.stats-graph .granularity-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-direction: row;
+}
+
+.stats-graph .granularity-toggle button {
+  padding: 0.4rem 1rem;
+  border: 1px solid #6b1fad;
+  border-radius: 20px;
+  background: transparent;
+  color: #6b1fad;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.stats-graph .granularity-toggle button.active {
+  background: #6b1fad;
+  color: white;
+}
+
+.graph-icon {
+  font-size: 100px;
+  color: #6b1fad; 
+}
+
+.custom-tooltip {
+    background: white;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.custom-tooltip .tooltip-label {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.custom-tooltip .tooltip-value {
+    font-size: 12px;
+}
+
+.staff-card {
+    width: 100%;
+    max-width: 720px;
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.staff-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #eeeeee;
+    padding-bottom: 1rem;
+}
+
+.staff-name {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1f1f1f;
+}
+
+.staff-role {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.staff-section-title {
+    margin: 0 0 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.staff-speciality-section,
+.add-speciality-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.empty-specialities {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #777;
+    background: #f7f7f7;
+    padding: 0.75rem;
+    border-radius: 12px;
+}
+
+.speciality-chip-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.speciality-chip {
+    border: none;
+    background: #f0e6ff;
+    color: #5f18b8;
+    border-radius: 999px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.speciality-chip:hover {
+    background: #e1ccff;
+    transform: translateY(-1px);
+}
+
+.chip-remove {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.speciality-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.speciality-select,
+.speciality-input {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid #d8d8d8;
+    font-size: 0.9rem;
+    outline: none;
+    background: #ffffff;
+}
+
+.speciality-select:focus,
+.speciality-input:focus {
+    border-color: #7b22c8;
+    box-shadow: 0 0 0 3px rgba(123, 34, 200, 0.12);
+}
+
+.add-speciality-btn {
+    align-self: flex-start;
+    min-width: 180px;
+}
+
+.staff-fire-btn {
+    min-width: 90px;
+    padding: 0.55rem 1rem;
+}
+
+@media (max-width: 700px) {
+    .staff-card-header {
+        flex-direction: column;
+    }
+
+    .speciality-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .add-speciality-btn,
+    .staff-fire-btn {
+        width: 100%;
+    }
+}
+
+.staff-search-area {
+  background: #ffffff;
+  padding: 20px 30px 0 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.staff-search-input {
+  width: 100%;
+  max-width: 500px;
+  padding: 12px 16px;
+  border: 1px solid #d8d8d8;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  outline: none;
+  background: #ffffff;
+}
+
+.staff-search-input:focus {
+  border-color: #6b1fad;
+  box-shadow: 0 0 0 3px rgba(107, 31, 173, 0.14);
+.edit-times-form {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.times-fields {
+  display: flex;
+  gap: 24px;
+  border: none;
+}
+
+.times-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.time-input {
+  padding: 8px 10px;
+  border: 1px solid #6b1fad;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+  color: #333;
+}
+
+.time-input:focus {
+  box-shadow: 0 0 0 2px rgba(107, 31, 173, 0.2);
+}
+
+.times-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.pill-btn-grey {
+  background-color: #9ca3af;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.pill-btn-grey:hover {
+  background-color: #6b7280;
+}
 }

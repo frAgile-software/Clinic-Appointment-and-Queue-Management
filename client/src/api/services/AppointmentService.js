@@ -6,18 +6,19 @@ export class AppointmentService extends ResourceService {
     }
 
     cancel(appointmentId) {
-        return this.priv.delete(`${this.basePath}/${appointmentId}`, null, null);
+        return this.priv.patch(`${this.basePath}/${appointmentId}`, null, null);
     }
 
     // TODO: fix naming in server to stay to one convention
-    create({clinicId, staffUserId, patientAuth0Id, bookingDateTime, description, specialityName}) {
+    create({clinicId, staffUserId, patientAuth0Id, bookingDateTime, description, specialityName, rescheduleAppointmentId}) {
         return this.priv.post(`${this.basePath}/`, {
             Clinic: clinicId, 
             Staff: staffUserId, 
             patientAuth0Id: patientAuth0Id, 
             BookingDateTime: bookingDateTime, 
             description: description, 
-            Speciality: specialityName
+            Speciality: specialityName,
+            rescheduleAppointmentId: rescheduleAppointmentId
         }, null);
     }
 
@@ -38,5 +39,12 @@ export class AppointmentService extends ResourceService {
             Status: status,
             Remarks: remarks,
         }, null)
+    }
+
+    summary(clinicId, { date_search_field, _fromdate, _todate, _order, specialityIDs, statuses }) {
+        const params = { date_search_field, _fromdate, _todate, _order, specialityIDs, statuses };
+        if (specialityIDs) params.specialityIDs = Array.isArray(specialityIDs) ? specialityIDs.join(',') : specialityIDs;
+        if (statuses) params.statuses = Array.isArray(statuses) ? statuses.join(',') : statuses;
+        return this.priv.get(`${this.basePath}/statistics/${clinicId}`, params);
     }
 }

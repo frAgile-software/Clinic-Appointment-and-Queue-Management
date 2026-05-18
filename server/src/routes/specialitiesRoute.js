@@ -5,11 +5,18 @@ const { requireAuth } = require("../middleware/auth");
 const addSpecialityToStaff = require("./specialities/addSpecialityToStaff");
 const removeSpecialityFromStaff = require("./specialities/removeSpecialityFromStaff");
 const getStaffSpecialities = require("./specialities/getStaffSpecialities");
+const getClinicSpecialities = require("./specialities/getClinicSpecialities");
+const createSpeciality = require("./specialities/createSpeciality");
+const listSpecialities = require("./specialities/listSpecialities");
 
+router.use("/specialities", listSpecialities);
+router.use("/specialities", getStaffSpecialities);
+router.use("/api/specialities", requireAuth, createSpeciality);
 router.use("/api/specialities", requireAuth, addSpecialityToStaff);
 router.use("/api/specialities", requireAuth, removeSpecialityFromStaff);
 router.use("/api/specialities", requireAuth, getStaffSpecialities);
+router.use("/api/specialities", requireAuth, getClinicSpecialities);
 
-router.use("/specialities", getStaffSpecialities);
+
 
 module.exports = router;

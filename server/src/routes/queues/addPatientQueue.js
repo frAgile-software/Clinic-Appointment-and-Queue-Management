@@ -9,19 +9,24 @@ const StaffSpeciality = require("../../database/models/StaffSpeciality");
 
 router.post("/", async (req, res) => {
     try {
-        console.log("USER REGISTRATION");
+        console.log("ADD TO QUEUE");
         console.log("Incoming Payload:", req.body);
-        const { clinicID, specialityName, auth0ID} = req.body;
+        const { clinicId, specialityName, auth0Id, patientId} = req.body;
         //Find user by auth0ID
-         
-        const user = await User.findOne({ auth0Id: auth0ID }); 
+
+        let user = null;
+        if (patientId) {
+            user = await User.findById( patientId ); 
+        } else {
+            user = await User.findOne({ auth0Id: auth0Id }); 
+        }
         if (!user) {
             console.log("User profile not found.");
             return res.status(400).json({ message: "User profile not found." });
         }
         
         // Get referenced clinic
-        const clinic = await Clinic.findOne({ _id: clinicID });
+        const clinic = await Clinic.findOne({ _id: clinicId });
         if (!clinic) {
             console.log("Clinic not found.");
             return res.status(404).json({ message: "Clinic not found" });
@@ -51,7 +56,10 @@ router.post("/", async (req, res) => {
         console.log("APPROPRIATE STAFF MEMBER EXISTS");
 
         //check if user is already in a queue
-        const existingQueueEntry = await Queue.findOne({ Patient: user._id });
+        const existingQueueEntry = await Queue.findOne({
+            Patient: user._id,
+            Status: { $in: ['Waiting', 'In Consult'] },
+        });
         if (existingQueueEntry) 
             return res.status(409).json({ message: "User is already in a queue." });
 
@@ -59,6 +67,7 @@ router.post("/", async (req, res) => {
             Clinic: clinic._id,
             Speciality: speciality._id,
             Patient: user._id,
+            Status: "Waiting",
         });
 
         await newQueue.save()

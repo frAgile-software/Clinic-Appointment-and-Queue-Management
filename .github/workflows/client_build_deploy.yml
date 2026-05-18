@@ -30,7 +30,7 @@ jobs:
         run: |
           npm ci
           npm run build
-          npm run test --if-present -- --coverage
+          npm run test --if-present -- --coverage --silent
         working-directory: ./client
         env:
           REACT_APP_SERVER_URL: ${{ secrets.REACT_APP_SERVER_URL }}

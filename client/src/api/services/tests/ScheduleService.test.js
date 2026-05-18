@@ -80,4 +80,22 @@ describe('ScheduleService', () => {
             expect(body.EndTime).toBeUndefined();
         });
     });
+
+    describe('createDefault', () => {
+        it('should call POST to the bulk path with staffId and schedules', () => {
+            const auth0Id = 'auth0|staff-1';
+            const schedules = [
+                { DayOfWeek: '0', StartTime: '08:00', EndTime: '16:00' },
+                { DayOfWeek: '1', StartTime: '09:00', EndTime: '17:00' },
+            ];
+
+            service.createDefault(auth0Id, schedules);
+
+            expect(mockPrivateClient.post).toHaveBeenCalledWith(
+                '/schedules/bulk',
+                { userId: auth0Id, schedules },
+                null
+            );
+        });
+    });
 });

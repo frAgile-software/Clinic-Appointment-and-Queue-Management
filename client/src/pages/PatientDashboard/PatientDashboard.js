@@ -2,15 +2,25 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import "./PatientDashboard.css";
 import { useAuth0 } from '@auth0/auth0-react';
+import NotificationCenter from '../../components/NotificationCenter';
 // import logo from './logo.svg';
 
-import { useApiAuth } from '../../hooks/apiAuth'; 
+import { useApi } from "../../api/useApi";
 
 const PAGE_LIMIT = 12;
 
+const status = {
+  WAITING: "Waiting",
+  BEING_SEEN: "In Consult",
+  CONCLUDED: "Completed",
+  CANCELLED: "Cancelled",
+  NO_SHOW: "No-show",
+};
+const activeStatus = [status.WAITING, status.BEING_SEEN];
+
 function PatientDashboard() {
   const { user, logout: auth0Logout } = useAuth0();
-  const { apiFetch } = useApiAuth();
+  const api = useApi();
   const navigate = useNavigate();
   
   const [patientName, setPatientName] = useState("");
@@ -19,6 +29,9 @@ function PatientDashboard() {
   const [showAppointmentsModal, setShowAppointmentsModal] = useState(false);
   const [cancelAppId, setCancelAppId] = useState(null);
   const [patientQueue, setPatientQueue] = useState(null);
+
+  const [historyLogs, setHistoryLogs] = useState([]);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   // --- Search & Filter State ---
   const [showSearch, setShowSearch] = useState(false); 
@@ -56,75 +69,86 @@ function PatientDashboard() {
     const fetchUserData = async () => {
       if (user?.sub) {
         try {
-          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
-          if (response.ok) {
-            const data = await response.json();
-            setPatientName(data.name); 
-          } else {
-            console.error("Failed to fetch user profile.");
-          }
+          const data = await api.users.get(user.sub);
+          setPatientName(data.name);
         } catch (error) {
-          console.error("Network error fetching user:", error);
+          console.error("Failed to fetch user profile:", error);
         }
       }
     };
     fetchUserData();
-  }, [user, apiFetch]);
+  }, [user, api]);
 
   useEffect(() => {
     const fetchAppointments = async () => {
       if (user?.sub) {
+        setLoadingAppointments(true);
         try {
-          const res = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${user.sub}`);
-          if (res.ok) {
-            const data = await res.json();
-            setAppointments(data);
-          }
+          const data = await api.appointments.getForAuth0Id(user.sub);
+          const activeAppointments = Array.isArray(data) ? data.filter(app => activeStatus.includes(app.Status)) : data;
+          setAppointments(activeAppointments);
         } catch (error) {
-          console.error(error);
+          console.error("Error fetching appointments:", error);
         } finally {
           setLoadingAppointments(false);
         }
       }
     };
     fetchAppointments();
-  }, [user, apiFetch]);
+  }, [user, api]);
 
   useEffect(() => {
     const fetchPatientQueue = async () => {
       if (user?.sub) {
         try {
-          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/patient/${user.sub}`);
-          if (response.ok) {
-            const data = await response.json();
-            if (data.inQueue) setPatientQueue(data.queue);
+          const data = await api.queues.getForPatient(user.sub);
+          if (data.inQueue) {
+            try {
+              const response = await api.queues.getAverageWaitTime(data.queue.queue.Clinic._id, {
+                specialityIDs: data.queue.queue.Speciality._id,
+              });
+              data.queue.averageWaitTime = response ? response.averageWaitTime : 0;
+            } catch (error) {
+              console.log("Error getting queue position:", error);
+              data.queue.averageWaitTime = 0;
+            }
+            setPatientQueue(data.queue);
+          } else {
+            setPatientQueue(null);
           }
         } catch (error) {
-          console.error("Network error fetching queue:", error);
+          console.error("Error fetching queue:", error);
         }
       }
     };
     fetchPatientQueue();
-  }, [user, apiFetch]);
+  }, [user, api]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (user?.sub) {
+        try {
+          const data = await api.consults.getForAuth0Id(user.sub);
+          setHistoryLogs(Array.isArray(data) ? data : []);
+        } catch (error) {
+          console.error("Error fetching history:", error);
+        }
+      }
+    };
+    fetchHistory();
+  }, [user, api]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
-      const params = new URLSearchParams();
-      if (filters.province) params.set('province', filters.province);
-      if (filters.town) params.set('town', filters.town);
-      if (filters.suburb) params.set('suburb', filters.suburb);
-      if (filters.type) params.set('type', filters.type);
-
       try {
-        const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics/filters?${params}`);
-        const json = await res.json();
+        const json = await api.clinics.getFilters(filters);
         setFilterOptions({ ...json, services: json.services || [] });
       } catch (error) {
         console.error("Couldn't fetch filter options:", error);
       }
     };
     if (showSearch) fetchFilterOptions();
-  }, [filters.province, filters.town, filters.suburb, filters.type, showSearch]);
+  }, [filters, showSearch, api]);
 
   useEffect(() => {
     if (!showSearch) return;
@@ -134,20 +158,19 @@ function PatientDashboard() {
       setLoadingList(true);
       setHasSearched(true);
       try {
-        const params = new URLSearchParams();
-        if (search.trim()) params.set('name', search.trim());
-        if (filters.province) params.set('province', filters.province);
-        if (filters.town) params.set('town', filters.town);
-        if (filters.suburb) params.set('suburb', filters.suburb);
-        if (filters.type) params.set('type', filters.type);
-        if (filters.service) params.set('service', filters.service); 
-        params.set('_orderby', filters._orderby);
-        params.set('_order', filters._order);
-        params.set("_page", page);
-        params.set("_page_len", PAGE_LIMIT);
+        const params = {};
+        if (search.trim()) params.name = search.trim();
+        if (filters.province) params.province = filters.province;
+        if (filters.town) params.town = filters.town;
+        if (filters.suburb) params.suburb = filters.suburb;
+        if (filters.type) params.type = filters.type;
+        if (filters.service) params.service = filters.service;
+        params._orderby = filters._orderby;
+        params._order = filters._order;
+        params._page = page;
+        params._page_len = PAGE_LIMIT;
 
-        const res  = await fetch(`${process.env.REACT_APP_SERVER_URL}/clinics?${params}`);
-        const json = await res.json();
+        const json  = await api.clinics.filterAll(params);
 
         setClinics(json.data || []);
         setPagination({
@@ -164,7 +187,7 @@ function PatientDashboard() {
     }, 400);
 
     return () => clearTimeout(debounceTimer.current);
-  }, [search, filters, page, showSearch]);
+  }, [search, filters, page, showSearch, api]);
 
   const handleStartSearch = () => {
     setShowSearch(true);
@@ -179,23 +202,24 @@ function PatientDashboard() {
     setJoiningQueue(true);
 
     try {
-      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/`, {
-        method: 'POST',
-        body: JSON.stringify({
-          clinicID: selectedClinic._id,
-          specialityName: selectedService,
-          auth0ID: user.sub,
-        })
-      });
+      await api.queues.addPatient(selectedClinic._id, {auth0Id: user.sub}, selectedService);
 
-      if (response.ok) {
-        const queueResponse = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/patient/${user.sub}`);
-        const data = await queueResponse.json();
-        if (data.inQueue) setPatientQueue(data.queue);
-        
-        setShowQueuePanel(false);
-        closePopup();
+      // refresh queue card with current queue
+      const queueResponse = await api.queues.getForPatient(user.sub);
+      if (queueResponse.inQueue) {
+        try {
+          const response = await api.queues.getAverageWaitTime(queueResponse.queue.queue.Clinic._id, {
+            specialityIDs: queueResponse.queue.queue.Speciality._id,
+          });
+          queueResponse.queue.averageWaitTime = response ? response.averageWaitTime : 0;
+        } catch (error) {
+          console.log("Error getting queue position:", error);
+          queueResponse.queue.averageWaitTime = 0;
+        }
+        setPatientQueue(queueResponse.queue);
       }
+      setShowQueuePanel(false);
+      closePopup();
     } catch (error) {
       console.error("Failed to join queue:", error);
     } finally {
@@ -232,15 +256,16 @@ function PatientDashboard() {
   const handleConfirmCancel = async () => {
     if (!cancelAppId) return;
     try {
-      const res = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${cancelAppId}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        setAppointments(prev => prev.filter(a => a._id !== cancelAppId));
-        setCancelAppId(null);
+      await api.appointments.cancel(cancelAppId);
+      setAppointments(prev => prev.filter(a => a._id !== cancelAppId));
+      setCancelAppId(null);
+
+      if (user?.sub) {
+        const data = await api.consults.getForAuth0Id(user.sub);
+        setHistoryLogs(Array.isArray(data) ? data : []);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error cancelling appointment:",err);
     }
   };
 
@@ -281,16 +306,26 @@ function PatientDashboard() {
   const handleLeaveQueue = async () => {
     try {
       console.log("Queue:", patientQueue);
-      const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/queues/${patientQueue.queue._id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setPatientQueue(null);
-      }
+      await api.queues.remove(patientQueue.queue._id);
+      setPatientQueue(null);
     } catch (error) {
       console.log("Error leaving queue:", error);
     }
+  };
+
+  const isClinicOpen = (clinic) => {
+    if (!clinic.practiceTimes?.open || !clinic.practiceTimes?.close) return false;
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const [openH, openM]   = clinic.practiceTimes.open.split(':').map(Number);
+    const [closeH, closeM] = clinic.practiceTimes.close.split(':').map(Number);
+
+    const openMinutes  = openH  * 60 + openM;
+    const closeMinutes = closeH * 60 + closeM;
+
+    return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
   };
 
   const buildPageRange = (current, total) => {
@@ -300,6 +335,14 @@ function PatientDashboard() {
     return [1, '…', current - 1, current, current + 1, '…', total];
   };
   const pageRange = buildPageRange(pagination.page, pagination.totalPages);
+
+  const formatHistoryStatus = (statusStr) => {
+    const s = statusStr?.toLowerCase() || '';
+    if (s === 'in consult' || s === 'completed') return 'Attended';
+    if (s === 'cancelled') return 'Cancelled';
+    if (s === 'no-show') return 'You missed it';
+    return statusStr;
+  };
 
   return (
     <section className="dashboard-container">
@@ -345,14 +388,7 @@ function PatientDashboard() {
             </section>
 
             <section className="notifications-card" aria-labelledby="notifications-heading">
-              <section className="notif-header">
-                <h3 id="notifications-heading">Notifications</h3>
-                <span className="bell-icon" aria-hidden="true">
-                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                </span>
-              </section>
-              <section className="notifications-list">
-              </section>
+            <NotificationCenter userId={user?.sub} />
             </section>
           </section>
         </section>
@@ -371,6 +407,7 @@ function PatientDashboard() {
                 <p>{patientQueue.queue.Clinic.practiceName}</p>
                 <p>{patientQueue.queue.Speciality.SpecialityName}</p>
                 <p>Position: <strong>{patientQueue.position}</strong></p>
+                <p>Average wait: <strong>{patientQueue.averageWaitTime}</strong> minutes</p>
                 <button className="card-btn" onClick={handleLeaveQueue}>LEAVE QUEUE</button>
               </>
             ) : (
@@ -380,6 +417,12 @@ function PatientDashboard() {
                 <button className="card-btn" onClick={handleStartSearch}>JOIN A VIRTUAL QUEUE</button>
               </>
             )}
+          </section>
+
+          <section className="grid-card">
+            <h3>My History</h3>
+            <p>You have {historyLogs.length} past record(s).</p>
+            <button className="card-btn" onClick={() => setShowHistoryModal(true)}>VIEW HISTORY</button>
           </section>
         </section>
 
@@ -479,8 +522,8 @@ function PatientDashboard() {
                           <span className="clinic-addr">
                             {clinic.physicalAddress}, {clinic.physicalTown}
                           </span>
-                          <span className={`clinic-badge ${clinic.isOpen ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
-                            {clinic.isOpen ? 'Open now' : 'Closed'}
+                          <span className={`clinic-badge ${isClinicOpen(clinic) ? 'clinic-badge--open' : 'clinic-badge--closed'}`}>
+                            {isClinicOpen(clinic) ? 'Open now' : 'Closed'}
                           </span>
                         </li>
                       ))}
@@ -627,6 +670,7 @@ function PatientDashboard() {
         </section>
       )}
 
+      {/* --- APPOINTMENTS MODAL --- */}
       {showAppointmentsModal && (
         <section className="clinic-modal-overlay" onClick={() => setShowAppointmentsModal(false)}>
           <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
@@ -642,18 +686,89 @@ function PatientDashboard() {
                 ) : appointments.length === 0 ? (
                   <p>You have no upcoming appointments.</p>
                 ) : (
-                  appointments.map((app) => (
+                  appointments.map((app) => {
+                    const appointmentTime = new Date(app.BookingDateTime).getTime();
+                    const isWithin24Hours = (appointmentTime - Date.now()) < (24 * 60 * 60 * 1000);
+                    return (
                     <article key={app._id} style={{ border: '1px solid #e2e4e9', padding: '1rem', borderRadius: '8px', background: '#fff' }}>
                       <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{app.Clinic?.practiceName || 'Unknown Clinic'}</p>
                       <p>Doctor: {app.Staff?.name} {app.Staff?.surname}</p>
                       <p>Date: {new Date(app.BookingDateTime).toLocaleString('en-ZA')}</p>
                       
-                      <section style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                        <button className="clinic-modal-book-btn" onClick={() => handleReschedule(app)}>Reschedule</button>
-                        <button className="btn pagination__btn" style={{ color: '#b91c1c', borderColor: '#b91c1c' }} onClick={() => setCancelAppId(app._id)}>Cancel Appointment</button>
+                      <section style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        
+                        <button 
+                            className="clinic-modal-book-btn" 
+                            style={{ 
+                                backgroundColor: isWithin24Hours ? '#9ca3af' : '', 
+                                cursor: isWithin24Hours ? 'not-allowed' : 'pointer'
+                            }}
+                            disabled={isWithin24Hours}
+                            title={isWithin24Hours ? "Cannot reschedule within 24 hours of appointment" : "Reschedule Appointment"}
+                            onClick={() => handleReschedule(app)}
+                        >
+                            Reschedule
+                        </button>
+                        
+                        <button 
+                            className="btn pagination__btn" 
+                            style={{ 
+                                color: isWithin24Hours ? '#9ca3af' : '#b91c1c', 
+                                borderColor: isWithin24Hours ? '#9ca3af' : '#b91c1c',
+                                cursor: isWithin24Hours ? 'not-allowed' : 'pointer'
+                            }} 
+                            disabled={isWithin24Hours}
+                            title={isWithin24Hours ? "Cannot cancel within 24 hours of appointment" : "Cancel Appointment"}
+                            onClick={() => setCancelAppId(app._id)}
+                        >
+                            Cancel Appointment
+                        </button>
+                        {isWithin24Hours && <span style={{fontSize: '0.8rem', color: '#b91c1c'}}>* Too close to appointment time to modify.</span>}
                       </section>
                     </article>
-                  ))
+                  )})
+                )}
+              </section>
+            </section>
+          </section>
+        </section>
+      )}
+
+      {/* --- HISTORY MODAL --- */}
+      {showHistoryModal && (
+        <section className="clinic-modal-overlay" onClick={() => setShowHistoryModal(false)}>
+          <section className="clinic-modal-outer" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+            <section className="clinic-modal-inner" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+              <section className="clinic-modal-header">
+                <h2>Your History</h2>
+                <button className="clinic-modal-close" onClick={() => setShowHistoryModal(false)}>X</button>
+              </section>
+              
+              <section className="clinic-modal-details" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {historyLogs.length === 0 ? (
+                  <p>You have no past records.</p>
+                ) : (
+                  historyLogs.map((log) => {
+                    const statusText = formatHistoryStatus(log.Status);
+                    let statusColor = '#374151'; 
+                    if (statusText === 'Attended') statusColor = '#15803d'; 
+                    if (statusText === 'Cancelled') statusColor = '#b91c1c'; 
+                    if (statusText === 'You missed it') statusColor = '#ea580c'; 
+
+                    return (
+                      <article key={log._id} style={{ border: '1px solid #e2e4e9', padding: '1rem', borderRadius: '8px', background: '#fff' }}>
+                        <p style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: statusColor, fontSize: '1.1rem' }}>
+                          {statusText}
+                        </p>
+                        <p>Speciality: {log.Speciality?.SpecialityName || 'General'}</p>
+                        {log.Staff && <p>Doctor: {log.Staff.name} {log.Staff.surname}</p>}
+                        <p>Date: {new Date(log.createdAt).toLocaleString('en-ZA')}</p>
+                        <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem', fontStyle: 'italic' }}>
+                          Type: {log.type || 'Consult'}
+                        </p>
+                      </article>
+                    )
+                  })
                 )}
               </section>
             </section>

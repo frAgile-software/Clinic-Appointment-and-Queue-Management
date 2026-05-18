@@ -15,6 +15,7 @@ useApi (hook)
         |-> AppointmentService  (done)
         |-> QueueService        (done)
         |-> SpecialityService   (done)
+        |-> ConsultService      (done)
 ```
 
 ---
@@ -34,6 +35,7 @@ src/
         |-- AppointmentService.js
         |-- QueueService.js
         |-- SpecialityService.js
+        |-- ConsultService.js
 ```
 
 ---
@@ -101,6 +103,7 @@ Returns:
   appointments,  // AppointmentService
   queues,        // QueueService
   specialities,  // SpecialityService
+  consults,      // ConsultService
 }
 ```
 
@@ -187,8 +190,9 @@ Base path: `/queues`.
 | `getForPatient(patientAuth0Id)` | Private | `GET /api/queues/patient/:auth0Id` |
 | `addPatient(clinicId, patientId, specialityName)` | Public | `POST /queues/` |
 | `remove(queueId)` | Private | `DELETE /api/queues/:queueId` |
-| `update(queueId, {clinicId, specialityId, patientId, status, remarks})` | Private | `PUT /api/queues/:queueId` |
+| `update(queueId, {clinicId, specialityId, patientId, status, remarks, timeSeen})` | Private | `PUT /api/queues/:queueId` |
 | `get(clinicId, {auth0Id, userId, specialityIDs, statuses})` | Private | `GET /api/queues/:clinicId?statuses=...` with <br> `&auth0Id=..`,  `&userId=..`, or `&specialityIDs=spec1,spec2...`|
+| `getAverageWaitTime(clinicId, {specialityIDs, _fromdate, _todate})` | Public | `GET /queues/estimate/:clinicID` |
 
 
 **Example usage in a component**
@@ -223,6 +227,7 @@ Base path: `/specialities`.
 | `removeFromStaff({staffId, specialityId})`| Private |`DELETE /api/specialities/staff/:staffId/:specialityId` |
 | `getForStaff(staffId)`| Public | `GET /specialities/staff/:staffId` |
 
+
 **Example usage in a component**
 ```js
 const api = useApi();
@@ -235,8 +240,15 @@ await api.specialities.removeFromStaff({staffId: "staff123", specialityId: "spc1
 
 // get a list of staff specialities
 const staffSpecs = await api.specialities.getForStaff("staff123");
+
+//get a list of all specialitities
+const specialities = await api.specialities.getAll();
 ```
 
+// create speciality
+await api.specialities.create("drugs");
+```
+)
 ---
 
 ### `ScheduleService`
@@ -247,6 +259,7 @@ Base path: `/schedules`. All methods are login protected.
 |---|---|
 | `getSchedule(userId)` | `GET /api/schedules/:userId` |
 | `update(scheduleId, {Staff, DayOfWeek, StartTime, EndTime})` | `PUT /api/schedules/:scheduleId` |
+| `createDefault(auth0Id, schedules)`|`POST /api/schedules/bulk`|
 
 **Example usage in a component**
 ```js
@@ -262,6 +275,13 @@ await spi.schedules.update("schdl1", {
   StartTime: "01:00",
   EndTime: "23:00"
 });
+
+// create default schedules in bulk
+await api.schedules.createDefault("auth0|123", [
+  { DayOfWeek: 0, StartTime: "08:00", EndTime: "17:00" },
+  { DayOfWeek: 1, StartTime: "08:00", EndTime: "17:00" },
+]);
+
 ```
 
 ---
@@ -276,6 +296,7 @@ Base path: `/appointments`.
 | `create({clinicId, staffUserId, patientAuth0Id, bookingDateTime, description, specialityName})`| Private |`POST /api/appointments/` |
 | `getForAuth0Id(auth0Id)`| Private | `GET /api/appointments/:auth0Id?statuses=...` |
 | `update(appointmentId, {patientUID, staffUID, clinicId, bookingDateTime, specialityId})`| Private | `PUT /api/appointments/:appointmentId` |
+| `summary(clinicId, { date_search_field, _fromdate, _todate, _order, specialityIDs, statuses })`| Private | `GET /api/appointments/statistics/:clinicId` |
 
 **Example usage in a component**
 ```js
@@ -302,7 +323,30 @@ await api.appointments.cancel("appt1");
 
 // get a list of upcoming appointments by auth0Id
 const appointments = await api.appointments.getForAuth0Id("auth0|123", {statuses: ["Waiting"]});
+
+// get the cancelled and no-show appointments for a speciality in the last month
+const date = new Date();
+date.setMonth(date.getMonth() - 1); 
+const summary = await api.appointments.summary("clnc2", { _fromdate: date.toISOString(), specialityIDs: "spc1", statuses: ["Cancelled", "No-show"] })
 ```
+---
+
+### `ConsultService`
+
+Base path: `/consults`. All routes are private.
+
+| Method | auth | Server route |
+|---|---|---|
+| `getForAuth0Id(auth0Id)` | Private | `GET /api/consults/:auth0Id` |
+
+**Example usage in a component**
+```js
+const api = useApi();
+
+// get consults for a user
+const consults = await api.consults.getForAuth0Id("auth0|123");
+```
+
 ---
 
 ## How to Create a New Service
@@ -372,6 +416,18 @@ try {
 ```
 
 ---
+## NotificationCenter.js
+To use:
+import NotificationCenter from '../../components/NotificationCenter';
+Then use <NotificationCenter userId={ id } /> 
+component anywhere, usually in the header,
+where id is either the user's auth0Id or object id.
+The component is a white button (may conflict with white headers) which allows a user
+to view their notifications (ordered chronologically), mark notifications as seen, and 
+delete their seen notifications (all view buttons within the dropdown). 
+
+
+
 
 ## Known Problems to fix
 

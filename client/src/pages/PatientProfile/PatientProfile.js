@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './PatientProfile.css'; 
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useApiAuth } from '../../hooks/apiAuth';
-import { useRef } from 'react';
+
+import NotificationCenter from '../../components/NotificationCenter';
+
 function PatientProfile() {
     const nameRef = useRef(); //for changing of details
     const surnameRef = useRef();
@@ -46,8 +48,7 @@ function PatientProfile() {
 
         if (Object.keys(updatedData).length === 0) {
             alert('No changes made.');
-            toggleChangeDetailsModal();
-            return;
+            return; 
         }
 
         try {
@@ -69,7 +70,6 @@ function PatientProfile() {
         };
     };
 
-    //fetch profile data
     useEffect(() => {
         if (!patientId) {
             console.log("No user, cannot find profile details.");
@@ -94,89 +94,102 @@ function PatientProfile() {
     }, [patientId, apiFetch]);
 
     return (
-        <div className="landing"> 
+        <section className="landing">
             <nav className="landing-nav" aria-label="Main navigation">
             <span className="landing-logo">Clinics and Qs</span>
             <section className="landing-nav-btns">
                 <button className="btn" onClick={logout}>Logout</button>
+                <NotificationCenter userId={user?.sub} />
                 <button className="btn btn-primary" onClick={() => navigate('/dashboard/patient')}>Back</button>
             </section>
             </nav>
 
             <main className="profile-container">
-                <header className="profile-header">
+                <header className="profile-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <h1 className="profile-title">My Profile</h1>
+                    {user?.picture && (
+                        <img 
+                            src={user.picture} 
+                            alt="Profile" 
+                            className="profile-picture" 
+                            style={{
+                                width: '150px',
+                                height: '150px',
+                                borderRadius: '50%',
+                                objectFit: 'cover'
+                            }}
+                        />
+                    )}
                 </header>
 
                 {loading ? (
-                    <div className="landing--loading">Loading profile details...</div>
+                    <p className="landing--loading">Loading profile details...</p>
                 ) : (
                     <section className="profile-grid">
-                        <div className="profile-actions-card">
+                        <article className="profile-actions-card">
                             <h3 className='profile-subtitle'>Account Details</h3>
                             {profileData && (
                                 <section className='profile-display'>
-                                    <div className='inline-components'>
+                                    <fieldset className='inline-components'>
                                         <label>Title</label>
                                         <p>{profileData?.title}</p>
-                                    </div>
-                                    <div className='inline-components'>
+                                    </fieldset>
+                                    <fieldset className='inline-components'>
                                         <label>Name</label>
                                         <p>{profileData?.name}</p>
-                                    </div>
-                                    <div className='inline-components'>
+                                    </fieldset>
+                                    <fieldset className='inline-components'>
                                         <label>Surname</label>
                                         <p>{profileData?.surname}</p>
-                                    </div>
-                                    <div className='inline-components'>
-                                        <label>Email</label> 
+                                    </fieldset>
+                                    <fieldset className='inline-components'>
+                                        <label>Email</label>
                                         <p>{profileData?.email}</p>
-                                    </div>
+                                    </fieldset>
                                 </section>
                             )}
-                            <div className="action-button-list">
+                            <nav className="action-button-list">
                                 <button className="action-item-btn" onClick={toggleChangeDetailsModal}>Update account details</button>
-                            </div>
-                        </div>
+                            </nav>
+                        </article>
                     </section>
                 )}
 
                 {isChangeDetailsModalOpen && (
-                    <div className="modal-overlay">
-                        <div className="modal-content details-card"> 
+                    <aside className="modal-overlay">
+                        <section className="modal-content details-card">
                             <h3 className="sub-heading">Edit Account Details</h3>
-                            
+
                             <form className="details-content">
-                                
-                                <div className='inline-components'>
+
+                                <fieldset className='inline-components'>
                                     <label>Name</label>
                                     <input type="text" ref={nameRef} defaultValue={profileData?.name} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-                                </div>
-                                <div className='inline-components'>
+                                </fieldset>
+                                <fieldset className='inline-components'>
                                     <label>Surname</label>
                                     <input type="text" ref={surnameRef} defaultValue={profileData?.surname} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-                                </div>
-                                <div className='inline-components'>
+                                </fieldset>
+                                <fieldset className='inline-components'>
                                     <label>Title</label>
                                     <input type="text" ref={titleRef} defaultValue={profileData?.title} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-                                </div>
-                                <div className='inline-components'>
+                                </fieldset>
+                                <fieldset className='inline-components'>
                                     <label>Email</label> 
-                                    <input type="email" disabled={!patientId || !patientId?.startsWith("auth0|")} ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
-                                </div>
-                                
+                                    <input type="email" disabled={!patientId || !patientId?.startsWith("auth0|")} ref={emailRef} defaultValue={profileData?.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+                                </fieldset>
 
-                                <div className="landing-nav-btns" style={{marginTop: '20px'}}>
+                                <footer className="landing-nav-btns" style={{marginTop: '20px'}}>
                                 <button type="button" className="btn btn-primary" onClick={handleUpdate}>Save Changes</button>
                                 <button type="button" className="btn" style={{color: 'var(--color-text)'}} onClick={toggleChangeDetailsModal}>Cancel</button>
-                                </div>
-                                
+                                </footer>
+
                             </form>
-                        </div>
-                    </div>
+                        </section>
+                    </aside>
                 )}
             </main>
-        </div>   
+        </section>   
     );
 }
 

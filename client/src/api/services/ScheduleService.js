@@ -14,4 +14,11 @@ export class ScheduleService extends ResourceService {
             Staff, DayOfWeek, StartTime, EndTime
         }, null);
     }
+    
+    createDefault(staffId, schedules) {
+        return this.priv.post(`${this.basePath}/bulk`, {
+            userId: staffId,schedules,
+        }, null);
+    }
+
 }

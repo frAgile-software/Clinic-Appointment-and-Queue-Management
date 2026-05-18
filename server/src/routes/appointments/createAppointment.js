@@ -8,7 +8,7 @@ const SpecialityModel = require("../../database/models/Speciality");
 
 router.post("/", async (req, res) => {
     try {
-        const { Clinic: clinicId, Staff, patientAuth0Id, BookingDateTime, description, Speciality } = req.body;
+        const { Clinic: clinicId, Staff, patientAuth0Id, BookingDateTime, description, Speciality, rescheduleAppointmentId } = req.body;
 
         const patient = await User.findOne({ auth0Id: patientAuth0Id });
         if (!patient) {
@@ -28,8 +28,9 @@ router.post("/", async (req, res) => {
         const existing = await Appointment.findOne({
             Staff,
             BookingDateTime: new Date(BookingDateTime),
+            Status: { $ne: "Cancelled" }
         });
-        if (existing) {
+        if (existing && existing._id.toString() !== rescheduleAppointmentId) {
             return res.status(409).json({ message: "This slot is already booked." });
         }
 
@@ -39,6 +40,26 @@ router.post("/", async (req, res) => {
             if (specDoc) {
                 specialityId = specDoc._id;
             }
+        }
+
+        if (rescheduleAppointmentId) {
+            const appointment = await Appointment.findById(rescheduleAppointmentId);
+            if (!appointment) {
+                return res.status(404).json({ message: "Original appointment not found." });
+            }
+
+            appointment.Clinic = clinic._id;
+            appointment.Staff = staff._id;
+            appointment.BookingDateTime = new Date(BookingDateTime);
+            appointment.ReasonDetails = description || '';
+            appointment.Status = "Waiting";
+            appointment.type = "Appointment";
+            if (specialityId) {
+                appointment.Speciality = specialityId;
+            }
+
+            await appointment.save();
+            return res.status(200).json({ message: "Appointment rescheduled successfully.", appointment });
         }
 
         const apptData = {

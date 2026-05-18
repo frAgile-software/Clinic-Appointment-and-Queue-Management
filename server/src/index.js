@@ -2,12 +2,16 @@ const express = require("express");
 const cors = require("cors");
 const dbConnect = require("./database/dbConnect")
 const { requireAuth } = require('./middleware/auth');
+const { scheduleClearStaleQueues, clearStaleQueues } = require("./jobs/clearStaleQueues");
+
 const usersRoute = require('./routes/usersRoute');
 const clinicsRoute = require('./routes/clinicsRoute');
 const schedulesRoute = require('./routes/schedulesRoute');
 const appointmentsRoute = require("./routes/appointmentsRoute");
 const queuesRoute = require("./routes/queuesRoute");
 const specialitiesRoute = require("./routes/specialitiesRoute");
+const consultsRoute = require("./routes/consultsRoute"); 
+const notifsRoute = require("./routes/notifsRoute");
 
 dbConnect();
 
@@ -28,6 +32,8 @@ server.use(schedulesRoute);
 server.use(appointmentsRoute);
 server.use(queuesRoute);
 server.use(specialitiesRoute);
+server.use(consultsRoute); 
+server.use(notifsRoute);
 
 // hello mr api! :D
 server.get("/hello", (req, res) => {
@@ -40,6 +46,7 @@ if (require.main === module) {
     const listener = server.listen(port, () => {
         console.log(`Running on port ${port}`);
     });
+    scheduleClearStaleQueues();
 }
 
 module.exports = server;
