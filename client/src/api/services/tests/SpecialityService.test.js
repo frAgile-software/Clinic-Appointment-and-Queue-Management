@@ -93,5 +93,23 @@ describe('SpecialityService', () => {
                 null
             );
         });
-    })
+    });
+
+    describe('create', () => {
+        it('should call POST with the speciality name', () => {
+            service.create({ SpecialityName: 'Dermatology' });
+            expect(mockPrivateClient.post).toHaveBeenCalledWith(
+                '/specialities',
+                { SpecialityName: 'Dermatology' },
+                null
+            );
+        });
+    });
+
+    describe('getAll', () => {
+        it('should call GET on the base path', () => {
+            service.getAll();
+            expect(mockPublicClient.get).toHaveBeenCalledWith('/specialities/');
+        });
+    });
 });
