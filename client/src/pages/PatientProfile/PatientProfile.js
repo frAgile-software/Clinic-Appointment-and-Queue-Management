@@ -3,7 +3,8 @@ import './PatientProfile.css';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useApiAuth } from '../../hooks/apiAuth';
-
+import { LuUser } from "react-icons/lu";
+import Header from '../../components/Header';
 import NotificationCenter from '../../components/NotificationCenter';
 
 function PatientProfile() {
@@ -95,14 +96,11 @@ function PatientProfile() {
 
     return (
         <section className="landing">
-            <nav className="landing-nav" aria-label="Main navigation">
-            <span className="landing-logo">Clinics and Qs</span>
-            <section className="landing-nav-btns">
-                <button className="btn" onClick={logout}>Logout</button>
+            <Header>
+                <button  onClick={logout}>Logout</button>
+                <button  onClick={() => navigate('/dashboard/patient')}>Back</button>
                 <NotificationCenter userId={user?.sub} />
-                <button className="btn btn-primary" onClick={() => navigate('/dashboard/patient')}>Back</button>
-            </section>
-            </nav>
+            </Header>
 
             <main className="profile-container">
                 <header className="profile-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
