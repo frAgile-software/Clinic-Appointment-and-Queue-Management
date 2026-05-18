@@ -29,20 +29,43 @@
   gap: 16px;
 }
 
-.universal-header button {
+.universal-header > nav > button,
+.universal-header .header-navigation > button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 16px;
+  height: 40px;
+  padding: 0 16px;
   font-family: inherit;
   font-size: 1rem;
   font-weight: 500;
   border-radius: 6px;
   background-color: transparent;
   color: #ffffff;
-  border: 1.2px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.universal-header > nav > button:hover,
+.universal-header .header-navigation > button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+}
+
+.universal-header > nav > button.btn-icon,
+.universal-header .header-navigation > button.btn-icon {
+  width: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+}
+
+.universal-header > nav > button svg,
+.universal-header .header-navigation > button svg {
+  width: 20px;
+  height: 20px;
 }
 
 .universal-header button:hover:not(:disabled) {
