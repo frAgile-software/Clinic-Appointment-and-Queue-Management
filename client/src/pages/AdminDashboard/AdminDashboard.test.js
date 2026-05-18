@@ -741,8 +741,6 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         expect(screen.getByText(/Clinic Stats/i)).toBeInTheDocument();
     });
 
-    
-
     test("Given a staff member and speciality are selected, Then clicking 'Add Staff' calls addToStaff with the correct staffId and specialityId", async () => {
         mockApi.specialities.addToStaff = jest.fn().mockResolvedValue({ message: 'Speciality added' });
 
@@ -889,8 +887,6 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         consoleSpy.mockRestore();
     });
 
-   
-
     test("Given a staff member is already linked to another clinic, Then the Add Staff button is disabled", async () => {
         mockApi.clinics.getAssignedClinics
             .mockResolvedValueOnce(mockClinics)
@@ -939,9 +935,6 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         });
     });
 
-   
-
-    test("Given the user types in the staff search box, Then only matching staff are shown", async () => {
     test("Given the user clicks 'Edit Clinic Times', Then the time inputs are shown with current values", async () => {
         await renderDashboard();
         fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
@@ -1002,8 +995,6 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
 
         expect(screen.getByText(/No staff match your search/i)).toBeInTheDocument();
     });
-
-
 
     test("Given the user clicks 'Edit Clinic Times', Then time inputs are shown pre-filled with current times", async () => {
         mockApi.clinics.updateClinic = jest.fn().mockResolvedValue({});
@@ -1078,6 +1069,8 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         });
 
         consoleSpy.mockRestore();
+    });
+
     test("Given the user selects and adds a speciality to a staff member, Then addToStaff is called", async () => {
         const staffWithIds = mockStaff.map(s => ({ ...s, staffId: s._id, userId: s._id }));
         mockApi.clinics.listStaff.mockResolvedValue({ users: staffWithIds });
@@ -1147,4 +1140,5 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         });
         expect(await screen.findByText(/Appointment history summary/i)).toBeInTheDocument();
     });
+
 });
