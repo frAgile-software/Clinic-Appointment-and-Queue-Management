@@ -282,7 +282,13 @@ function AdminDashboard() {
             auth0Id: staffSearchResult.user.auth0Id,
         });
 
- 
+            if (selectedSpeciality) {
+                 await api.specialities.addToStaff({
+                staffId: linkResult.staffId,
+                specialityId: selectedSpeciality,})
+                ;}
+
+
             //create default schedule
             const defaultEntries = buildDefaultScheduleEntries(selectedClinic);
             await api.schedules.createDefault(linkResult.staffId, defaultEntries);
