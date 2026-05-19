@@ -4,9 +4,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../../api/useApi';
 
 const DAYS      = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-//const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// ── helpers ────────────────────────────────────────────────────────────────
 
 function fmt12(time24) {
   const [h, m] = time24.split(':').map(Number);
@@ -17,7 +15,7 @@ function fmt12(time24) {
 
 function pad(n) { return String(n).padStart(2, '0'); }
 
-// Generate 1-hour slots: "08:00", "09:00", … up to but not including closeTime
+// Generate 1-hour slots: "08:00", "09:00".
 function buildSlots(openTime, closeTime) {
   if (!openTime || !closeTime) return [];
   const [oh] = openTime.split(':').map(Number);
@@ -34,7 +32,6 @@ function endOf(startTime) {
   return `${pad(h + 1)}:00`;
 }
 
-// ── component ──────────────────────────────────────────────────────────────
 
 export default function EditSchedule() {
   
@@ -49,7 +46,7 @@ const { user }     = useAuth0();
   const [pending,     setPending]     = useState(new Set());
   const [toast,       setToast]       = useState(null);
 
-  // ── load staff + clinic + schedule ────────────────────────────────────
+  // load staff + clinic + schedule 
   useEffect(() => {
   if (!staffId) return;
   async function load() {
@@ -73,13 +70,13 @@ const { user }     = useAuth0();
   load();
 }, [staffId, api]);
 
-  // ── toast ──────────────────────────────────────────────────────────────
+  //toast 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 2800);
   };
 
-  // ── derived: blockMap keyed by "DayOfWeek-StartTime" ──────────────────
+  
   const blockMap = mySchedule.reduce((acc, b) => {
   const day   = Number(b.DayOfWeek);
   const start = b.StartTime.slice(0, 5);  
@@ -90,7 +87,7 @@ const { user }     = useAuth0();
   const countForDay = (dayIndex) =>
     mySchedule.filter(b => Number(b.DayOfWeek) === dayIndex).length;
 
-  // ── delete a block ─────────────────────────────────────────────────────
+  // delete a block 
   const deleteBlock = useCallback(async (block) => {
   const key = block._id;
   if (pending.has(key)) return;
@@ -127,7 +124,7 @@ const addBlock = useCallback(async (dayIndex, startSlot) => {
     setPending(prev => { const n = new Set(prev); n.delete(key); return n; });
   }
 }, [pending, staffId, api]);
-  // ── render ─────────────────────────────────────────────────────────────
+  //render 
   if (loading) {
     return (
       <main className="es-page">
