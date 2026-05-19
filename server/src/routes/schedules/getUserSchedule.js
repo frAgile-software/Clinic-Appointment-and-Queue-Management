@@ -8,19 +8,21 @@ const Staff = require("../../database/models/Staff");
 router.get("/:userId", async (req, res) => {
     try {
         const userId = decodeURIComponent(req.params.userId);
-       
-
-        const user = await User.findOne({ auth0Id: userId });
         
 
-        const staffUser = await User.findOne(userId); //This needed to be One not Id
+        const user = await User.findOne({ auth0Id: userId });
+       
 
-        const schedule = await Schedule.find({ Staff: staffUser._id })
+        const staffRecord = await Staff.findOne({ User: user._id });
+       
+
+        const schedule = await Schedule.find({ Staff: staffRecord._id })
             .sort({ DayOfWeek: 1, StartTime: 1 });
-    
+       
 
         res.status(200).json({ schedule });
     } catch (error) {
+        
         res.status(500).json({ message: "Server error." });
     }
 });
