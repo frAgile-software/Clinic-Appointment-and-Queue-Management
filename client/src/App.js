@@ -11,6 +11,7 @@ import Booking from           "./pages/Booking/Booking"
 import PatientProfile from    './pages/PatientProfile/PatientProfile'
 import AdminProfile from './pages/AdminProfile/AdminProfile';
 import { UserRoleProvider, useUserRole } from './context/UserRoleContext';
+import EditSchedule from    "./pages/Schedule/ScheduleDashboard"
 
 function App() {
   const ProtectedRoute = ({ allowedRoles, children }) => {
@@ -61,7 +62,11 @@ function App() {
           <ProtectedRoute allowedRoles={["Patient"]}>
             <Booking />
           </ProtectedRoute>} />
-      </Routes>
+        <Route path="/dashboard/staff/schedule" element={
+                    <ProtectedRoute>
+                        <EditSchedule />
+                      </ProtectedRoute>} />
+            </Routes>
     </BrowserRouter>
     </UserRoleProvider>
   );
