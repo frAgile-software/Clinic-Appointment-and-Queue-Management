@@ -1,22 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './ScheduleDashboard.css';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from '../../api/useApi';
 
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS      = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+//const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// Generate 1-hour blocks between two "HH:mm" strings
-function generateHourBlocks(startTime, endTime) {
-  const blocks = [];
-  const [startH] = startTime.split(':').map(Number);
-  const [endH]   = endTime.split(':').map(Number);
-  for (let h = startH; h < endH; h++) {
-    const pad = (n) => String(n).padStart(2, '0');
-    blocks.push({ StartTime: `${pad(h)}:00`, EndTime: `${pad(h + 1)}:00` });
-  }
-  return blocks;
-}
+// ── helpers ────────────────────────────────────────────────────────────────
 
 function fmt12(time24) {
   const [h, m] = time24.split(':').map(Number);
@@ -25,134 +15,119 @@ function fmt12(time24) {
   return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
-export default function EditSchedule() {
-  const { apiFetch } = useApiAuth();
-  const { user }     = useAuth0();
-  const staffId      = user?.sub;
+function pad(n) { return String(n).padStart(2, '0'); }
 
-  const [clinicHours, setClinicHours] = useState({});
+// Generate 1-hour slots: "08:00", "09:00", … up to but not including closeTime
+function buildSlots(openTime, closeTime) {
+  if (!openTime || !closeTime) return [];
+  const [oh] = openTime.split(':').map(Number);
+  const [ch] = closeTime.split(':').map(Number);
+  const slots = [];
+  for (let h = oh; h < ch; h++) {
+    slots.push(`${pad(h)}:00`);
+  }
+  return slots;
+}
+
+function endOf(startTime) {
+  const [h] = startTime.split(':').map(Number);
+  return `${pad(h + 1)}:00`;
+}
+
+// ── component ──────────────────────────────────────────────────────────────
+
+export default function EditSchedule() {
+  
+const { user }     = useAuth0();
+ const api          = useApi();              
+ const staffId      = user?.sub;
+
   const [mySchedule,  setMySchedule]  = useState([]);
+  const [clinicSlots, setClinicSlots] = useState([]); // 1-hour slots from clinic hours
   const [loading,     setLoading]     = useState(true);
-  const [saving,      setSaving]      = useState(null);
   const [activeDay,   setActiveDay]   = useState(1);
+  const [pending,     setPending]     = useState(new Set());
   const [toast,       setToast]       = useState(null);
 
-  //fetch clinic hours + staff schedule
+  // ── load staff + clinic + schedule ────────────────────────────────────
   useEffect(() => {
-    if (!staffId) return;
-    async function load() {
-      setLoading(true);
+  if (!staffId) return;
+  async function load() {
+    setLoading(true);
+    try {
+      const clinics   = await api.clinics.getAssignedClinics(staffId);
+      const clinic    = clinics?.[0];
+      const open      = clinic?.practiceTimes?.open;
+      const close     = clinic?.practiceTimes?.close;
+      setClinicSlots(buildSlots(open, close));
 
-      // 1. Get assigned clinic  
-      try {
-        const cRes  = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/assigned/?auth0Id=${staffId}`);
-        const cData = await cRes.json();
-        if (cRes.ok) {
-          const clinic = Array.isArray(cData) ? cData[0] : cData;
-          
-          const hoursMap = {};
-          (clinic?.OperatingHours || []).forEach((oh) => {
-            hoursMap[oh.DayOfWeek] = { StartTime: oh.StartTime, EndTime: oh.EndTime };
-          });
-          setClinicHours(hoursMap);
-        } else {
-          console.error('Could not load clinic hours:', cData);
-          setClinicHours({});
-        }
-      } catch (err) {
-        console.error('Could not load clinic hours:', err);
-        setClinicHours({});
-      }
-
-      // 2. Get staff's existing schedule blocks
-     
-      try {
-        const sRes  = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/schedules/${staffId}`);
-        const sData = await sRes.json();
-        setMySchedule(Array.isArray(sData.schedule) ? sData.schedule : []);
-      } catch (err) {
-        console.error('Could not load schedule:', err);
-        setMySchedule([]);
-      }
-
-      setLoading(false);
+      const schedData = await api.schedules.getSchedule(staffId);
+      setMySchedule(Array.isArray(schedData.schedule) ? schedData.schedule : []);
+    } catch (err) {
+      console.error('Could not load schedule:', err);
+      setMySchedule([]);
+      setClinicSlots([]);
     }
-    load();
-  }, [staffId, apiFetch]);
+    setLoading(false);
+  }
+  load();
+}, [staffId, api]);
 
+  // ── toast ──────────────────────────────────────────────────────────────
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 2800);
   };
 
-  //toggle a block on/off 
-  const toggleBlock = useCallback(async (dayIndex, block) => {
-    const key = `${dayIndex}-${block.StartTime}`;
-    setSaving(key);
+  // ── derived: blockMap keyed by "DayOfWeek-StartTime" ──────────────────
+  const blockMap = mySchedule.reduce((acc, b) => {
+  const day   = Number(b.DayOfWeek);
+  const start = b.StartTime.slice(0, 5);  
+  acc[`${day}-${start}`] = b;
+  return acc;
+}, {});
 
-    const existing = mySchedule.find(
-      (s) =>
-        Number(s.DayOfWeek) === dayIndex &&
-        s.StartTime === block.StartTime &&
-        s.EndTime   === block.EndTime
-    );
+  const countForDay = (dayIndex) =>
+    mySchedule.filter(b => Number(b.DayOfWeek) === dayIndex).length;
 
-    try {
-      if (existing) {
-        // DELETE staff unchecks slot
-        const res = await apiFetch(
-          `${process.env.REACT_APP_SERVER_URL}/api/schedules/${existing._id}?staffId=${staffId}`,
-          { method: 'DELETE' }
-        );
-        if (!res.ok) throw new Error('Delete failed');
-        setMySchedule((prev) => prev.filter((s) => s._id !== existing._id));
-        showToast(`Removed ${fmt12(block.StartTime)} – ${fmt12(block.EndTime)}`, 'remove');
-      } else {
-        // POST — staff checks slot back in
-        const res = await apiFetch(
-          `${process.env.REACT_APP_SERVER_URL}/api/schedules`,
-          {
-            method: 'POST',
-            body: JSON.stringify({
-              staffId,
-              DayOfWeek: dayIndex,
-              StartTime: block.StartTime,
-              EndTime:   block.EndTime,
-            }),
-          }
-        );
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Create failed');
-        setMySchedule((prev) => [...prev, data.schedule]);
-        showToast(`Added ${fmt12(block.StartTime)} – ${fmt12(block.EndTime)}`);
-      }
-    } catch (err) {
-      console.error('Toggle error:', err);
-      showToast('Something went wrong. Please try again.', 'error');
-    } finally {
-      setSaving(null);
-    }
-  }, [mySchedule, staffId, apiFetch]);
+  // ── delete a block ─────────────────────────────────────────────────────
+  const deleteBlock = useCallback(async (block) => {
+  const key = block._id;
+  if (pending.has(key)) return;
+  setPending(prev => new Set(prev).add(key));
+  try {
+    await api.schedules.delete(block._id, staffId);
+    setMySchedule(prev => prev.filter(b => b._id !== block._id));
+    showToast('Timeslot removed', 'remove');
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || 'Something went wrong', 'error');
+  } finally {
+    setPending(prev => { const n = new Set(prev); n.delete(key); return n; });
+  }
+}, [pending, staffId, api]);
 
-  // ── derived data ─────────────────────────────────────────────
-  const activeDayHours = clinicHours?.[activeDay];
-  const allBlocks      = activeDayHours
-    ? generateHourBlocks(activeDayHours.StartTime, activeDayHours.EndTime)
-    : [];
-
-  const isSelected = (dayIndex, block) =>
-    mySchedule.some(
-      (s) =>
-        Number(s.DayOfWeek) === dayIndex &&
-        s.StartTime === block.StartTime &&
-        s.EndTime   === block.EndTime
-    );
-
-  const selectedCountForDay = (dayIndex) => {
-    if (!clinicHours?.[dayIndex]) return null;
-    return mySchedule.filter((s) => Number(s.DayOfWeek) === dayIndex).length;
-  };
-
+const addBlock = useCallback(async (dayIndex, startSlot) => {
+  const key = `add-${dayIndex}-${startSlot}`;
+  if (pending.has(key)) return;
+  setPending(prev => new Set(prev).add(key));
+  try {
+    const { schedule } = await api.schedules.create({
+      staffId,
+      DayOfWeek: dayIndex,
+      StartTime: startSlot,
+      EndTime:   endOf(startSlot),
+    });
+    setMySchedule(prev => [...prev, schedule]);
+    showToast('Timeslot added');
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || 'Something went wrong', 'error');
+  } finally {
+    setPending(prev => { const n = new Set(prev); n.delete(key); return n; });
+  }
+}, [pending, staffId, api]);
+  // ── render ─────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <main className="es-page">
@@ -167,95 +142,79 @@ export default function EditSchedule() {
   return (
     <main className="es-page">
 
-      {/* ── Header ── */}
-      
-       <header className="es-header">
-         <nav className="es-header-nav">
-           <button className="es-back-btn" onClick={() => window.history.back()}>
-                ← Back
-           </button>
+      <header className="es-header">
+        <nav className="es-header-nav">
+          <button className="es-back-btn" onClick={() => window.history.back()}>← Back</button>
         </nav>
-      <section className="es-header-brand">
-        <img src="/logo.svg" alt="Clinics and Qs" className="es-logo" />
-        <span className="es-brand-name">Clinics and Qs</span>
-    </section>
-       </header>
+        <section className="es-header-brand">
+          <img src="/logo.svg" alt="Clinics and Qs" className="es-logo" />
+          <span className="es-brand-name">Clinics and Qs</span>
+        </section>
+      </header>
 
-      {/* Hero banner  */}
       <section className="es-hero">
         <h1 className="es-hero-title">Edit Your Schedule</h1>
-       
       </section>
 
-      {/* Page body*/}
       <section className="es-body">
-
-        {/* ── Weekly Schedule ── */}
         <article className="es-section">
           <header className="es-section-header">
             <span className="es-step-badge">1</span>
             <section className="es-section-header-text">
               <h2 className="es-section-title">Weekly Availability</h2>
-              <p className="es-section-sub">Tap blocks to toggle your working hours</p>
+              
             </section>
           </header>
 
           {/* Day tabs */}
           <nav className="es-day-tabs">
-            {DAYS.map((day, i) => {
-              const count  = selectedCountForDay(i);
-              const closed = count === null;
-              return (
-                <button
-                  key={i}
-                  className={`es-day-tab ${activeDay === i ? 'es-day-tab--active' : ''} ${closed ? 'es-day-tab--closed' : ''}`}
-                  onClick={() => !closed && setActiveDay(i)}
-                  disabled={closed}
-                  title={closed ? `${day} — clinic closed` : day}
-                >
-                  <span className="es-day-tab-short">{DAY_SHORT[i]}</span>
-                  {!closed && <span className="es-day-tab-badge">{count}</span>}
-                {/*  {closed  && <span className="es-day-tab-closed-label">Off</span>} */}
-                </button>
-              );
-            })}
+            {DAYS.map((day, i) => (
+              <button
+                key={i}
+                className={`es-day-tab ${activeDay === i ? 'es-day-tab--active' : ''}`}
+                onClick={() => setActiveDay(i)}
+                title={day}
+              >
+                <span className="es-day-tab-short">{DAYS[i]}</span>
+                <span className="es-day-tab-badge">{countForDay(i)}</span>
+              </button>
+            ))}
           </nav>
 
-          {/* Block grid */}
+          {/* Slot grid */}
           <section className="es-blocks-area">
             <header className="es-day-label">
               <strong>{DAYS[activeDay]}</strong>
-              {activeDayHours && (
-                <span className="es-day-hours">
-                  Clinic: {fmt12(activeDayHours.StartTime)} – {fmt12(activeDayHours.EndTime)}
-                </span>
-              )}
             </header>
 
-            {allBlocks.length === 0 ? (
-              <p className="es-no-blocks">No blocks available for this day.</p>
+            {clinicSlots.length === 0 ? (
+              <p className="es-no-blocks">Clinic hours not set — contact your administrator.</p>
             ) : (
               <ul className="es-blocks-grid">
-                {allBlocks.map((block) => {
-                  const selected = isSelected(activeDay, block);
-                  const key      = `${activeDay}-${block.StartTime}`;
-                  const busy     = saving === key;
+                {clinicSlots.map((slot) => {
+                  const mapKey    = `${activeDay}-${slot}`;
+                  const block     = blockMap[mapKey];   // exists if staff works this slot
+                  const isOn      = !!block;
+                  const pendKey   = isOn ? block._id : `add-${activeDay}-${slot}`;
+                  const isBusy    = pending.has(pendKey);
+
                   return (
-                    <li key={key}>
+                    <li key={slot}>
                       <button
-                        className={`es-block-btn ${selected ? 'es-block-btn--on' : 'es-block-btn--off'} ${busy ? 'es-block-btn--saving' : ''}`}
-                        onClick={() => toggleBlock(activeDay, block)}
-                        disabled={busy}
-                        aria-pressed={selected}
+                        className={`es-block-btn ${isOn ? 'es-block-btn--on' : 'es-block-btn--off'} ${isBusy ? 'es-block-btn--busy' : ''}`}
+                        aria-pressed={isOn}
+                        disabled={isBusy}
+                        onClick={() => isOn ? deleteBlock(block) : addBlock(activeDay, slot)}
+                        title={isOn ? 'Click to mark unavailable' : 'Click to mark available'}
                       >
-                        {busy ? (
+                        {isBusy ? (
                           <span className="es-block-spinner" />
                         ) : (
                           <>
-                            <span className="es-block-time">{fmt12(block.StartTime)}</span>
+                            <span className="es-block-time">{fmt12(slot)}</span>
                             <span className="es-block-sep">→</span>
-                            <span className="es-block-time">{fmt12(block.EndTime)}</span>
-                            <span className="es-block-status">{selected ? '✓ On' : '+ Add'}</span>
+                            <span className="es-block-time">{fmt12(endOf(slot))}</span>
+                           
                           </>
                         )}
                       </button>
@@ -276,7 +235,6 @@ export default function EditSchedule() {
           </section>
         </article>
 
-        {/*  Days Off Section (placeholder) */}
         <article className="es-section es-section--coming">
           <header className="es-section-header">
             <span className="es-step-badge">2</span>
@@ -285,17 +243,15 @@ export default function EditSchedule() {
               <p className="es-section-sub">Request specific dates off</p>
             </section>
           </header>
-          <section className="es-coming-soon-body"></section>
+          <section className="es-coming-soon-body" />
         </article>
-
       </section>
 
-      {/* Toast */}
       {toast && (
         <aside className={`es-toast es-toast--${toast.type}`} role="status" aria-live="polite">
-          {toast.type === 'success' && '✓ '}
-          {toast.type === 'remove'  && '– '}
-          {toast.type === 'error'   && '! '}
+          {toast.type === 'success'  }
+          {toast.type === 'remove'  }
+          {toast.type === 'error'  }
           {toast.msg}
         </aside>
       )}
