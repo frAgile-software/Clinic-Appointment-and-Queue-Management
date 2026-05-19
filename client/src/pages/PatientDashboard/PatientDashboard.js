@@ -365,7 +365,7 @@ function PatientDashboard() {
                 Welcome Back, {patientName || "..."}!
               </h1>
               <p className="subtitle">Manage your health easily and skip the waiting room</p>
-              
+
               <section className="action-banner">
                 <section className="action-text">
                   <h3>Need to see a doctor?</h3>
@@ -375,9 +375,7 @@ function PatientDashboard() {
               </section>
             </section>
 
-            <section className="notifications-card" aria-labelledby="notifications-heading">
-            <NotificationCenter userId={user?.sub} />
-            </section>
+            <section className="notifications-card" aria-label="Medical Services"></section>
           </section>
         </section>
 
