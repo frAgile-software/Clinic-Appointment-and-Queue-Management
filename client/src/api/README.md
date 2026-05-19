@@ -258,8 +258,9 @@ Base path: `/schedules`. All methods are login protected.
 | Method | Server route |
 |---|---|
 | `getSchedule(userId)` | `GET /api/schedules/:userId` |
-| `update(scheduleId, {Staff, DayOfWeek, StartTime, EndTime})` | `PUT /api/schedules/:scheduleId` |
 | `createDefault(auth0Id, schedules)`|`POST /api/schedules/bulk`|
+| `create({ staffId, DayOfWeek, StartTime, EndTime })` | `POST /api/schedules/` |
+| `delete(scheduleId, staffId)` | `DELETE /api/schedules/:scheduleId?staffId=auth0Id` |
 
 **Example usage in a component**
 ```js
@@ -281,6 +282,18 @@ await api.schedules.createDefault("auth0|123", [
   { DayOfWeek: 0, StartTime: "08:00", EndTime: "17:00" },
   { DayOfWeek: 1, StartTime: "08:00", EndTime: "17:00" },
 ]);
+
+// create schedule
+await api.schedules.create({
+  staffId: "auth0|123",
+  DayOfWeek: 1,
+  StartTime: "08:00",
+  EndTime: "16:00",
+});
+
+// deletes an schedule
+await api.schedules.delete("schedule123", "auth0|123");
+
 
 ```
 
