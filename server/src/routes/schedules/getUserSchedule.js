@@ -9,7 +9,7 @@ router.get("/:userId", async (req, res) => {
         const { userId } = req.params;
 
         // Check if user exists
-        const staffUser = await User.findById(userId);
+         const staffUser = await User.findOne(userId); //This needed to be One not Id
         if (!staffUser) {
             return res.status(404).json({ message: "User not found." });
         }
