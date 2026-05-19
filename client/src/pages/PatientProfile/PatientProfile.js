@@ -3,7 +3,6 @@ import './PatientProfile.css';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useApiAuth } from '../../hooks/apiAuth';
-import { LuUser } from "react-icons/lu";
 import Header from '../../components/Header';
 import NotificationCenter from '../../components/NotificationCenter';
 
