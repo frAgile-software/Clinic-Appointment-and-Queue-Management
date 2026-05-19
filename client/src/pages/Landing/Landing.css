@@ -1,8 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ─── Design Tokens ──────────────────────────────────────────── */
 :root {
-  /* Core palette — purple kept, made clinical & refined */
   --color-brand:          #5b1fa8;
   --color-brand-dark:     #3d1270;
   --color-brand-mid:      #7c3aed;
@@ -10,46 +8,38 @@
   --color-brand-muted:    #f5f3ff;
   --color-accent:         #a78bfa;
 
-  /* Neutral medical whites & greys */
   --color-bg:             #f7f8fc;
   --color-surface:        #ffffff;
   --color-surface-raised: #fdfdff;
   --color-border:         #e4e4f0;
   --color-border-strong:  #ccc9e0;
 
-  /* Text */
   --color-text:           #12101e;
   --color-text-secondary: #4a4768;
   --color-text-muted:     #8b87a8;
 
-  /* Status */
   --color-open:           #059669;
   --color-open-bg:        #d1fae5;
   --color-closed:         #dc2626;
   --color-closed-bg:      #fee2e2;
 
-  /* Radius */
   --radius-xs:  4px;
   --radius-sm:  10px;
   --radius-md:  18px;
   --radius-lg:  28px;
   --radius-xl:  40px;
 
-  /* Shadows */
   --shadow-card:   0 2px 12px rgba(91, 31, 168, 0.07), 0 1px 3px rgba(0,0,0,0.04);
   --shadow-float:  0 16px 48px -8px rgba(91, 31, 168, 0.18), 0 4px 16px rgba(0,0,0,0.06);
   --shadow-modal:  0 24px 64px rgba(18, 16, 30, 0.22);
   --shadow-nav:    0 1px 0 var(--color-border), 0 2px 12px rgba(91,31,168,0.06);
 
-  /* Typography */
   --font-display: 'DM Sans', system-ui, sans-serif;
   --font-body:    'Inter', system-ui, sans-serif;
 }
 
-/* ─── Global Reset ───────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
-/* ─── Page Shell ─────────────────────────────────────────────── */
 .landing {
   font-family: var(--font-body);
   min-height: 100vh;
@@ -60,7 +50,6 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* ─── NAV ────────────────────────────────────────────────────── */
 .landing-nav {
   display: flex;
   align-items: center;
@@ -97,7 +86,6 @@
   align-items: center;
 }
 
-/* Nav buttons — white bg nav means dark buttons */
 .btn {
   padding: 9px 20px;
   font-family: var(--font-body);
@@ -130,17 +118,13 @@
   color: #ffffff;
 }
 
-/* ─── HERO ───────────────────────────────────────────────────── */
 .landing-hero {
   position: relative;
-  /* Adjusted padding to balance the layout without the negative margin */
   padding: 100px 24px 80px; 
   overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-
-  /* clinic-2.png as the atmospheric hero image */
   background:
     linear-gradient(
       to bottom,
@@ -153,7 +137,6 @@
   justify-content: center;
 }
 
-/* Subtle medical cross / grid watermark */
 .landing-hero::before {
   content: '';
   position: absolute;
@@ -176,7 +159,6 @@
   pointer-events: none;
 }
 
-/* Small "PRIVATE PRACTICE DIRECTORY" eyebrow label */
 .landing-hero::after {
   content: '⚕  TRUSTED COMMUNITY CLINIC MANAGEMENT SYSTEM';
   position: absolute;
@@ -218,13 +200,11 @@
   max-width: 520px;
 }
 
-/* ─── SEARCH BAR ─────────────────────────────────────────────── */
 .dashboard-dual-search {
   display: flex;
   align-items: stretch;
   width: 92%;
   max-width: 860px;
-  /* FIX: Changed negative top margin to positive 40px */
   margin: 40px auto 36px;
   background: var(--color-surface);
   border-radius: var(--radius-xl);
@@ -243,7 +223,6 @@
   padding-left: 28px;
 }
 
-/* Stethoscope icon before the input */
 .search-input-group::before {
   content: '🔍';
   font-size: 16px;
@@ -316,13 +295,12 @@
   background: var(--color-brand-dark);
 }
 
-/* ─── FILTERS ────────────────────────────────────────────────── */
 .dashboard-filters {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 20px; /* Reduced from 56px to tighten up the hero bottom */
+  margin-bottom: 20px;
   padding: 0 24px;
   position: relative;
   z-index: 5;
@@ -354,9 +332,8 @@
   color: #fff;
 }
 
-/* ─── CLINIC CARDS SECTION ───────────────────────────────────── */
 .clinics-section {
-  padding: 40px 48px 120px; /* Added top padding to push cards below hero nicely */
+  padding: 40px 48px 120px;
   max-width: 1320px;
   margin: 0 auto;
   width: 100%;
@@ -379,7 +356,6 @@
   gap: 20px;
 }
 
-/* ─── CLINIC CARD ────────────────────────────────────────────── */
 .clinic-card {
   background: var(--color-surface);
   border-radius: var(--radius-md);
@@ -395,7 +371,6 @@
   overflow: hidden;
 }
 
-/* Subtle brand left-edge accent line */
 .clinic-card::before {
   content: '';
   position: absolute;
@@ -474,7 +449,6 @@
 
 .clinic-badge--closed::before { content: '●'; font-size: 8px; }
 
-/* ─── SKELETON ───────────────────────────────────────────────── */
 .clinic-card--skeleton {
   min-height: 220px;
   background: linear-gradient(
@@ -496,7 +470,6 @@
   100% { background-position: -200% center; }
 }
 
-/* ─── EMPTY STATE ────────────────────────────────────────────── */
 .clinics-empty {
   text-align: center;
   color: var(--color-text-muted);
@@ -505,7 +478,6 @@
   padding: 100px 0;
 }
 
-/* ─── LOADING ────────────────────────────────────────────────── */
 .landing--loading {
   display: flex;
   justify-content: center;
@@ -531,7 +503,6 @@
   50%       { opacity: 0.5; transform: scale(1.1); }
 }
 
-/* ─── PAGINATION ─────────────────────────────────────────────── */
 .pagination {
   display: flex;
   justify-content: center;
@@ -578,7 +549,6 @@
   padding: 0 4px;
 }
 
-/* ─── CLINIC MODAL ───────────────────────────────────────────── */
 .clinic-modal-overlay {
   position: fixed;
   inset: 0;
@@ -607,7 +577,6 @@
   border: 1px solid var(--color-border);
 }
 
-/* Coloured modal top band */
 .clinic-modal-header {
   background: var(--color-brand);
   padding: 28px 32px 24px;
@@ -617,7 +586,6 @@
   position: relative;
 }
 
-/* Medical cross watermark in modal header */
 .clinic-modal-header::before {
   content: '✚';
   position: absolute;
@@ -689,7 +657,6 @@
   border-bottom: none;
 }
 
-/* Bold the label portion of the key: value pairs */
 .clinic-modal-details p::first-letter {
   font-weight: 600;
 }
@@ -703,7 +670,6 @@
   background: var(--color-bg);
 }
 
-/* Status badge inside modal */
 .modal-badge {
   display: inline-flex;
   align-items: center;
@@ -729,7 +695,6 @@
 
 .status-closed::before { content: '●'; font-size: 8px; }
 
-/* Modal CTA buttons */
 .clinic-modal-book-btn {
   font-family: var(--font-body);
   font-size: 14px;
@@ -742,7 +707,6 @@
   letter-spacing: 0.02em;
 }
 
-/* First button (Join Queue) — outlined */
 .clinic-modal-footer > section > .clinic-modal-book-btn:first-child {
   background: var(--color-brand-muted);
   color: var(--color-brand);
@@ -754,7 +718,6 @@
   border-color: var(--color-brand);
 }
 
-/* Second button (Book Now) — filled */
 .clinic-modal-footer > section > .clinic-modal-book-btn:last-child {
   background: var(--color-brand);
   color: #ffffff;
@@ -764,7 +727,6 @@
   background: var(--color-brand-dark);
 }
 
-/* ─── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .landing-nav { padding: 0 20px; }
 
@@ -776,7 +738,6 @@
   .dashboard-dual-search {
     flex-direction: column;
     border-radius: var(--radius-md);
-    /* FIX: Changed negative margin to positive on mobile as well */
     margin: 32px 16px 28px;
     width: auto;
   }
