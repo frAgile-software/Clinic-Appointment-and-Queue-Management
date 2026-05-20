@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './ScheduleDashboard.css';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../../api/useApi';
+import { useNavigate } from 'react-router';
+
+import Header from '../../components/Header';
 
 const DAYS      = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -38,6 +41,7 @@ export default function EditSchedule() {
 const { user }     = useAuth0();
  const api          = useApi();              
  const staffId      = user?.sub;
+ const navigate = useNavigate();
 
   const [mySchedule,  setMySchedule]  = useState([]);
   const [clinicSlots, setClinicSlots] = useState([]); // 1-hour slots from clinic hours
@@ -139,15 +143,9 @@ const addBlock = useCallback(async (dayIndex, startSlot) => {
   return (
     <main className="es-page">
 
-      <header className="es-header">
-        <nav className="es-header-nav">
-          <button className="es-back-btn" onClick={() => window.history.back()}>← Back</button>
-        </nav>
-        <section className="es-header-brand">
-          <img src="/logo.svg" alt="Clinics and Qs" className="es-logo" />
-          <span className="es-brand-name">Clinics and Qs</span>
-        </section>
-      </header>
+      <Header>
+          <button className="schedule-nav-back" onClick={() => navigate(-1)}>← Back</button>
+      </Header>
 
       <section className="es-hero">
         <h1 className="es-hero-title">Edit Your Schedule</h1>
