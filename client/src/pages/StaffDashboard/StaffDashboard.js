@@ -36,6 +36,7 @@ function StaffDashboard() {
   };
 
   const staffId = user?.sub;
+  const [staffName, setStaffName] = useState("");
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [appointments, setAppointments] = useState([]);
@@ -64,6 +65,20 @@ function StaffDashboard() {
     updateConsult(modalDetails);
     setIsModalOpen(false);
   };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user?.sub) {
+        try {
+          const data = await api.users.get(user.sub);
+          setStaffName(data.name);
+        } catch (error) {
+          console.error("Failed to fetch user profile:", error);
+        }
+      }
+    };
+    fetchUserData();
+  }, [user?.sub, api]);
 
   useEffect(() => {
     if (!staffId) return;
@@ -310,7 +325,7 @@ function StaffDashboard() {
       {nav_bar}
 
       <section className="welcome-banner-canva">
-        <h1 className="welcome-title-canva">Welcome Back, {user?.name}</h1>
+        <h1 className="welcome-title-canva">Welcome Back, {staffName || "..."}!</h1>
         <p className="welcome-subtitle-canva">Here's your dashboard overview for {clinics[0].practiceName}</p>
       </section>
 
