@@ -2,6 +2,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router";
 import { LuUser } from "react-icons/lu";
+import Header from '../../components/Header';
 import { useApi } from "../../api/useApi";  
 import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import * as statExport from './exportHelper';
@@ -663,19 +664,13 @@ function AdminDashboard() {
 
     return (
         <main className="admin-dashboard-wrapper">
-            <header className="admin-header-canva">
-                <section className="brand-section">
-                    <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
-                    <h2 className="brand-title">Clinics and Qs</h2>
-                </section>
-                <nav className="header-nav-canva">
-                    <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/admin/profile')}>
-                        <LuUser />
-                    </button>
-                    <NotificationCenter userId={user?.sub} />
-                    <button className="logout-btn-canva" onClick={logout}>Logout</button>
-                </nav>
-            </header>
+        <Header className="admin-header-canva">
+                <button onClick={() => navigate('/dashboard/admin/profile')}>
+                    <LuUser />
+                </button>
+                <NotificationCenter userId={user?.sub} />
+                <button  onClick={logout}>Logout</button>
+            </Header>
             <section className="welcome-area">
                 <h1 className="welcome-title-canva">Welcome Back, {adminName || 'Admin'}!</h1>
             </section>  

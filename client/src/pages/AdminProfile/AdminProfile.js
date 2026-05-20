@@ -4,6 +4,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useRef } from 'react';
 import { useApi } from '../../api/useApi';
+import Header from '../../components/Header';
 import NotificationCenter from '../../components/NotificationCenter';
 
 function AdminProfile() {
@@ -94,14 +95,11 @@ function AdminProfile() {
 
     return (
         <section className="landing">
-            <nav className="landing-nav" aria-label="Main navigation">
-            <span className="landing-logo">Clinics and Qs</span>
-            <section className="landing-nav-btns">
-                <button className="btn" onClick={logout}>Logout</button>
-                <NotificationCenter userId={user?.sub} refreshSignal={refreshSignal} />
-                <button className="btn btn-primary" onClick={() => navigate('/dashboard/admin')}>Back</button>
-            </section>
-            </nav>
+            <Header>
+                    <button className="btn" onClick={logout}>Logout</button>
+                    <NotificationCenter userId={user?.sub} />
+                    <button className="btn btn-primary" onClick={() => navigate('/dashboard/admin')}>Back</button>
+            </Header>
 
             <main className="profile-container">
                 <header className="profile-header">
