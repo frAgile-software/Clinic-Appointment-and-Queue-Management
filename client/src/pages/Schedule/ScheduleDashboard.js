@@ -53,21 +53,23 @@ const { user }     = useAuth0();
 
   // load staff + clinic + schedule 
 useEffect(() => {
-  if (!staffId) return;  
+  if (!staffId) return;
+
+  
+  const { clinics, schedules } = api;
+
   async function load() {
     setLoading(true);
     try {
-      const clinics   = await api.clinics.getAssignedClinics(staffId);
-      const clinic    = clinics?.[0];
-      const open      = clinic?.practiceTimes?.open;
-      const close     = clinic?.practiceTimes?.close;
+      const clinicList = await clinics.getAssignedClinics(staffId);
+      const clinic     = clinicList?.[0];
+      const open       = clinic?.practiceTimes?.open;
+      const close      = clinic?.practiceTimes?.close;
       setClinicSlots(buildSlots(open, close));
 
-      const schedData = await api.schedules.getSchedule(staffId);
-      setMySchedule(Array.isArray(schedData.schedule) ? schedData.schedule : []);
-
-      const offData = await api.schedules.getOffDays(staffId);
-      setOffDays(Array.isArray(offData.offDays) ? offData.offDays : []);
+      const { schedule, offDays } = await schedules.getSchedule(staffId);
+setMySchedule(Array.isArray(schedule) ? schedule : []);
+setOffDays(Array.isArray(offDays) ? offDays : []);
 
     } catch (err) {
       console.error('Could not load schedule:', err);
@@ -76,6 +78,7 @@ useEffect(() => {
     }
     setLoading(false);
   }
+
   load();
 }, [staffId, api]);
 
@@ -150,7 +153,7 @@ const handleAddOffDays = async () => {
 
     setAddingOffDay(true);
     try {
-        const { offDays: created } = await api.schedules.createOffDays(staffId, dates);
+        const { offDays: created } = await api.schedules.addOff(staffId, dates);
         setOffDays(prev => [...prev, ...created].sort((a, b) => new Date(a.date) - new Date(b.date)));
         setOffDayFrom('');
         setOffDayTo('');

@@ -24,7 +24,7 @@ router.post("/", async (req, res) => {
             return res.status(409).json({ message: "All selected dates are already taken off." });
 
         const created = await OffDays.insertMany(
-            newDates.map(date => ({ staff_id: staffRecord._id, date: new Date(date) }))
+            newDates.map(date => ({ staff_id: staffRecord._id, date: new Date(date + "T12:00:00Z") }))
         );
         res.status(201).json({ offDays: created });
     } catch (err) {

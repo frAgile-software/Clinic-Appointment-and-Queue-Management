@@ -9,10 +9,8 @@ router.get("/:userId", async (req, res) => {
         const userId = decodeURIComponent(req.params.userId);
         const user = await User.findOne({ auth0Id: userId });
         if (!user) return res.status(404).json({ message: "User not found." });
-
         const staffRecord = await Staff.findOne({ User: user._id });
         if (!staffRecord) return res.status(404).json({ message: "Staff not found." });
-
         const offDays = await OffDays.find({ staff_id: staffRecord._id }).sort({ date: 1 });
         res.status(200).json({ offDays });
     } catch (err) {
