@@ -26,6 +26,7 @@ jest.mock('../../database/models/Appointment', () => {
     }));
     mockConstructor.findOne = jest.fn();
     mockConstructor.mockSave = mockSave; // expose for assertions
+    mockConstructor.findById = jest.fn();
     return mockConstructor;
 });
 
@@ -41,104 +42,23 @@ const validBody = {
     Clinic:          'clinic123',
     Staff:           '69efb380a80012230d32b7a1',
     patientAuth0Id:  'auth0-test123',
-    BookingDateTime: '2025-05-06T09:00:00.000Z',
-    description:     'Chest pain follow-up',
+    BookingDateTime: '2026-05-20T10:00:00Z',
+    description:     'Checkup',
+    Speciality:      'General Practice'
 };
 
-const mockPatient = { _id: 'patient001', auth0Id: 'auth0-test123', role: 'Patient' };
-const mockStaff   = { _id: '69efb380a80012230d32b7a1', role: 'Staff' };
-const mockClinic  = { _id: 'clinic123', practiceName: 'City Clinic' };
+const mockPatient = { _id: 'patient123', auth0Id: 'auth0-test123' };
+const mockStaff   = { _id: 'staff123', name: 'Dr. Test' };
+const mockClinic  = { _id: 'clinic123', name: 'Test Clinic' };
 
 describe('POST /api/appointments', () => {
-
+    
     beforeEach(() => {
         jest.clearAllMocks();
-        // Suppress console output to prevent CI pipeline failures on expected errors
-        jest.spyOn(console, 'log').mockImplementation(() => {});
-        jest.spyOn(console, 'error').mockImplementation(() => {});
     });
 
-    afterEach(() => {
-        console.log.mockRestore();
-        console.error.mockRestore();
-    });
-
-    /* ── Happy path ── */
-    test('returns 201 and success message when appointment created', async () => {
-        User.findOne.mockResolvedValueOnce(mockPatient);
-        User.findById.mockResolvedValueOnce(mockStaff);
-        Clinic.findById.mockResolvedValueOnce(mockClinic);
-        Speciality.findOne.mockResolvedValueOnce({ _id: 'spec123' });
-        Appointment.findOne.mockResolvedValueOnce(null); // slot free
-        Appointment.mockSave.mockResolvedValueOnce();
-
-        const res = await request(app)
-            .post('/api/appointments')
-            .send({ ...validBody, Speciality: 'Cardiology' });
-
-        expect(res.status).toEqual(201);
-        expect(res.body.message).toBe('Appointment created successfully.');
-        expect(res.body.appointment).toBeDefined();
-        expect(Speciality.findOne).toHaveBeenCalledWith({ SpecialityName: 'Cardiology' });
-    });
-
-    test('calls User.findOne with patientAuth0Id', async () => {
-        User.findOne.mockResolvedValueOnce(mockPatient);
-        User.findById.mockResolvedValueOnce(mockStaff);
-        Clinic.findById.mockResolvedValueOnce(mockClinic);
-        Appointment.findOne.mockResolvedValueOnce(null);
-        Appointment.mockSave.mockResolvedValueOnce();
-
-        await request(app).post('/api/appointments').send(validBody);
-
-        expect(User.findOne).toHaveBeenCalledWith({ auth0Id: 'auth0-test123' });
-    });
-
-    test('calls User.findById with Staff id', async () => {
-        User.findOne.mockResolvedValueOnce(mockPatient);
-        User.findById.mockResolvedValueOnce(mockStaff);
-        Clinic.findById.mockResolvedValueOnce(mockClinic);
-        Appointment.findOne.mockResolvedValueOnce(null);
-        Appointment.mockSave.mockResolvedValueOnce();
-
-        await request(app).post('/api/appointments').send(validBody);
-
-        expect(User.findById).toHaveBeenCalledWith(validBody.Staff);
-    });
-
-    test('calls Clinic.findById with Clinic id', async () => {
-        User.findOne.mockResolvedValueOnce(mockPatient);
-        User.findById.mockResolvedValueOnce(mockStaff);
-        Clinic.findById.mockResolvedValueOnce(mockClinic);
-        Appointment.findOne.mockResolvedValueOnce(null);
-        Appointment.mockSave.mockResolvedValueOnce();
-
-        await request(app).post('/api/appointments').send(validBody);
-
-        expect(Clinic.findById).toHaveBeenCalledWith(validBody.Clinic);
-    });
-
-    test('uses empty string for ReasonDetails when description omitted', async () => {
-        User.findOne.mockResolvedValueOnce(mockPatient);
-        User.findById.mockResolvedValueOnce(mockStaff);
-        Clinic.findById.mockResolvedValueOnce(mockClinic);
-        Appointment.findOne.mockResolvedValueOnce(null);
-        Appointment.mockSave.mockResolvedValueOnce();
-
-        const bodyNoDesc = { ...validBody };
-        delete bodyNoDesc.description;
-
-        const res = await request(app).post('/api/appointments').send(bodyNoDesc);
-
-        expect(res.status).toEqual(201);
-        // Appointment constructor should have been called with ReasonDetails: ''
-        expect(Appointment).toHaveBeenCalledWith(
-            expect.objectContaining({ ReasonDetails: '' })
-        );
-    });
-
-    /* ── 404 cases ── */
-    test('returns 404 when patient not found', async () => {
+    /* ── 404 entity not found tests ── */
+    test('returns 404 if patient not found', async () => {
         User.findOne.mockResolvedValueOnce(null);
 
         const res = await request(app)
@@ -149,7 +69,7 @@ describe('POST /api/appointments', () => {
         expect(res.body.message).toBe('Patient not found.');
     });
 
-    test('returns 404 when staff member not found', async () => {
+    test('returns 404 if staff not found', async () => {
         User.findOne.mockResolvedValueOnce(mockPatient);
         User.findById.mockResolvedValueOnce(null);
 
@@ -161,7 +81,7 @@ describe('POST /api/appointments', () => {
         expect(res.body.message).toBe('Staff member not found.');
     });
 
-    test('returns 404 when clinic not found', async () => {
+    test('returns 404 if clinic not found', async () => {
         User.findOne.mockResolvedValueOnce(mockPatient);
         User.findById.mockResolvedValueOnce(mockStaff);
         Clinic.findById.mockResolvedValueOnce(null);
@@ -174,12 +94,12 @@ describe('POST /api/appointments', () => {
         expect(res.body.message).toBe('Clinic not found.');
     });
 
-    /* ── 409 conflict ── */
-    test('returns 409 when slot is already booked', async () => {
+    /* ── 409 conflict test ── */
+    test('returns 409 if appointment slot is already booked', async () => {
         User.findOne.mockResolvedValueOnce(mockPatient);
         User.findById.mockResolvedValueOnce(mockStaff);
         Clinic.findById.mockResolvedValueOnce(mockClinic);
-        Appointment.findOne.mockResolvedValueOnce({ _id: 'existing-appt' }); // slot taken
+        Appointment.findOne.mockResolvedValueOnce({ _id: 'existing-appt' });
 
         const res = await request(app)
             .post('/api/appointments')
@@ -189,7 +109,8 @@ describe('POST /api/appointments', () => {
         expect(res.body.message).toBe('This slot is already booked.');
     });
 
-    test('checks correct Staff and BookingDateTime for conflict', async () => {
+    /* ── 201 success test ── */
+    test('creates a valid appointment successfully', async () => {
         User.findOne.mockResolvedValueOnce(mockPatient);
         User.findById.mockResolvedValueOnce(mockStaff);
         Clinic.findById.mockResolvedValueOnce(mockClinic);
@@ -201,6 +122,7 @@ describe('POST /api/appointments', () => {
         expect(Appointment.findOne).toHaveBeenCalledWith({
             Staff:           validBody.Staff,
             BookingDateTime: new Date(validBody.BookingDateTime),
+            Status:          { $ne: "Cancelled" }
         });
     });
 

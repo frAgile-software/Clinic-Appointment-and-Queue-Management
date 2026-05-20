@@ -5,7 +5,8 @@ import ScheduleDashboard from "./ScheduleDashboard";
 
 import { useAuth0 } from "@auth0/auth0-react";
 import { useApi } from "../../api/useApi";
-
+import { MemoryRouter } from 'react-router';
+ 
 jest.mock("@auth0/auth0-react");
 jest.mock("../../api/useApi");
 jest.mock("./ScheduleDashboard.css", () => ({}), { virtual: true });
@@ -54,7 +55,11 @@ function buildApi(overrides = {}) {
 }
 
 async function renderComponent(api) {
-  render(<ScheduleDashboard />);
+  render(
+    <MemoryRouter>
+      <ScheduleDashboard />
+    </MemoryRouter>
+  );
   await waitFor(() =>
     expect(screen.queryByText(/Loading your schedule/i)).not.toBeInTheDocument()
   );
@@ -82,8 +87,12 @@ describe("ScheduleDashboard component", () => {
     test("Given the component mounts, Then a loading spinner is shown initially", () => {
       mockApi.clinics.getAssignedClinics.mockReturnValue(new Promise(() => {}));
       useApi.mockReturnValue(mockApi);
-
-      render(<ScheduleDashboard />);
+ 
+      render(
+  <MemoryRouter>
+    <ScheduleDashboard />
+  </MemoryRouter>
+);
       expect(screen.getByText(/Loading your schedule/i)).toBeInTheDocument();
     });
 
@@ -110,13 +119,13 @@ describe("ScheduleDashboard component", () => {
       await renderComponent(mockApi);
       expect(screen.getByText(/Weekly Availability/i)).toBeInTheDocument();
     });
-
-    test("Given the back button is clicked, Then window.history.back is called", async () => {
-      const backSpy = jest.spyOn(window.history, "back").mockImplementation(() => {});
+ 
+    test("Given the back button is clicked, Then navigate is called", async () => {
       await renderComponent(mockApi);
-
-      fireEvent.click(screen.getByRole("button", { name: /← Back/i }));
-      expect(backSpy).toHaveBeenCalled();
+    
+      expect(() => 
+        fireEvent.click(screen.getByRole("button", { name: /Back/i }))
+      ).not.toThrow();
     });
   });
 

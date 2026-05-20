@@ -5,7 +5,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../../api/useApi';
 import { useNavigate } from 'react-router';
 import NotificationCenter from '../../components/NotificationCenter';
-
+import Header from '../../components/Header';
 const status = {
   WAITING: "Waiting",
   BEING_SEEN: "In Consult",
@@ -281,18 +281,12 @@ function StaffDashboard() {
   };
 
   const nav_bar = (
-    <nav className="landing-nav" aria-label="Main navigation">
-          <section className="nav-logo">
-          <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
-          <span className="landing-logo">Clinics and Qs</span>
-          </section>
-          <section className="landing-nav-btns">
-          <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/staff/profile')}>
-          <LuUser /></button>  
-          <button className="logout-btn-canva" onClick={logout}>Logout</button>
-          <NotificationCenter userId={user?.sub} />
-          </section>
-      </nav>
+          <Header>
+            <button  aria-label="Profile" onClick={() => navigate('/dashboard/staff/profile')}>
+            <LuUser /></button>  
+            <button  onClick={logout}>Logout</button>
+            <NotificationCenter userId={user?.sub} />
+          </Header>
   );
 
   if (loading)
