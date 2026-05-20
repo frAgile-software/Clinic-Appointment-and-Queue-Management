@@ -9,12 +9,12 @@ const deleteOff       = require('./schedules/deleteOff');
 const getOff          = require('./schedules/getOff');
 const addOff          = require('./schedules/addOff');
 
-router.use("/schedules/off-days", requireAuth, deleteOff);
-router.use("/schedules/off-days", requireAuth, getOff);
-router.use("/schedules/off-days", requireAuth, addOff);
+router.use("/api/schedules/off-days", requireAuth, getOff);
+router.use("/api/schedules/off-days", requireAuth, addOff);
+router.use("/api/schedules/off-days", requireAuth, deleteOff);
 
-router.use("/schedules", requireAuth, getUserSchedule);
-router.use("/schedules", requireAuth, createSchedule);
-router.use("/schedules", requireAuth, deleteSchedule);
+router.use("/api/schedules", requireAuth, getUserSchedule);
+router.use("/api/schedules", requireAuth, createSchedule);
+router.use("/api/schedules", requireAuth, deleteSchedule);
 
 module.exports = router;
