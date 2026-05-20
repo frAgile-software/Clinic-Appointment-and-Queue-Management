@@ -16,11 +16,13 @@ function AdminProfile() {
     const { user, logout: auth0Logout } = useAuth0();
     const navigate = useNavigate();
     const api = useApi();
- 
+    const [refreshSignal, setRefreshSignal] = useState(0);
     const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(false);
     const adminId = user?.sub;
+
+    const triggerRefresh = () => setRefreshSignal(prev => prev + 1);
 
     const logout = () => {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -55,11 +57,14 @@ function AdminProfile() {
 
         try {
             console.log("Updating with data:", updatedData);    
-            await api.users.update(adminId, updatedData, null); // TODO:
+            await api.users.update(adminId, updatedData, null); 
 
             setProfileData(prev => ({ ...prev, ...updatedData }));
             toggleChangeDetailsModal();
             alert("Details updated successfully!");
+            
+            await api.notifications.createNotif(user?.sub, "Changes were made to your profile details");
+            triggerRefresh();
         } catch (error) {
             console.error("Update failed:", error);
         };
@@ -86,13 +91,13 @@ function AdminProfile() {
         };
 
         fetchProfileData();
-    }, [adminId, api]);
+    }, [adminId, api, refreshSignal]);
 
     return (
         <section className="landing">
             <Header>
                     <button className="btn" onClick={logout}>Logout</button>
-                    <NotificationCenter userId={user?.sub} />
+                    <NotificationCenter userId={user?.sub} refreshSignal={refreshSignal} />
                     <button className="btn btn-primary" onClick={() => navigate('/dashboard/admin')}>Back</button>
             </Header>
 
@@ -163,11 +168,11 @@ function AdminProfile() {
                                 </fieldset>
                                 <fieldset className='inline-components'>
                                     <label>Email</label> 
-                                    <input type="email" disabled={!adminId || !adminId?.startsWith("auth0|")} ref={emailRef} defaultValue={profileData.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
+                                    <input type="email" disabled={!adminId || !adminId?.startsWith("auth0|")} ref={emailRef} defaultValue={profileData?.email} className="search-bar" style={{border: '1px solid var(--color-border)'}} />
                                 </fieldset>
 
                                 <footer className="landing-nav-btns" style={{marginTop: '20px'}}>
-                                <button type="button" className="btn btn-primary" onClick={handleUpdate}>Save Changes</button>
+                                <button type="button" className="btn btn-primary" onClick={handleUpdate} >Save Changes</button>
                                 <button type="button" className="btn" style={{color: 'var(--color-text)'}} onClick={toggleChangeDetailsModal}>Cancel</button>
                                 </footer>
 

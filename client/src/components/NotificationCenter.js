@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApi } from '../api/useApi';
 import './NotificationCenter.css';
 
@@ -6,32 +6,37 @@ const sortNotifications = (items) => {
   return [...items].sort((a, b) => new Date(b.Time) - new Date(a.Time));
 };
 
-export default function NotificationCenter({ userId }) {
+
+export default function NotificationCenter({ userId, refreshSignal }) {
   const api = useApi();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-const fetchNotifications = useCallback(async () => {
+  useEffect(() => {
   if (!userId) {
     setNotifications([]);
     return;
   }
 
-  try {
-    setLoading(true);
-    setError("");
-    const data = await api.notifications.getNotifs(userId);
-    setNotifications(Array.isArray(data) ? sortNotifications(data) : []);
-  } catch (fetchError) {
-    console.error("Could not fetch notifications:", fetchError);
-    setNotifications([]);
-    setError("Could not load notifications.");
-  } finally {
-    setLoading(false);
-  }
-}, [api, userId]);
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await api.notifications.getNotifs(userId);
+      setNotifications(Array.isArray(data) ? sortNotifications(data) : []);
+    } catch (fetchError) {
+      console.error("Could not fetch notifications:", fetchError);
+      setNotifications([]);
+      setError("Could not load notifications.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchNotifications();
+}, [userId, refreshSignal, api]);
 
   const toggleNotifications = async () => {
     setIsOpen((prev) => !prev);
@@ -66,15 +71,12 @@ const fetchNotifications = useCallback(async () => {
     }
   };
 
-  useEffect(() => {
-    console.log("fetching notifs for user id:",userId)
-    fetchNotifications();
-  }, [userId,fetchNotifications]);
+  const unseenCount = notifications.filter(n => !n.Seen).length;
 
   return (
     <aside className="notif-wrapper">
       <button className="btn" onClick={toggleNotifications} type="button">
-      Notifications {notifications.filter(n => !n.Seen).length > 0 && <span className="notif-badge">{notifications.filter(n => !n.Seen).length}</span>}
+        Notifications {unseenCount > 0 && <span className="notif-badge">{unseenCount}</span>}
       </button>
 
       {isOpen && (
