@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApi } from '../api/useApi';
 import './NotificationCenter.css';
 
@@ -14,12 +14,13 @@ export default function NotificationCenter({ userId, refreshSignal }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchNotifications = useCallback(async () => {
-    if (!userId) {
-      setNotifications([]);
-      return;
-    }
+  useEffect(() => {
+  if (!userId) {
+    setNotifications([]);
+    return;
+  }
 
+  const fetchNotifications = async () => {
     try {
       setLoading(true);
       setError("");
@@ -32,7 +33,10 @@ export default function NotificationCenter({ userId, refreshSignal }) {
     } finally {
       setLoading(false);
     }
-  }, [api, userId]);
+  };
+
+  fetchNotifications();
+}, [userId, refreshSignal, api]);
 
   const toggleNotifications = async () => {
     setIsOpen((prev) => !prev);
@@ -67,10 +71,6 @@ export default function NotificationCenter({ userId, refreshSignal }) {
     }
   };
 
-  useEffect(() => {
-    console.log("fetching notifs for user id:", userId);
-    fetchNotifications();
-  }, [userId, fetchNotifications, refreshSignal]); 
   const unseenCount = notifications.filter(n => !n.Seen).length;
 
   return (

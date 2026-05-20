@@ -91,13 +91,13 @@ function AdminProfile() {
         };
 
         fetchProfileData();
-    }, [adminId, api]);
+    }, [adminId, api, refreshSignal]);
 
     return (
         <section className="landing">
             <Header>
                     <button className="btn" onClick={logout}>Logout</button>
-                    <NotificationCenter userId={user?.sub} />
+                    <NotificationCenter userId={user?.sub} refreshSignal={refreshSignal} />
                     <button className="btn btn-primary" onClick={() => navigate('/dashboard/admin')}>Back</button>
             </Header>
 
