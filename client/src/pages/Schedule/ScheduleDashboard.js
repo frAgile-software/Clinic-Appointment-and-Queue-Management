@@ -306,10 +306,10 @@ export default function EditSchedule() {
                 />
               </label>
               <button
-                className="es-offday-submit"
-                disabled={!offDayFrom || addingOffDay}
-                onClick={handleAddOffDays}
-              >
+                  className="es-offday-submit"
+                  disabled={addingOffDay}
+                  onClick={handleAddOffDays}
+                >
                 {addingOffDay ? <span className="es-block-spinner" /> : 'Add Days Off'}
               </button>
             </section>

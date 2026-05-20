@@ -143,7 +143,7 @@ describe("ScheduleDashboard component", () => {
       await renderComponent(buildApi({ clinics: { getAssignedClinics: mockApi.clinics.getAssignedClinics } }));
 
       expect(
-        screen.getByText(/Clinic hours not set — contact your administrator/i)
+        screen.getByText(/Clinic hours not set. Contact your administrator./i)
       ).toBeInTheDocument();
       consoleSpy.mockRestore();
     });
@@ -172,7 +172,8 @@ describe("ScheduleDashboard component", () => {
       mockApi.clinics.getAssignedClinics.mockResolvedValue([{}]);
       await renderComponent(mockApi);
       expect(
-        screen.getByText(/Clinic hours not set — contact your administrator/i)
+        screen.getByText(/Clinic hours not set\. Contact your administrator\./i)
+        
       ).toBeInTheDocument();
     });
   });
@@ -460,12 +461,12 @@ describe("ScheduleDashboard component", () => {
   describe("Days Off section", () => {
     test("Given the page renders, Then the 'Days Off' section heading is shown", async () => {
       await renderComponent(mockApi);
-      expect(screen.getByText(/Days Off/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Days Off/i })).toBeInTheDocument();
     });
 
-    test("Given the page renders, Then the 'Request specific dates off' sub-text is shown", async () => {
+    test("Given the page renders, Then the 'Select a single day or a range.' sub-text is shown", async () => {
       await renderComponent(mockApi);
-      expect(screen.getByText(/Request specific dates off/i)).toBeInTheDocument();
+      expect(screen.getByText(/Select a single day or a range./i)).toBeInTheDocument();
     });
 
     test("Given off days are loaded, Then they are displayed in the list", async () => {
