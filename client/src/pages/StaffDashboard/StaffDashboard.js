@@ -217,7 +217,7 @@ function StaffDashboard() {
       alert('Failed to reschedule. Please try again.');
     }
   };
-
+  
   const toAppointmentCard = (appointmentItem) => {
     const bookingDate = new Date(appointmentItem.BookingDateTime);
     const patient = appointmentItem.Patient;
