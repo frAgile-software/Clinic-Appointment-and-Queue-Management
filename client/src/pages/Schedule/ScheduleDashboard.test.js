@@ -7,6 +7,7 @@ import ScheduleDashboard from "./ScheduleDashboard";
  
 import { useAuth0 } from "@auth0/auth0-react";
 import { useApi } from "../../api/useApi";
+import { MemoryRouter } from 'react-router';
  
 jest.mock("@auth0/auth0-react");
 jest.mock("../../api/useApi");
@@ -48,7 +49,11 @@ function buildApi(overrides = {}) {
 }
  
 async function renderComponent(api) {
-  render(<ScheduleDashboard />);
+  render(
+    <MemoryRouter>
+      <ScheduleDashboard />
+    </MemoryRouter>
+  );
   await waitFor(() =>
     expect(screen.queryByText(/Loading your schedule/i)).not.toBeInTheDocument()
   );
@@ -77,7 +82,11 @@ describe("ScheduleDashboard component", () => {
       mockApi.clinics.getAssignedClinics.mockReturnValue(new Promise(() => {}));
       useApi.mockReturnValue(mockApi);
  
-      render(<ScheduleDashboard />);
+      render(
+  <MemoryRouter>
+    <ScheduleDashboard />
+  </MemoryRouter>
+);
       expect(screen.getByText(/Loading your schedule/i)).toBeInTheDocument();
     });
  
