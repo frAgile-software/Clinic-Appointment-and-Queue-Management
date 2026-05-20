@@ -2,27 +2,28 @@ const express = require("express");
 const router = express.Router();
 const Schedule = require("../../database/models/Schedule");
 const User = require("../../database/models/User");
+const Staff = require("../../database/models/Staff");
 
 // GET /api/schedules/:userId
 router.get("/:userId", async (req, res) => {
     try {
-        const { userId } = req.params;
+        const userId = decodeURIComponent(req.params.userId);
+        
 
-        // Check if user exists
-        const staffUser = await User.findById(userId);
-        if (!staffUser) {
-            return res.status(404).json({ message: "User not found." });
-        }
+        const user = await User.findOne({ auth0Id: userId });
+       
 
-        // Get schedule entries for this staff user sorted by day of week then start time
-        const schedule = await Schedule.find({ Staff: userId })
+        const staffRecord = await Staff.findOne({ User: user._id });
+       
+
+        const schedule = await Schedule.find({ Staff: staffRecord._id })
             .sort({ DayOfWeek: 1, StartTime: 1 });
-        console.log("Schedule found: ", schedule);
-        res.status(200).json({schedule});
+       
+
+        res.status(200).json({ schedule });
     } catch (error) {
-        console.error("Error fetching schedule:", error);
+        
         res.status(500).json({ message: "Server error." });
     }
 });
-
 module.exports = router;

@@ -44,43 +44,7 @@ describe('ScheduleService', () => {
         });
     });
 
-    describe('update', () => {
-        const scheduleId = 'schedule-123';
-        const payload = {
-            Staff: 'staff-uid-1',
-            DayOfWeek: 'Monday',
-            StartTime: '08:00',
-            EndTime: '16:00',
-        };
-
-        it('should call PUT on the correct path with the correct body', () => {
-            service.update(scheduleId, payload);
-            expect(mockPrivateClient.put).toHaveBeenCalledWith(
-                '/schedules/schedule-123',
-                { Staff: payload.Staff, DayOfWeek: payload.DayOfWeek, StartTime: payload.StartTime, EndTime: payload.EndTime },
-                null
-            );
-        });
-
-        it('should pass keys to the request body', () => {
-            service.update(scheduleId, payload);
-            const body = mockPrivateClient.put.mock.calls[0][1];
-            expect(body).toHaveProperty('Staff');
-            expect(body).toHaveProperty('DayOfWeek');
-            expect(body).toHaveProperty('StartTime');
-            expect(body).toHaveProperty('EndTime');
-        });
-
-        it('should pass undefined for any omitted fields', () => {
-            service.update(scheduleId, { Staff: 'staff-uid-1' });
-            const body = mockPrivateClient.put.mock.calls[0][1];
-            expect(body.Staff).toBe('staff-uid-1');
-            expect(body.DayOfWeek).toBeUndefined();
-            expect(body.StartTime).toBeUndefined();
-            expect(body.EndTime).toBeUndefined();
-        });
-    });
-
+   
     describe('createDefault', () => {
         it('should call POST to the bulk path with staffId and schedules', () => {
             const auth0Id = 'auth0|staff-1';

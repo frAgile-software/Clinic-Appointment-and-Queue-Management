@@ -333,7 +333,7 @@ function StaffDashboard() {
 
         <article className="quick-action-card">
           <h3 className="quick-action-title">Update Schedule</h3>
-          <button className="pill-btn-purple">VIEW SCHEDULE</button>
+           <button className="pill-btn-purple" onClick={() => navigate('/dashboard/staff/schedule')}>VIEW SCHEDULE</button>
         </article>
 
         <article className="quick-action-card">
