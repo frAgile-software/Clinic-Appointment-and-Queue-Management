@@ -1,0 +1,101 @@
+.universal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background-color: #6b1fad;
+  color: #ffffff;
+}
+
+.header-branding {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo {
+  width: 32px;
+  height: 32px;
+}
+
+.header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.header-navigation {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.universal-header > nav > button,
+.universal-header .header-navigation > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 16px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 6px;
+  background-color: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.universal-header > nav > button:hover,
+.universal-header .header-navigation > button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+}
+
+.universal-header > nav > button.btn-icon,
+.universal-header .header-navigation > button.btn-icon {
+  width: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+}
+
+.universal-header > nav > button svg,
+.universal-header .header-navigation > button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.universal-header button:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+}
+
+.universal-header button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.universal-header button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.universal-header button:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.universal-header button.btn-icon {
+  background: none;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
+.universal-header button.btn-icon:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+}

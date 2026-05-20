@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
-
+import Header from '../../components/Header';
 import './Landing.css';
 import { useApi } from '../../api/useApi';
 
@@ -211,17 +211,10 @@ const isClinicOpen = (clinic) => {
 
   return (
     <main className="landing">
-      <nav className="landing-nav" aria-label="Main navigation">
-        <span className="landing-logo">
-          {/* Use a leading slash to point to the root of the public folder */}
-          <img src="/logo.svg" alt="Clinics and Qs Logo" className="nav-logo-img" />
-          Clinics and Qs
-        </span>
-        <section className="landing-nav-btns">
-          <button className="btn" onClick={login}>Login</button>
-          <button className="btn btn-primary" onClick={signup}>Sign Up</button>
-        </section>
-      </nav>
+      <Header>
+          <button  onClick={login}>Login</button>
+          <button  onClick={signup}>Sign Up</button>
+      </Header>
 
       {/*  Hero + search bar*/}
       <header className="landing-hero">
