@@ -207,7 +207,7 @@ function StaffDashboard() {
       const updatedItem = { ...modalDetails, BookingDateTime: newBookingDateTime };
       setModalDetails(updatedItem);
       setAppointments((prev) => prev.map((item) => (item._id === modalDetails._id ? updatedItem : item)));
-
+      await api.notifications.createNotif(modalDetails.Patient?._id, `Your appointment has been rescheduled to ${newBookingDateTime}`);
       setIsRescheduleModalOpen(false);
       setNewBookingDateTime('');
     } catch (error) {
