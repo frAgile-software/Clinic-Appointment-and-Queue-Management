@@ -7,7 +7,7 @@ const sortNotifications = (items) => {
 };
 
 export default function NotificationCenter({ userId }) {
-  console.log("NotificationCenter rendered with userId:", userId);
+
   const api = useApi();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
