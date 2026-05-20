@@ -28,6 +28,7 @@ router.post("/", async (req, res) => {
         const existing = await Appointment.findOne({
             Staff,
             BookingDateTime: new Date(BookingDateTime),
+            Status: { $ne: "Cancelled" }
         });
         if (existing && existing._id.toString() !== rescheduleAppointmentId) {
             return res.status(409).json({ message: "This slot is already booked." });
@@ -52,6 +53,7 @@ router.post("/", async (req, res) => {
             appointment.BookingDateTime = new Date(BookingDateTime);
             appointment.ReasonDetails = description || '';
             appointment.Status = "Waiting";
+            appointment.type = "Appointment";
             if (specialityId) {
                 appointment.Speciality = specialityId;
             }

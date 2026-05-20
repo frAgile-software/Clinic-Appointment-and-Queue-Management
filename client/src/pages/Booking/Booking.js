@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiAuth } from '../../hooks/apiAuth';
 import './Booking.css';
+import Header from '../../components/Header';
 // import logo from '../PatientDashboard/logo.svg';
 
 /* ── Helpers ── */
@@ -314,17 +315,10 @@ export default function Booking() {
   return (
     <main className="booking-page">
 
-      {/* Nav */}
-      <nav className="booking-nav" aria-label="Main navigation">
-        <span style={{ flex: 1 }}>
+      
+      <Header>
           <button className="booking-nav-back" onClick={() => navigate(-1)}>← Back</button>
-        </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, justifyContent: 'center' }}>
-          <img src="/logo.svg" alt="Clinics and Qs logo" style={{ width: 32, height: 32 }} />
-          <span className="booking-nav-logo">Clinics and Qs</span>
-        </span>
-        <span style={{ flex: 1 }} />
-      </nav>
+      </Header>
 
       {/* Hero */}
       <header className="booking-hero" aria-label="Booking context">
