@@ -144,7 +144,7 @@ const addBlock = useCallback(async (dayIndex, startSlot) => {
     <main className="es-page">
 
       <Header>
-          <button className="schedule-nav-back" onClick={() => navigate(-1)}>← Back</button>
+          <button className="schedule-nav-back" onClick={() => navigate(-1)}>Back</button>
       </Header>
 
       <section className="es-hero">
