@@ -8,7 +8,6 @@ import { useApi } from '../../api/useApi';
 
 jest.mock('@auth0/auth0-react');
 jest.mock('../../api/useApi');
-jest.useRealTimers();
 const mockNavigate = jest.fn();
 jest.mock('react-router', () => ({
   useNavigate: () => mockNavigate,
