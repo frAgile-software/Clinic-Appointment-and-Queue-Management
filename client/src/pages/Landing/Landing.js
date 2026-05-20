@@ -218,7 +218,10 @@ const isClinicOpen = (clinic) => {
 
       {/*  Hero + search bar*/}
       <header className="landing-hero">
-        <h1>Skip the queue. Book online.</h1>
+        <h1>
+            Skip the queue. <br />
+            Book online.
+        </h1>
         <p>Find a clinic near you and reserve your slot in minutes.</p>
 
         {/* Typing calls the filterClinic API with ?name= — no page nav */}
