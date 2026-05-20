@@ -26,14 +26,14 @@ server.use(express.json());
 // protect all '/api' routes
 server.use("/api", requireAuth);
 
-server.use(usersRoute);
-server.use(clinicsRoute);
-server.use(schedulesRoute);
-server.use(appointmentsRoute);
-server.use(queuesRoute);
-server.use(specialitiesRoute);
-server.use(consultsRoute); 
-server.use(notifsRoute);
+server.use("/api", usersRoute);
+server.use("/api", clinicsRoute);
+server.use("/api", schedulesRoute);
+server.use("/api", appointmentsRoute);
+server.use("/api", queuesRoute);
+server.use("/api", specialitiesRoute);
+server.use("/api", consultsRoute);
+server.use("/api", notifsRoute);
 
 // hello mr api! :D
 server.get("/hello", (req, res) => {

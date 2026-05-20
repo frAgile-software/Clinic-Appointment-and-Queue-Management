@@ -25,4 +25,17 @@ create({ staffId, DayOfWeek, StartTime, EndTime }) {
     return this.priv.post(this.basePath, { staffId, DayOfWeek, StartTime, EndTime }, null);
 }
 
+getOffDays(staffId) {
+    return this.priv.get(`${this.basePath}/off-days/${encodeURIComponent(staffId)}`, null);
+}
+
+createOffDays(staffId, dates) {
+    return this.priv.post(`${this.basePath}/off-days`, { staffId, dates }, null);
+}
+
+deleteOffDay(offDayId) {
+    return this.priv.delete(`${this.basePath}/off-days/${offDayId}`, null);
+}
+
+
 }

@@ -46,9 +46,14 @@ const { user }     = useAuth0();
   const [pending,     setPending]     = useState(new Set());
   const [toast,       setToast]       = useState(null);
 
+  const [offDays,      setOffDays]      = useState([]);
+  const [offDayFrom,   setOffDayFrom]   = useState('');
+  const [offDayTo,     setOffDayTo]     = useState('');
+  const [addingOffDay, setAddingOffDay] = useState(false);
+
   // load staff + clinic + schedule 
-  useEffect(() => {
-  if (!staffId) return;
+useEffect(() => {
+  if (!staffId) return;  
   async function load() {
     setLoading(true);
     try {
@@ -60,6 +65,10 @@ const { user }     = useAuth0();
 
       const schedData = await api.schedules.getSchedule(staffId);
       setMySchedule(Array.isArray(schedData.schedule) ? schedData.schedule : []);
+
+      const offData = await api.schedules.getOffDays(staffId);
+      setOffDays(Array.isArray(offData.offDays) ? offData.offDays : []);
+
     } catch (err) {
       console.error('Could not load schedule:', err);
       setMySchedule([]);
@@ -124,6 +133,51 @@ const addBlock = useCallback(async (dayIndex, startSlot) => {
     setPending(prev => { const n = new Set(prev); n.delete(key); return n; });
   }
 }, [pending, staffId, api]);
+
+
+
+const handleAddOffDays = async () => {
+    if (!offDayFrom) return showToast('Pick at least a start date', 'error');
+    const start = new Date(offDayFrom);
+    const end   = offDayTo ? new Date(offDayTo) : new Date(offDayFrom);
+    if (end < start) return showToast('End date must be after start date', 'error');
+
+    // Build array of every date in range
+    const dates = [];
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        dates.push(d.toISOString().slice(0, 10));
+    }
+
+    setAddingOffDay(true);
+    try {
+        const { offDays: created } = await api.schedules.createOffDays(staffId, dates);
+        setOffDays(prev => [...prev, ...created].sort((a, b) => new Date(a.date) - new Date(b.date)));
+        setOffDayFrom('');
+        setOffDayTo('');
+        showToast(`${created.length} day${created.length !== 1 ? 's' : ''} added`);
+    } catch (err) {
+        showToast(err.message || 'Could not save days off', 'error');
+    } finally {
+        setAddingOffDay(false);
+    }
+};
+
+const handleDeleteOffDay = async (id) => {
+    setPending(prev => new Set(prev).add(id));
+    try {
+        await api.schedules.deleteOffDay(id);
+        setOffDays(prev => prev.filter(d => d._id !== id));
+        showToast('Day removed', 'remove');
+    } catch (err) {
+        showToast(err.message || 'Could not remove day', 'error');
+    } finally {
+        setPending(prev => { const n = new Set(prev); n.delete(id); return n; });
+    }
+};
+
+
+
+
   //render 
   if (loading) {
     return (
@@ -232,16 +286,76 @@ const addBlock = useCallback(async (dayIndex, startSlot) => {
           </section>
         </article>
 
-        <article className="es-section es-section--coming">
-          <header className="es-section-header">
-            <span className="es-step-badge">2</span>
-            <section className="es-section-header-text">
-              <h2 className="es-section-title">Days Off</h2>
-              <p className="es-section-sub">Request specific dates off</p>
-            </section>
-          </header>
-          <section className="es-coming-soon-body" />
-        </article>
+       <article className="es-section">
+    <header className="es-section-header">
+        <span className="es-step-badge">2</span>
+        <section className="es-section-header-text">
+            <h2 className="es-section-title">Days Off</h2>
+            <p className="es-section-sub">Select a single day or a range — each day is saved separately</p>
+        </section>
+    </header>
+
+    <section className="es-offdays-picker">
+        <section className="es-offdays-inputs">
+            <label className="es-offday-label">
+                From
+                <input
+                    type="date"
+                    className="es-offday-input"
+                    value={offDayFrom}
+                    min={new Date().toISOString().slice(0, 10)}
+                    onChange={e => setOffDayFrom(e.target.value)}
+                />
+            </label>
+            <label className="es-offday-label">
+                To <span className="es-offday-optional">(optional)</span>
+                <input
+                    type="date"
+                    className="es-offday-input"
+                    value={offDayTo}
+                    min={offDayFrom || new Date().toISOString().slice(0, 10)}
+                    onChange={e => setOffDayTo(e.target.value)}
+                />
+            </label>
+            <button
+                className="es-offday-submit"
+                disabled={!offDayFrom || addingOffDay}
+                onClick={handleAddOffDays}
+            >
+                {addingOffDay ? <span className="es-block-spinner" /> : 'Add Days Off'}
+            </button>
+        </section>
+
+        {offDays.length > 0 && (
+            <ul className="es-offdays-list">
+                {offDays.map(d => {
+                    const isBusy = pending.has(d._id);
+                    return (
+                        <li key={d._id} className="es-offday-item">
+                            <span className="es-offday-date">
+                                {new Date(d.date).toLocaleDateString('en-ZA', {
+                                    weekday: 'short', year: 'numeric',
+                                    month:   'short', day:  'numeric',
+                                })}
+                            </span>
+                            <button
+                                className="es-offday-remove"
+                                disabled={isBusy}
+                                onClick={() => handleDeleteOffDay(d._id)}
+                            >
+                                {isBusy ? <span className="es-block-spinner" /> : '✕'}
+                            </button>
+                        </li>
+                    );
+                })}
+            </ul>
+        )}
+
+        {offDays.length === 0 && (
+            <p className="es-no-blocks">No days off scheduled yet.</p>
+        )}
+    </section>
+</article>
       </section>
 
       {toast && (

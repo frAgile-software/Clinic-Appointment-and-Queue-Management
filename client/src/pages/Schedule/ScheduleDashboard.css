@@ -444,3 +444,125 @@
   .es-day-tab  { padding: 8px 10px; min-width: 50px; }
   .es-blocks-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 }
+
+/* ── Days Off ─────────────────────────────────────────────────────────── */
+
+.es-offdays-picker {
+  padding: 16px 20px 20px;
+}
+
+.es-offdays-inputs {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.es-offday-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.es-offday-optional {
+  font-weight: 400;
+  text-transform: none;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.es-offday-input {
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.15s;
+}
+.es-offday-input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(107,47,160,.1);
+}
+
+.es-offday-submit {
+  padding: 9px 20px;
+  border-radius: var(--radius-sm);
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  min-height: 40px;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.es-offday-submit:hover:not(:disabled) {
+  background: var(--brand-dark);
+}
+.es-offday-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.es-offdays-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.es-offday-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-xlight);
+  border: 1.5px solid var(--brand-light);
+}
+
+.es-offday-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-dark);
+}
+
+.es-offday-remove {
+  background: transparent;
+  border: 1.5px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.es-offday-remove:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+.es-offday-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
