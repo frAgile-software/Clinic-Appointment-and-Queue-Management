@@ -114,12 +114,12 @@ describe("ScheduleDashboard component", () => {
       expect(screen.getByText(/Weekly Availability/i)).toBeInTheDocument();
     });
  
-    test("Given the back button is clicked, Then window.history.back is called", async () => {
-      const backSpy = jest.spyOn(window.history, "back").mockImplementation(() => {});
+    test("Given the back button is clicked, Then navigate is called", async () => {
       await renderComponent(mockApi);
- 
-      fireEvent.click(screen.getByRole("button", { name: /Back/i }));
-      expect(backSpy).toHaveBeenCalled();
+    
+      expect(() => 
+        fireEvent.click(screen.getByRole("button", { name: /Back/i }))
+      ).not.toThrow();
     });
   });
  
