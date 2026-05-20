@@ -118,7 +118,7 @@ describe("ScheduleDashboard component", () => {
       const backSpy = jest.spyOn(window.history, "back").mockImplementation(() => {});
       await renderComponent(mockApi);
  
-      fireEvent.click(screen.getByRole("button", { name: /← Back/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Back/i }));
       expect(backSpy).toHaveBeenCalled();
     });
   });
