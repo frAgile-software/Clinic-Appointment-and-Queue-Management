@@ -6,7 +6,7 @@ const sortNotifications = (items) => {
   return [...items].sort((a, b) => new Date(b.Time) - new Date(a.Time));
 };
 
-// FIX 1: Add refreshSignal inside the destructuring brackets here so the component can read it!
+
 export default function NotificationCenter({ userId, refreshSignal }) {
   const api = useApi();
   const [isOpen, setIsOpen] = useState(false);
