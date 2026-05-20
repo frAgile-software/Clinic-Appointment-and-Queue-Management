@@ -102,11 +102,15 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     });
   };
 
-  test("Given the dashboard loads, Then the top navigation bar is displayed", async () => {
-    await renderDashboard();
-    expect(screen.getByRole("heading", { name: /Clinics and Qs/i })).toBeInTheDocument(); 
-    expect(screen.getByRole("button", { name: /HOME/i })).toBeInTheDocument();
-  });
+ test("Given the dashboard loads, Then the top navigation bar is displayed", async () => {
+  await renderDashboard();
+  
+  expect(screen.getByRole("banner")).toBeInTheDocument();
+  
+  expect(screen.getByText(/Clinics and Qs/i)).toBeInTheDocument(); 
+  
+  expect(screen.getByRole("navigation", { name: /Header actions/i })).toBeInTheDocument();
+});
 
   test("Given the user is logged in, Then they see a personalized welcome message", async () => {
     render(<PatientDashboard />);

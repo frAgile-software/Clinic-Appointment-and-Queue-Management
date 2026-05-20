@@ -226,6 +226,9 @@ Base path: `/specialities`.
 | `addToStaff({staffId, specialityId})`| Private | `POST /api/specialities/staff/:staffId/:specialityId` |
 | `removeFromStaff({staffId, specialityId})`| Private |`DELETE /api/specialities/staff/:staffId/:specialityId` |
 | `getForStaff(staffId)`| Public | `GET /specialities/staff/:staffId` |
+| `getAll()` | Public | `GET /specialities` |
+| `create(name)` | Private | `POST /api/specialities` |
+| `getForClinic(clinicId)` | Private | `GET /api/specialities/clinic/:clinicId` |
 
 
 **Example usage in a component**
@@ -243,12 +246,11 @@ const staffSpecs = await api.specialities.getForStaff("staff123");
 
 //get a list of all specialitities
 const specialities = await api.specialities.getAll();
-```
 
 // create speciality
 await api.specialities.create("drugs");
 ```
-)
+
 ---
 
 ### `ScheduleService`

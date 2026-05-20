@@ -16,5 +16,6 @@ router.use("/api/schedules/off-days", requireAuth, deleteOff);
 router.use("/api/schedules", requireAuth, getUserSchedule);
 router.use("/api/schedules", requireAuth, createSchedule);
 router.use("/api/schedules", requireAuth, deleteSchedule);
+router.use("/api/schedules", requireAuth, createBulk);
 
 module.exports = router;
