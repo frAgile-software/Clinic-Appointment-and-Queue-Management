@@ -8,6 +8,7 @@ const deleteSchedule  = require('./schedules/deleteSchedule');
 const deleteOff       = require('./schedules/deleteOff');
 const getOff          = require('./schedules/getOff');
 const addOff          = require('./schedules/addOff');
+const createBulk      = require('./schedules/createBulk');
 
 router.use("/api/schedules/off-days", requireAuth, getOff);
 router.use("/api/schedules/off-days", requireAuth, addOff);

@@ -38,6 +38,7 @@ export default function EditSchedule() {
   const { user } = useAuth0();
   const api      = useApi();
   const staffId  = user?.sub;
+  const navigate = useNavigate();
 
   const [mySchedule,   setMySchedule]   = useState([]);
   const [clinicSlots,  setClinicSlots]  = useState([]);
