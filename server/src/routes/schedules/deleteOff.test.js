@@ -1,20 +1,25 @@
 const request = require("supertest");
 const express = require("express");
 
-const deleteOffDayRouter = require("./deleteOffDay");
+const deleteOffDayRouter = require("./deleteOff");
 const OffDays = require("../../database/models/OffDays");
 
-jest.mock("../../database/models/OffDays");
+jest.mock("../../database/models/OffDays", () => ({
+    findByIdAndDelete: jest.fn(),
+}));
 
-// mongoose ObjectId validation requires a valid 24-char hex string
 jest.mock("mongoose", () => ({
     Types: {
         ObjectId: {
             isValid: jest.fn((id) => /^[a-f\d]{24}$/i.test(id)),
         },
     },
+    Schema: class {
+        constructor() {}
+        static get Types() { return { ObjectId: String }; }
+    },
+    model: jest.fn(),
 }));
-
 const app = express();
 app.use(express.json());
 app.use("/api/schedules/off-days", deleteOffDayRouter);

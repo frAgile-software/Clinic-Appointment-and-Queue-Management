@@ -1,7 +1,7 @@
 const request = require("supertest");
 const express = require("express");
 
-const getOffDaysRouter = require("./getOffDays");
+const getOffDaysRouter = require("./getOff");
 const User = require("../../database/models/User");
 const Staff = require("../../database/models/Staff");
 const OffDays = require("../../database/models/OffDays");
@@ -58,8 +58,8 @@ describe("GET /api/schedules/off-days/:userId", () => {
         const mockUser = { _id: "user123" };
         const mockStaff = { _id: "staff123" };
         const mockOffDays = [
-            { _id: "od1", staff_id: "staff123", date: new Date("2025-08-01T12:00:00Z") },
-            { _id: "od2", staff_id: "staff123", date: new Date("2025-08-05T12:00:00Z") },
+           { _id: "od1", staff_id: "staff123", date: "2025-08-01T12:00:00.000Z" },
+           { _id: "od2", staff_id: "staff123", date: "2025-08-05T12:00:00.000Z" },
         ];
 
         User.findOne.mockResolvedValue(mockUser);
