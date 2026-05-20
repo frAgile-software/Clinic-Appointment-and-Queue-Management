@@ -741,6 +741,200 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         expect(screen.getByText(/Clinic Stats/i)).toBeInTheDocument();
     });
 
+    test("Given a staff member and speciality are selected, Then clicking 'Add Staff' calls addToStaff with the correct staffId and specialityId", async () => {
+        mockApi.specialities.addToStaff = jest.fn().mockResolvedValue({ message: 'Speciality added' });
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /Speciality/i })).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByRole('combobox', { name: /Speciality/i }), {
+            target: { value: 'spec_001' },
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: /Submit add staff/i }));
+
+        await waitFor(() => {
+            expect(mockApi.specialities.addToStaff).toHaveBeenCalledWith({
+                staffId: 'user_new',
+                specialityId: 'spec_001',
+            });
+        });
+    });
+
+    test("Given 'Add Staff' succeeds, Then addToStaff is called before the staff list is refreshed", async () => {
+        const callOrder = [];
+        mockApi.specialities.addToStaff = jest.fn().mockImplementation(async () => {
+            callOrder.push('addToStaff');
+            return { message: 'Speciality added' };
+        });
+        mockApi.clinics.listStaff.mockImplementation(async () => {
+            callOrder.push('listStaff');
+            return { users: mockStaff };
+        });
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /Speciality/i })).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByRole('combobox', { name: /Speciality/i }), {
+            target: { value: 'spec_001' },
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: /Submit add staff/i }));
+
+        await waitFor(() => {
+            expect(callOrder).toContain('addToStaff');
+            expect(callOrder).toContain('listStaff');
+        });
+
+        const addIdx = callOrder.indexOf('addToStaff');
+        const listIdx = callOrder.lastIndexOf('listStaff');
+        expect(addIdx).toBeLessThan(listIdx);
+    });
+
+    test("Given 'Add Staff' succeeds, Then the selected speciality is cleared", async () => {
+        mockApi.specialities.addToStaff = jest.fn().mockResolvedValue({ message: 'Speciality added' });
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /Speciality/i })).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByRole('combobox', { name: /Speciality/i }), {
+            target: { value: 'spec_001' },
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: /Submit add staff/i }));
+
+        await waitFor(() => {
+            expect(screen.queryByRole('combobox', { name: /Speciality/i })).not.toBeInTheDocument();
+        });
+    });
+
+    test("Given addToStaff fails, Then an error is logged and a failure alert is shown", async () => {
+        mockApi.specialities.addToStaff = jest.fn().mockRejectedValue(new Error("Speciality error"));
+        const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /Speciality/i })).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByRole('combobox', { name: /Speciality/i }), {
+            target: { value: 'spec_001' },
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: /Submit add staff/i }));
+
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalled();
+            expect(alertSpy).toHaveBeenCalledWith('Failed to add staff. Please try again.');
+        });
+
+        alertSpy.mockRestore();
+        consoleSpy.mockRestore();
+    });
+
+    test("Given a staff member is already linked to another clinic, Then the Add Staff button is disabled", async () => {
+        mockApi.clinics.getAssignedClinics
+            .mockResolvedValueOnce(mockClinics)
+            .mockResolvedValueOnce([{ _id: 'other_clinic' }]);
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByText(/already linked to another clinic/i)).toBeInTheDocument();
+        });
+
+        expect(screen.getByRole("button", { name: /Submit add staff/i })).toBeDisabled();
+    });
+
+    test("Given a staff member is already linked, Then the cross indicator is shown", async () => {
+        mockApi.clinics.getAssignedClinics
+            .mockResolvedValueOnce(mockClinics)
+            .mockResolvedValueOnce([{ _id: 'other_clinic' }]);
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Add Staff/i }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText(/staff@example.com/i)).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/staff@example.com/i), {
+            target: { value: 'alice@clinic.com' },
+        });
+
+        act(() => { jest.runAllTimers(); });
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(/Not found or already linked/i)).toBeInTheDocument();
+        });
+    });
+
     test("Given the user clicks 'Edit Clinic Times', Then the time inputs are shown with current values", async () => {
         await renderDashboard();
         fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
@@ -800,6 +994,81 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         });
 
         expect(screen.getByText(/No staff match your search/i)).toBeInTheDocument();
+    });
+
+    test("Given the user clicks 'Edit Clinic Times', Then time inputs are shown pre-filled with current times", async () => {
+        mockApi.clinics.updateClinic = jest.fn().mockResolvedValue({});
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Edit Clinic Times/i }));
+
+        expect(screen.getByLabelText(/Open/i)).toHaveValue('08:00');
+        expect(screen.getByLabelText(/Close/i)).toHaveValue('17:00');
+    });
+
+    test("Given the user saves updated times, Then updateClinic is called with the new values", async () => {
+        mockApi.clinics.updateClinic = jest.fn().mockResolvedValue({});
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Edit Clinic Times/i }));
+
+        fireEvent.change(screen.getByLabelText(/Open/i), { target: { value: '07:00' } });
+        fireEvent.change(screen.getByLabelText(/Close/i), { target: { value: '16:00' } });
+        fireEvent.click(screen.getByRole("button", { name: /Save Times/i }));
+
+        await waitFor(() => {
+            expect(mockApi.clinics.updateClinic).toHaveBeenCalledWith('clinic_001', {
+                'practiceTimes.open': '07:00',
+                'practiceTimes.close': '16:00',
+            });
+        });
+    });
+
+    test("Given the user saves updated times successfully, Then a success message is shown", async () => {
+        mockApi.clinics.updateClinic = jest.fn().mockResolvedValue({});
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Edit Clinic Times/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Save Times/i }));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Clinic times saved successfully/i)).toBeInTheDocument();
+        });
+    });
+
+    test("Given the user clicks Cancel while editing times, Then the edit form closes", async () => {
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Edit Clinic Times/i }));
+
+        expect(screen.getByRole("button", { name: /Save Times/i })).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: /Cancel/i }));
+
+        expect(screen.queryByRole("button", { name: /Save Times/i })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Edit Clinic Times/i })).toBeInTheDocument();
+    });
+
+    test("Given updateClinic fails, Then an error is logged", async () => {
+        mockApi.clinics.updateClinic = jest.fn().mockRejectedValue(new Error("Update failed"));
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /Manage Clinic/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Edit Clinic Times/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Save Times/i }));
+
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'Failed to update clinic times:',
+                expect.any(Error)
+            );
+        });
+
+        consoleSpy.mockRestore();
     });
 
     test("Given the user selects and adds a speciality to a staff member, Then addToStaff is called", async () => {
@@ -871,4 +1140,5 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         });
         expect(await screen.findByText(/Appointment history summary/i)).toBeInTheDocument();
     });
+
 });
