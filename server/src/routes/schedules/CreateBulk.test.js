@@ -1,6 +1,7 @@
 const express = require("express");
 
-const createScheduleRouter = require("./createSchedule");
+const request = require("supertest");
+const createScheduleRouter = require("./createBulk");
 const Schedule = require("../../database/models/Schedule");
 
 jest.mock("../../database/models/Schedule");
