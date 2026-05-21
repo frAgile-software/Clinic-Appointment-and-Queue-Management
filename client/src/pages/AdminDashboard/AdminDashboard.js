@@ -706,7 +706,7 @@ const handleRemoveStaff = async (member) => {
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="date" />
                                 <YAxis />
-                                <ReferenceLine x={(new Date).toLocaleDateString()} stroke="black" strokeDasharray="5 5"/>
+                                <ReferenceLine x={(new Date()).toLocaleDateString()} stroke="black" strokeDasharray="5 5"/>
                                 <Tooltip />
                                 <Line type="monotone" dataKey="count" stroke="#6b1fad" strokeWidth={2} dot={{ fill: '#6b1fad' }} />
                             </LineChart>
