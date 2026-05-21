@@ -77,6 +77,15 @@ function initials(name = '') {
 function docFullName(doc) {
   if (!doc) return '';
   return `${doc.name || ''} ${doc.surname || ''}`.trim();
+
+
+}
+
+
+
+function localDateStr(date) {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 /* ── Component ── */
@@ -139,31 +148,31 @@ export default function Booking() {
   });
 
   /* ── Check if a slot is already booked by the patient ── */
-  const isPatientBooked = useCallback((slot) => {
-    if (!selectedDate || !myAppointments.length) return false;
-    const dateStr = selectedDate.toISOString().slice(0, 10);
-    return myAppointments.some(appt => {
-      if (!appt.BookingDateTime) return false;
-      const apptDate    = new Date(appt.BookingDateTime);
-      const apptDateStr = apptDate.toISOString().slice(0, 10);
-      const apptHour    = `${pad(apptDate.getUTCHours())}:00`;
-      return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
-    });
-  }, [selectedDate, myAppointments]);
+const isPatientBooked = useCallback((slot) => {
+  if (!selectedDate || !myAppointments.length) return false;
+  const dateStr = localDateStr(selectedDate);
+  return myAppointments.some(appt => {
+    if (rescheduleAppointmentId && appt._id === rescheduleAppointmentId) return false;
+    if (!appt.BookingDateTime) return false;
+    const apptDate    = new Date(appt.BookingDateTime);
+    const apptDateStr = localDateStr(apptDate);
+    const apptHour    = `${pad(apptDate.getHours())}:00`;
+    return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
+  });
+}, [selectedDate, myAppointments, rescheduleAppointmentId]);
 
   /* ── Check if a slot is already booked by the doctor ── */
-  const isDoctorBooked = useCallback((slot) => {
-    if (!selectedDate || !doctorAppointments.length) return false;
-    const dateStr = selectedDate.toISOString().slice(0, 10);
-    return doctorAppointments.some(appt => {
-      if (!appt.BookingDateTime) return false;
-      const apptDate    = new Date(appt.BookingDateTime);
-      const apptDateStr = apptDate.toISOString().slice(0, 10);
-      const apptHour    = `${pad(apptDate.getUTCHours())}:00`;
-      return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
-    });
-  }, [selectedDate, doctorAppointments]);
-
+const isDoctorBooked = useCallback((slot) => {
+  if (!selectedDate || !doctorAppointments.length) return false;
+  const dateStr = localDateStr(selectedDate);
+  return doctorAppointments.some(appt => {
+    if (!appt.BookingDateTime) return false;
+    const apptDate    = new Date(appt.BookingDateTime);
+    const apptDateStr = localDateStr(apptDate);
+    const apptHour    = `${pad(apptDate.getHours())}:00`;
+    return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
+  });
+}, [selectedDate, doctorAppointments]);
   /* ── Slots for the selected day ── */
   const slotsForDay = (() => {
     if (!selectedDate || !schedule.length) return [];
@@ -283,35 +292,41 @@ export default function Booking() {
   };
 
   /* ── Confirm booking ── */
-  const handleConfirm = async () => {
-    if (!selectedSlot) return;
-    setConfirming(true);
-    setError('');
-    try {
-      const bookingDate = new Date(selectedDate);
-      const [slotHour]  = selectedSlot.StartTime.split(':').map(Number);
-      bookingDate.setHours(slotHour, 0, 0, 0);
+ const handleConfirm = async () => {
+  if (!selectedSlot) return;
+  setConfirming(true);
+  setError('');
+  try {
+    const bookingDate = new Date(selectedDate);
+    const [slotHour]  = selectedSlot.StartTime.split(':').map(Number);
+    bookingDate.setHours(slotHour, 0, 0, 0);
 
-      await api.appointments.create({
-        clinicId,
-        staffUserId:     selectedDoctor._id,
-        patientAuth0Id:  user?.sub,
-        bookingDateTime: bookingDate.toISOString(),
-        description:     visitDescription,
-        specialityName:  specialty,
-      });
+    await api.appointments.create({
+      clinicId,
+      staffUserId:     selectedDoctor._id,
+      patientAuth0Id:  user?.sub,
+      bookingDateTime: bookingDate.toISOString(),
+      description:     visitDescription,
+      specialityName:  specialty,
+    });
 
-      if (rescheduleAppointmentId) {
-        await api.appointments.cancel(rescheduleAppointmentId);
-      }
-
-      setSuccess(true);
-    } catch (err) {
-      setError(err.message || 'Something went wrong. Please try again.');
-    } finally {
-      setConfirming(false);
+    if (rescheduleAppointmentId) {
+      await api.appointments.cancel(rescheduleAppointmentId);
     }
-  };
+
+    // Refresh patient appointments so newly booked slot greys out immediately
+    if (user?.sub) {
+      const data = await api.appointments.getForAuth0Id(user.sub, { statuses: ['Scheduled', 'Waiting', 'In Consult'] });
+      setMyAppointments(Array.isArray(data) ? data : data.appointments || []);
+    }
+
+    setSuccess(true);
+  } catch (err) {
+    setError(err.message || 'Something went wrong. Please try again.');
+  } finally {
+    setConfirming(false);
+  }
+};
 
   /* ── Guards ── */
   if (isLoading) return (
@@ -551,28 +566,21 @@ export default function Booking() {
                 <>
                   <ul className="es-blocks-grid" aria-label="Available time slots">
                     {slotsForDay.map(slot => {
-                      const alreadyBooked = isPatientBooked(slot);
-                      const doctorTaken   = isDoctorBooked(slot);
-                      const isBusy        = alreadyBooked || doctorTaken;
-                      const isSelected    = selectedSlot?._id === slot._id ||
-                                            selectedSlot?.StartTime === slot.StartTime;
+                      const isBusy     = isPatientBooked(slot) || isDoctorBooked(slot);
+                      const isSelected = selectedSlot?._id === slot._id ||
+                                        selectedSlot?.StartTime === slot.StartTime;
 
                       return (
                         <li key={slot._id || slot.StartTime}>
                           <button
-                            className={`es-block-btn ${isSelected ? 'es-block-btn--on' : 'es-block-btn--off'} ${isBusy ? 'es-block-btn--busy' : ''}`}
+                            className={`es-block-btn ${
+                              isBusy ? 'es-block-btn--unavailable'
+                              : isSelected ? 'es-block-btn--on'
+                              : 'es-block-btn--off'
+                            }`}
                             aria-pressed={isSelected}
                             disabled={isBusy}
                             onClick={() => !isBusy && setSelectedSlot(slot)}
-                            title={
-                              alreadyBooked
-                                ? 'You already have an appointment at this time'
-                                : doctorTaken
-                                ? 'This slot is already booked'
-                                : isSelected
-                                ? 'Selected'
-                                : 'Click to select'
-                            }
                           >
                             <span className="es-block-time">{fmt12(slot.StartTime.slice(0, 5))}</span>
                             <span className="es-block-sep">→</span>
@@ -581,7 +589,8 @@ export default function Booking() {
                         </li>
                       );
                     })}
-                  </ul>
+                    </ul>
+                  
                   <footer className="es-legend">
                     <span className="es-legend-item">
                       <span className="es-legend-dot es-legend-dot--on" /> Selected
@@ -589,6 +598,8 @@ export default function Booking() {
                     <span className="es-legend-item">
                       <span className="es-legend-dot es-legend-dot--off" /> Available
                     </span>
+                     
+        
                    
                   </footer>
                 </>
