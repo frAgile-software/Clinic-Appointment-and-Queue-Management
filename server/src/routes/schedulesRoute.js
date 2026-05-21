@@ -10,12 +10,14 @@ const deleteOff       = require('./schedules/deleteOff');
 const getOff          = require('./schedules/getOff');
 const addOff          = require('./schedules/addOff');
 const createBulk      = require('./schedules/createBulk');
+const getBulkClinicOff= require('./schedules/getClinicOff');
+
+router.use("/api/schedules/off-days/bulk", requireAuth, getBulkClinicOff);
 
 router.use("/api/schedules/off-days", requireAuth, getOff);
 router.use("/api/schedules/off-days", requireAuth, addOff);
 router.use("/api/schedules/off-days", requireAuth, deleteOff);
 
-//router.use("/api/schedules", requireAuth, updateSchedule);
 router.use("/api/schedules", requireAuth, deleteStaffSchedules);
 router.use("/api/schedules", requireAuth, getUserSchedule);
 router.use("/api/schedules", requireAuth, createSchedule);
