@@ -15,7 +15,7 @@ router.use("/api/schedules/off-days", requireAuth, getOff);
 router.use("/api/schedules/off-days", requireAuth, addOff);
 router.use("/api/schedules/off-days", requireAuth, deleteOff);
 
-router.use("/api/schedules", requireAuth, updateSchedule);
+//router.use("/api/schedules", requireAuth, updateSchedule);
 router.use("/api/schedules", requireAuth, deleteStaffSchedules);
 router.use("/api/schedules", requireAuth, getUserSchedule);
 router.use("/api/schedules", requireAuth, createSchedule);
