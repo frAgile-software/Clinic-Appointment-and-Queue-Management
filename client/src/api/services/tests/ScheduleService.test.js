@@ -101,6 +101,17 @@ describe('ScheduleService', () => {
         });
     });
 
+    describe('getBulkOffDays', () => {
+        it('should call GET on the off-days/bulk path with clinicId, staffIDs, and dates', () => {
+            service.getBulkOffDays('clinic123', {staffIDs: ["staff1", "staff2"], _fromdate: "2026-06-01", _todate: "2026-06-31"});
+
+            expect(mockPrivateClient.get).toHaveBeenCalledWith(
+                '/schedules/off-days/bulk/clinic123',
+                {staffIDs: "staff1,staff2", _fromdate: "2026-06-01", _todate: "2026-06-31"}
+            );
+        });
+    });
+
     describe('createOffDays', () => {
         it('should call POST to the off-days path with staffId and dates', () => {
             const dates = ['2025-08-01', '2025-08-02'];
