@@ -42,6 +42,10 @@
   flex-wrap: wrap;
 }
 
+.btn {
+  color: #ffffff !important;
+}
+
 .notif-header h4 {
   margin: 0;
   font-size: 14px;
