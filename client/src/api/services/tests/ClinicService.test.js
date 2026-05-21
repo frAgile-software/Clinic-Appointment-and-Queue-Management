@@ -118,6 +118,76 @@ describe('ClinicService', () => {
             service.listStaff(clinicId);
             expect(mockPrivateClient.get).toHaveBeenCalledWith('/clinics/clinic-123/staff', null);
         });
+
+        it('should use the private client (requires auth)', () => {
+            service.listStaff('clinic-123');
+            expect(mockPrivateClient.get).toHaveBeenCalled();
+            expect(mockPublicClient.get).not.toHaveBeenCalled();
+        });
+
+        it('should return a promise (result of priv.get)', () => {
+            const mockPromise = Promise.resolve({ users: [] });
+            mockPrivateClient.get.mockReturnValueOnce(mockPromise);
+            const result = service.listStaff('clinic-123');
+            expect(result).toBe(mockPromise);
+        });
+
+        it('resolved value should include users array with auth0Id on each user', async () => {
+            mockPrivateClient.get.mockResolvedValueOnce({
+                users: [
+                    {
+                        _id:     'user-mongo-id',
+                        staffId: 'staff-mongo-id',
+                        userId:  'user-mongo-id',
+                        name:    'Alice',
+                        surname: 'Smith',
+                        email:   'alice@clinic.com',
+                        role:    'Staff',
+                        title:   'Dr',
+                        auth0Id: 'auth0|abc123',
+                    },
+                ],
+            });
+
+            const result = await service.listStaff('clinic-123');
+            expect(result.users[0]).toHaveProperty('auth0Id', 'auth0|abc123');
+        });
+
+        it('resolved value should include separate _id (User) and staffId (Staff record)', async () => {
+            mockPrivateClient.get.mockResolvedValueOnce({
+                users: [
+                    {
+                        _id:     'user-mongo-id',
+                        staffId: 'staff-mongo-id',
+                        auth0Id: 'auth0|abc123',
+                        name:    'Alice',
+                        surname: 'Smith',
+                    },
+                ],
+            });
+
+            const result = await service.listStaff('clinic-123');
+            expect(result.users[0]._id).toBe('user-mongo-id');
+            expect(result.users[0].staffId).toBe('staff-mongo-id');
+            expect(result.users[0]._id).not.toBe(result.users[0].staffId);
+        });
+
+        it('resolved value should only contain Staff role users (not Admin)', async () => {
+            mockPrivateClient.get.mockResolvedValueOnce({
+                users: [
+                    { _id: 'u1', role: 'Staff',  auth0Id: 'auth0|1', name: 'Alice', surname: 'A' },
+                ],
+            });
+
+            const result = await service.listStaff('clinic-123');
+            result.users.forEach(u => expect(u.role).toBe('Staff'));
+        });
+
+        it('resolved value should return empty users array when clinic has no staff', async () => {
+            mockPrivateClient.get.mockResolvedValueOnce({ users: [] });
+            const result = await service.listStaff('clinic-123');
+            expect(result.users).toEqual([]);
+        });
     });
 
     describe('linkStaff', () => {

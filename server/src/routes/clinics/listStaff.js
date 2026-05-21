@@ -16,7 +16,7 @@ router.get("/:clinicID/staff", async (req, res) => {
 
         // Find all staff linked to this clinic, and populate the User reference
         const linkedStaff = await Staff.find({ Clinic: clinicID })
-            .populate('User', 'name surname email role title');
+            .populate('User', 'name surname email role title auth0Id');
 
         if (!linkedStaff || linkedStaff.length === 0) {
             return res.status(200).json({ 
@@ -35,7 +35,8 @@ router.get("/:clinicID/staff", async (req, res) => {
             surname: staffRecord.User.surname,
             email: staffRecord.User.email,
             role: staffRecord.User.role,
-            title: staffRecord.User.title
+            title: staffRecord.User.title,
+            auth0Id: staffRecord.User.auth0Id
         }));
 
         
