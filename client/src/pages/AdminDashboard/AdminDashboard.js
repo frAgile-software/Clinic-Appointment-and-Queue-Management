@@ -150,35 +150,32 @@ function AdminDashboard() {
         fetchStaff();
     },[selectedClinic, user, api]);
 
-useEffect(() => {
-    const loadStaffSpecialities = async () => {
-        try {
-            const specialityRequests = staffList
-                .filter((member) => {
+    useEffect(() => {
+        const loadStaffSpecialities = async () => {
+            try {
+                const result = [];
+                for (const member of staffList) {
                     const userId = member.userId || member._id;
-                    return userId && member.staffId;
-                })
-                .map(async (member) => {
-                    const userId = member.userId || member._id;
-                    const data = await api.specialities.getForStaff(userId);
 
-                    return [
-                        member.staffId,
-                        data.SpecialityObjects || []
-                    ];
-                });
-            const resolvedResult = await Promise.all(specialityRequests);
-            setStaffSpecialities(Object.fromEntries(resolvedResult));
-        } catch (error) {
-            console.error("Error loading staff specialities:", error);
+                    if (!userId || !member.staffId) continue;
+
+                    const data = api.specialities.getForStaff(userId);
+
+                    result.push([member.staffId, data]);
+                }
+                const resolvedResult = await Promise.all(result);
+                setStaffSpecialities(Object.fromEntries(resolvedResult.map(r => [r[0], r[1].SpecialityObjects || []])));
+            } catch (error) {
+                console.error("Error loading staff specialities:", error);
+            }
+        };
+
+        if (staffList.length > 0) {
+            loadStaffSpecialities();
+        } else {
+            setStaffSpecialities({});
         }
-    };
-    if (staffList.length > 0) {
-        loadStaffSpecialities();
-    } else {
-        setStaffSpecialities({});
-    }
-}, [staffList, api]);
+    },[staffList, api]);
 
     useEffect(() => {
         const loadSpecialities = async () => {
@@ -496,40 +493,6 @@ useEffect(() => {
         }
     };
 
-const handleRemoveStaff = async (member) => {
-    try {
-        const confirmed = window.confirm(
-            `Remove${member.title || ""} ${member.name || ""} ${member.surname || ""} from ${selectedClinic.practiceName}?`);
-
-        if (!confirmed) return;
-        const userId = member.userId || member._id;
-        const staffId = member.staffId;
-
-        if (!userId || !staffId) {
-            alert("Missing staff information. Cannot remove staff member.");
-            return;
-        }
-
-        await api.schedules.deleteForStaff(userId);
-        await api.clinics.removeStaff(selectedClinic._id, staffId);
-
-        setStaffList((prev) =>
-            prev.filter((staff) => staff.staffId !== staffId)
-        );
-
-        setStaffSpecialities((prev) => {
-            const updated = { ...prev };
-            delete updated[staffId];
-            return updated;
-        });
-
-        alert("Staff member removed successfully.");
-    } catch (error) {
-        console.error("Error removing staff:", error);
-        alert(error.message || "Failed to remove staff member. Please try again.");
-    }
-};
-
     const filteredStaffList = staffList.filter((member) => {
         const fullName = `${member.title || ""} ${member.name || ""} ${member.surname || ""}`.toLowerCase();
         return fullName.includes(staffSearchTerm.toLowerCase().trim());
@@ -830,13 +793,9 @@ const handleRemoveStaff = async (member) => {
                                         <p className="staff-role">{member.role || 'Staff Member'}</p>
                                     </section>
 
-                                    <button
-                                        type="button"
-                                        className="pill-btn-red staff-fire-btn"
-                                        onClick={() => handleRemoveStaff(member)}
-                                    >
-                                    Fire
-                                </button>
+                                    <button className="pill-btn-red staff-fire-btn">
+                                        Fire
+                                    </button>
                                 </section>
 
                                 <section className="staff-speciality-section">
