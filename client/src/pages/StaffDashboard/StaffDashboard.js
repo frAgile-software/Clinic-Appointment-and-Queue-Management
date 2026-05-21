@@ -5,7 +5,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../../api/useApi';
 import { useNavigate } from 'react-router';
 import NotificationCenter from '../../components/NotificationCenter';
-
+import Header from '../../components/Header';
 const status = {
   WAITING: "Waiting",
   BEING_SEEN: "In Consult",
@@ -36,6 +36,7 @@ function StaffDashboard() {
   };
 
   const staffId = user?.sub;
+  const [staffName, setStaffName] = useState("");
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [appointments, setAppointments] = useState([]);
@@ -64,6 +65,20 @@ function StaffDashboard() {
     updateConsult(modalDetails);
     setIsModalOpen(false);
   };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user?.sub) {
+        try {
+          const data = await api.users.get(user.sub);
+          setStaffName(data.name);
+        } catch (error) {
+          console.error("Failed to fetch user profile:", error);
+        }
+      }
+    };
+    fetchUserData();
+  }, [user?.sub, api]);
 
   useEffect(() => {
     if (!staffId) return;
@@ -281,18 +296,12 @@ function StaffDashboard() {
   };
 
   const nav_bar = (
-    <nav className="landing-nav" aria-label="Main navigation">
-          <section className="nav-logo">
-          <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
-          <span className="landing-logo">Clinics and Qs</span>
-          </section>
-          <section className="landing-nav-btns">
-          <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/staff/profile')}>
-          <LuUser /></button>  
-          <button className="logout-btn-canva" onClick={logout}>Logout</button>
-          <NotificationCenter userId={user?.sub} />
-          </section>
-      </nav>
+          <Header>
+            <button  aria-label="Profile" onClick={() => navigate('/dashboard/staff/profile')}>
+            <LuUser /></button>  
+            <button  onClick={logout}>Logout</button>
+            <NotificationCenter userId={user?.sub} />
+          </Header>
   );
 
   if (loading)
@@ -316,7 +325,7 @@ function StaffDashboard() {
       {nav_bar}
 
       <section className="welcome-banner-canva">
-        <h1 className="welcome-title-canva">Welcome Back, {user?.name}</h1>
+        <h1 className="welcome-title-canva">Welcome Back, {staffName || "..."}!</h1>
         <p className="welcome-subtitle-canva">Here's your dashboard overview for {clinics[0].practiceName}</p>
       </section>
 
@@ -339,7 +348,7 @@ function StaffDashboard() {
 
         <article className="quick-action-card">
           <h3 className="quick-action-title">Update Schedule</h3>
-          <button className="pill-btn-purple">VIEW SCHEDULE</button>
+           <button className="pill-btn-purple" onClick={() => navigate('/dashboard/staff/schedule')}>VIEW SCHEDULE</button>
         </article>
 
         <article className="quick-action-card">

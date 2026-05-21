@@ -5,15 +5,11 @@ export class ScheduleService extends ResourceService {
         super(pub, priv, '/schedules');
     }
 
-    getSchedule(userId) {
-        return this.priv.get(`${this.basePath}/${userId}`, null);
-    }
+   getSchedule(userId) {
+    return this.priv.get(`${this.basePath}/${encodeURIComponent(userId)}`, null);
+}
 
-    update(scheduleId, {Staff, DayOfWeek, StartTime, EndTime}) {
-        return this.priv.put(`${this.basePath}/${scheduleId}`, {
-            Staff, DayOfWeek, StartTime, EndTime
-        }, null);
-    }
+
     
     createDefault(staffId, schedules) {
         return this.priv.post(`${this.basePath}/bulk`, {
@@ -21,8 +17,29 @@ export class ScheduleService extends ResourceService {
         }, null);
     }
 
-    deleteForStaff(userId) {
-        return this.priv.delete(`${this.basePath}/staff/${userId}`, null, null);
-    }
+deleteForStaff(userId) {
+    return this.priv.delete(`${this.basePath}/staff/${userId}`, null, null);
+}
+  
+delete(scheduleId, staffId) {
+  return this.priv.delete(`${this.basePath}/${scheduleId}?staffId=${encodeURIComponent(staffId)}`, null);
+}
+
+create({ staffId, DayOfWeek, StartTime, EndTime }) {
+    return this.priv.post(this.basePath, { staffId, DayOfWeek, StartTime, EndTime }, null);
+}
+
+getOffDays(staffId) {
+    return this.priv.get(`${this.basePath}/off-days/${encodeURIComponent(staffId)}`, null);
+}
+
+createOffDays(staffId, dates) {
+    return this.priv.post(`${this.basePath}/off-days`, { staffId, dates }, null);
+}
+
+deleteOffDay(offDayId) {
+    return this.priv.delete(`${this.basePath}/off-days/${offDayId}`, null);
+}
+
 
 }
