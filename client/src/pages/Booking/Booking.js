@@ -175,20 +175,40 @@ export default function Booking() {
 
   /* ── Load doctors ── */
   useEffect(() => {
-    if (!clinicId) return;
-    (async () => {
-      setLoadingDoctors(true);
-      try {
-        const data = await api.clinics.listStaff(clinicId);
-        setDoctors(data.users || []);
-      } catch {
-        setDoctors([]);
-      } finally {
-        setLoadingDoctors(false);
-      }
-    })();
-  }, [clinicId, api]);
+  if (!clinicId) return;
+  (async () => {
+    setLoadingDoctors(true);
+    try {
+      const data = await api.clinics.listStaff(clinicId);
+      const allStaff = data.users || [];
 
+      if (!specialty) {
+        setDoctors(allStaff);
+        return;
+      }
+
+      const filtered = await Promise.all(
+        allStaff.map(async (doc) => {
+          try {
+            const res = await api.specialities.getForStaff(doc.userId);
+            const has = (res.Specialities || []).some(
+              name => name.toLowerCase() === specialty.toLowerCase()
+            );
+            return has ? doc : null;
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      setDoctors(filtered.filter(Boolean));
+    } catch {
+      setDoctors([]);
+    } finally {
+      setLoadingDoctors(false);
+    }
+  })();
+}, [clinicId, api, specialty]);
   /* ── Load patient's own appointments once ── */
   useEffect(() => {
     if (!user?.sub) return;

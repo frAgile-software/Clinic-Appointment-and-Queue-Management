@@ -17,6 +17,7 @@ const mockGetOffDays       = jest.fn();
 const mockGetForAuth0Id    = jest.fn();
 const mockCreateAppt       = jest.fn();
 const mockCancelAppt       = jest.fn();
+const mockGetForStaff = jest.fn();
 
 jest.mock('../../api/useApi', () => ({
   useApi: () => ({
@@ -31,6 +32,9 @@ jest.mock('../../api/useApi', () => ({
       getForAuth0Id: mockGetForAuth0Id,
       create:        mockCreateAppt,
       cancel:        mockCancelAppt,
+    },
+    specialities: {
+      getForStaff: mockGetForStaff,
     },
   }),
 }));
@@ -705,6 +709,7 @@ describe('Booking component', () => {
   });
 
   it('shows "No doctors found" when staff list is empty', async () => {
+    
     renderBooking();
     expect(await screen.findByText(/no doctors found/i)).toBeInTheDocument();
   });
@@ -713,6 +718,7 @@ describe('Booking component', () => {
     mockListStaff.mockResolvedValueOnce({
       users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', specialization: 'Cardiology' }],
     });
+    mockGetForStaff.mockResolvedValue({ Specialities: ['Cardiology'] });
     renderBooking();
     expect(await screen.findByText(/Dr Alice Smith/i)).toBeInTheDocument();
   });
@@ -747,6 +753,7 @@ describe('Booking component', () => {
       schedule: [{ DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' }],
     });
     mockGetOffDays.mockResolvedValueOnce({ offDays: [] });
+    mockGetForStaff.mockResolvedValue({ Specialities: ['Cardiology'] });
 
     renderBooking();
     const docPill = await screen.findByText(/Dr Alice Smith/i);
@@ -781,6 +788,7 @@ describe('Booking component', () => {
   mockGetSchedule.mockResolvedValue({ schedule: [] });
   mockGetOffDays.mockResolvedValue({ offDays: [] });
   mockGetForAuth0Id.mockResolvedValue({ appointments: [] });
+  mockGetForStaff.mockResolvedValue({ Specialities: ['Cardiology'] });
 
   renderBooking();
 
@@ -813,6 +821,7 @@ describe('Booking component', () => {
       mockGetForAuth0Id.mockResolvedValue({ appointments: [] });
       mockCreateAppt.mockResolvedValueOnce({ message: 'Created' });
       mockCancelAppt.mockResolvedValueOnce({ message: 'Cancelled' });
+      mockGetForStaff.mockResolvedValue({ Specialities: ['Cardiology'] });
 
     renderBooking({ rescheduleAppointmentId: 'old_appt_123' });
 
