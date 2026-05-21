@@ -102,8 +102,22 @@ function AdminProfile() {
             </Header>
 
             <main className="profile-container">
-                <header className="profile-header">
+                <header className="profile-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <h1 className="profile-title">My Profile</h1>
+                    {user?.picture && (
+                        <img
+                            src={user.picture}
+                            alt="Profile"
+                            className="profile-picture"
+                            style={{
+                                width: '200px',
+                                height: '200px',
+                                borderRadius: '50%',
+                                objectFit: 'cover'
+                            }}
+                            referrerPolicy="no-referrer"
+                        />
+                    )}
                 </header>
 
                 {loading ? (
@@ -114,14 +128,6 @@ function AdminProfile() {
                             <h3 className='profile-subtitle'>Account Details</h3>
                             {profileData && (
                                 <section className='profile-display'>
-                                     <section className="profile-avatar-container">
-                                        <img 
-                                            src={user.picture} 
-                                            alt="Profile Avatar" 
-                                            className="profile-avatar" 
-                                            referrerPolicy="no-referrer"
-                                        />
-                                    </section>
                                     <fieldset className='inline-components'>
                                         <label>Title</label>
                                         <p>{profileData?.title}</p>
