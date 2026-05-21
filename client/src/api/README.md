@@ -160,7 +160,7 @@ Some routes are public (no token), some are private (token required) — this is
 | `getAssignedClinics(auth0Id)` | Private | Get list of clinics assigned to a staff member | `GET /api/clinics/assigned/` |
 | `linkAdmin(auth0Id, clinicId, practiceNumber)` | Private | Link an admin to a clinic (currently createClinic in server) | `POST /api/clinics/` |
 | `updateClinic(clinicId, updates)` | Private | Update clinic fields | `PUT /api/clinics/:clinicId` |
-| `listStaff(clinicId)` | Private | List all staff for a clinic | `GET /api/clinics/:clinicId/staff` |
+| `listStaff(clinicId)` | Private | List all staff for a clinic and now authOId | `GET /api/clinics/:clinicId/staff` |
 | `linkStaff(clinicId, { auth0Id, id, email })` | Private | Link a staff member to a clinic | `POST /api/clinics/:clinicId/staff` |
 | `removeStaff(clinicId, staffId)` | Private | Remove a staff member from a clinic | `DELETE /api/clinics/:clinicId/staff/:staffId` |
 
@@ -177,6 +177,8 @@ const assigned = await api.clinics.getAssignedClinics('auth0|abc123');
 await api.clinics.linkStaff('clinic-123', { auth0Id: 'auth0|abc123', id: 'user-456' });
 await api.clinics.updateClinic('clinic-123', { name: 'New Name' });
 await api.clinics.removeStaff('clinic-123', 'staff-789');
+//list staff
+const { users } = await api.clinics.listStaff('clinic-123');
 ```
 
 ---
