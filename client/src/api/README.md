@@ -265,6 +265,7 @@ Base path: `/schedules`. All methods are login protected.
 | `delete(scheduleId, staffId)` | `DELETE /api/schedules/:scheduleId?staffId=auth0Id` |
 | `createOffDays(staffId, dates)` | `POST /api/schedules/off-days` |
 | `getOffDays(staffId)` | `GET /api/schedules/off-days/:staffId` |
+| `getBulkOffDays(clinicId, { staffIDs, _fromdate, _todate })` | `GET /api/schedules/off-days/bulk/:clinicId` |
 | `deleteOffDay(offDayId)` | `DELETE /api/schedules/off-days/:offDayId` |
 
 **Example usage in a component**
@@ -302,6 +303,9 @@ await api.schedules.delete("schedule123", "auth0|123");
 
 // get all off days for a staff member
 const { offDays } = await api.schedules.getOffDays("auth0|123");
+
+// get clinic off days for select staff members
+const { offDays } = await api.schedules.getBulkOffDays("clnc1", { ["stff1", "stff2", "stff3"] });
 
 // add one or more days off
 const { offDays: created } = await api.schedules.createOffDays("auth0|123", [
