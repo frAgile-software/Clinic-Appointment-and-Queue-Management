@@ -7,6 +7,7 @@ const sortNotifications = (items) => {
 };
 
 export default function NotificationCenter({ userId }) {
+
   const api = useApi();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -34,6 +35,7 @@ const fetchNotifications = useCallback(async () => {
 }, [api, userId]);
 
   const toggleNotifications = async () => {
+    await api.notifications.createNotif(userId,"notif");
     setIsOpen((prev) => !prev);
   };
 
@@ -66,10 +68,32 @@ const fetchNotifications = useCallback(async () => {
     }
   };
 
-  useEffect(() => {
-    console.log("fetching notifs for user id:",userId)
+ useEffect(() => {
+    console.log("fetching notifs immediately for user id:", userId);
     fetchNotifications();
-  }, [userId,fetchNotifications]);
+  }, [userId, fetchNotifications]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+  
+    const isTestingEnvironment = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
+    if (isTestingEnvironment) {
+      console.log("Skipping background interval polling inside test runner.");
+      return;
+    }
+
+    console.log("Starting 10-second polling interval for:", userId);
+    const intervalId = setInterval(() => {
+      console.log("Polling for new notifications...");
+      fetchNotifications();
+    }, 10000);
+
+    return () => {
+      console.log("Clearing interval for:", userId);
+      clearInterval(intervalId);
+    };
+  }, [userId, fetchNotifications]);
 
   return (
     <aside className="notif-wrapper">

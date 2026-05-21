@@ -3,6 +3,7 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 
 const getUserSchedule = require('./schedules/getUserSchedule');
+const deleteStaffSchedules = require("./schedules/deleteStaffSchedules");
 const createSchedule  = require('./schedules/createSchedule');
 const deleteSchedule  = require('./schedules/deleteSchedule');
 const deleteOff       = require('./schedules/deleteOff');
@@ -14,6 +15,8 @@ router.use("/api/schedules/off-days", requireAuth, getOff);
 router.use("/api/schedules/off-days", requireAuth, addOff);
 router.use("/api/schedules/off-days", requireAuth, deleteOff);
 
+//router.use("/api/schedules", requireAuth, updateSchedule);
+router.use("/api/schedules", requireAuth, deleteStaffSchedules);
 router.use("/api/schedules", requireAuth, getUserSchedule);
 router.use("/api/schedules", requireAuth, createSchedule);
 router.use("/api/schedules", requireAuth, deleteSchedule);

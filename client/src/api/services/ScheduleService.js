@@ -17,6 +17,10 @@ export class ScheduleService extends ResourceService {
         }, null);
     }
 
+deleteForStaff(userId) {
+    return this.priv.delete(`${this.basePath}/staff/${userId}`, null, null);
+}
+  
 delete(scheduleId, staffId) {
   return this.priv.delete(`${this.basePath}/${scheduleId}?staffId=${encodeURIComponent(staffId)}`, null);
 }
