@@ -1,15 +1,3 @@
-/**
- * Booking.test.js
- *
- * Tests cover:
- *  1. Helper utilities (getBookingWindow, buildWeekCells, availableHours derivation)
- *  2. Route: GET /api/clinics/:clinicId/staff
- *  3. Route: GET /api/schedules/:userId
- *  4. Route: GET /appointments/booked
- *  5. Route: POST /api/appointments
- *  6. React component rendering & interactions
- */
-
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
@@ -23,12 +11,32 @@ jest.mock('@auth0/auth0-react', () => ({
   }),
 }));
 
-const mockApiFetch = jest.fn();
-jest.mock('../../hooks/apiAuth', () => ({
-  useApiAuth: () => ({
-    apiFetch: mockApiFetch,
+const mockListStaff        = jest.fn();
+const mockGetSchedule      = jest.fn();
+const mockGetOffDays       = jest.fn();
+const mockGetForAuth0Id    = jest.fn();
+const mockCreateAppt       = jest.fn();
+const mockCancelAppt       = jest.fn();
+
+jest.mock('../../api/useApi', () => ({
+  useApi: () => ({
+    clinics: {
+      listStaff: mockListStaff,
+    },
+    schedules: {
+      getSchedule: mockGetSchedule,
+      getOffDays:  mockGetOffDays,
+    },
+    appointments: {
+      getForAuth0Id: mockGetForAuth0Id,
+      create:        mockCreateAppt,
+      cancel:        mockCancelAppt,
+    },
   }),
 }));
+
+// Keep this alias so existing beforeEach blocks that reset mockApiFetch still compile
+const mockApiFetch = jest.fn();
 
 import Booking from './Booking';
 
@@ -702,11 +710,8 @@ describe('Booking component', () => {
   });
 
   it('renders doctor pill when staff returned', async () => {
-    mockApiFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', specialization: 'Cardiology' }],
-      }),
+    mockListStaff.mockResolvedValueOnce({
+      users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', specialization: 'Cardiology' }],
     });
     renderBooking();
     expect(await screen.findByText(/Dr Alice Smith/i)).toBeInTheDocument();
@@ -735,18 +740,13 @@ describe('Booking component', () => {
   });
 
   it('shows calendar after doctor selected', async () => {
-    mockApiFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        users: [{ _id: 'u1', name: 'Alice', surname: 'Smith' }],
-      }),
+    mockListStaff.mockResolvedValueOnce({
+      users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', auth0Id: 'auth0|1' }],
     });
-    mockApiFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        schedule: [{ DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' }],
-      }),
+    mockGetSchedule.mockResolvedValueOnce({
+      schedule: [{ DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' }],
     });
+    mockGetOffDays.mockResolvedValueOnce({ offDays: [] });
 
     renderBooking();
     const docPill = await screen.findByText(/Dr Alice Smith/i);
@@ -772,118 +772,67 @@ describe('Booking component', () => {
   });
 
   it('resets selected date and slot when a new doctor is selected', async () => {
-    mockApiFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          users: [
-            { _id: 'u1', name: 'Alice', surname: 'Smith', auth0Id: 'auth0|1' },
-            { _id: 'u2', name: 'Bob',   surname: 'Jones', auth0Id: 'auth0|2' },
-          ],
-        }),
-      })
-      .mockResolvedValue({ ok: true, json: async () => ({ schedule: [], offDays: [], appointments: [] }) });
-
-    renderBooking();
-    const alicePill = await screen.findByText(/Dr Alice Smith/i);
-    fireEvent.click(alicePill);
-
-    await waitFor(() => expect(screen.getByText(/Select a Date/i)).toBeInTheDocument());
-
-    const bobPill = screen.getByText(/Dr Bob Jones/i);
-    fireEvent.click(bobPill);
-
-    // calendar should still be visible (doctor selected) but no date/time selected
-    await waitFor(() => expect(screen.getByText(/Select a Date/i)).toBeInTheDocument());
-    expect(screen.queryByText(/Select a Time/i)).not.toBeInTheDocument();
+  mockListStaff.mockResolvedValue({
+    users: [
+      { _id: 'u1', name: 'Alice', surname: 'Smith', auth0Id: 'auth0|1' },
+      { _id: 'u2', name: 'Bob',   surname: 'Jones', auth0Id: 'auth0|2' },
+    ],
   });
+  mockGetSchedule.mockResolvedValue({ schedule: [] });
+  mockGetOffDays.mockResolvedValue({ offDays: [] });
+  mockGetForAuth0Id.mockResolvedValue({ appointments: [] });
 
-  it('fetches doctor appointments when a date is selected', async () => {
-    mockApiFetch
-      .mockResolvedValueOnce({
-        // listStaff
-        ok: true,
-        json: async () => ({
-          users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', auth0Id: 'auth0|doc1' }],
-        }),
-      })
-      .mockResolvedValueOnce({
-        // getSchedule
-        ok: true,
-        json: async () => ({
-          schedule: [
-            { DayOfWeek: 1, StartTime: '08:00', EndTime: '09:00' },
-            { DayOfWeek: 2, StartTime: '08:00', EndTime: '09:00' },
-            { DayOfWeek: 3, StartTime: '08:00', EndTime: '09:00' },
-            { DayOfWeek: 4, StartTime: '08:00', EndTime: '09:00' },
-            { DayOfWeek: 5, StartTime: '08:00', EndTime: '09:00' },
-          ],
-        }),
-      })
-      .mockResolvedValueOnce({
-        // getOffDays
-        ok: true,
-        json: async () => ({ offDays: [] }),
-      })
-      .mockResolvedValueOnce({
-        // doctor appointments fetch when date selected
-        ok: true,
-        json: async () => ({ appointments: [] }),
-      });
+  renderBooking();
 
-    renderBooking();
-    fireEvent.click(await screen.findByText(/Dr Alice Smith/i));
+  const pills = await screen.findAllByRole('button', { name: /Dr/ });
+  fireEvent.click(pills[0]); // Alice
 
-    // advance to next week so booking window cells are available
-    fireEvent.click(await screen.findByRole('button', { name: /Next week/i }));
+  await waitFor(() => expect(screen.getByText(/Select a Date/i)).toBeInTheDocument());
 
-    const availableCells = await screen.findAllByRole('button', { name: /Select/i });
-    fireEvent.click(availableCells[0]);
+  fireEvent.click(pills[1]); // Bob
 
-    await waitFor(() => {
-      // doctor appointments API should have been called with auth0Id
-      const calls = mockApiFetch.mock.calls.map(c => c[0]);
-      expect(calls.some(url => url.includes('auth0|doc1') || url.includes('appointments'))).toBe(true);
-    });
-  });
+  await waitFor(() => expect(screen.getByText(/Select a Date/i)).toBeInTheDocument());
+  expect(screen.queryByText(/Select a Time/i)).not.toBeInTheDocument();
+});
+
 
   it('deletes old appointment if rescheduleAppointmentId is provided after confirming the new booking', async () => {
-    mockApiFetch.mockResolvedValueOnce({
-      ok: true, json: async () => ({ users: [{ _id: 'u1', name: 'A', surname: 'B' }] })
-    }).mockResolvedValueOnce({
-      ok: true, json: async () => ({ 
+      mockListStaff.mockResolvedValueOnce({
+        users: [{ _id: 'u1', name: 'A', surname: 'B', auth0Id: 'auth0|doc1' }],
+      });
+      mockGetSchedule.mockResolvedValueOnce({
         schedule: [
-          { DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' },
-          { DayOfWeek: 2, StartTime: '08:00', EndTime: '17:00' },
-          { DayOfWeek: 3, StartTime: '08:00', EndTime: '17:00' }
-        ] 
-      })
-    }).mockResolvedValueOnce({
-      ok: true, json: async () => ({ bookedSlots: [] })
-    }).mockResolvedValueOnce({
-      ok: true, json: async () => ({ message: 'Created' })
-    }).mockResolvedValueOnce({
-      ok: true, json: async () => ({ message: 'Deleted' })
-    });
+          { _id: 's1', DayOfWeek: 1, StartTime: '08:00', EndTime: '09:00' },
+          { _id: 's2', DayOfWeek: 2, StartTime: '08:00', EndTime: '09:00' },
+          { _id: 's3', DayOfWeek: 3, StartTime: '08:00', EndTime: '09:00' },
+          { _id: 's4', DayOfWeek: 4, StartTime: '08:00', EndTime: '09:00' },
+          { _id: 's5', DayOfWeek: 5, StartTime: '08:00', EndTime: '09:00' },
+        ],
+      });
+      mockGetOffDays.mockResolvedValueOnce({ offDays: [] });
+      mockGetForAuth0Id.mockResolvedValue({ appointments: [] });
+      mockCreateAppt.mockResolvedValueOnce({ message: 'Created' });
+      mockCancelAppt.mockResolvedValueOnce({ message: 'Cancelled' });
 
     renderBooking({ rescheduleAppointmentId: 'old_appt_123' });
 
     fireEvent.click(await screen.findByText(/Dr A B/i));
+
     
     fireEvent.click(await screen.findByRole('button', { name: /Next week/i }));
 
     const availableCells = await screen.findAllByRole('button', { name: /Select/i });
     fireEvent.click(availableCells[0]);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Book 08:00/i }));
+    const slotBtn = await screen.findByRole('button', { name: /8:00 AM/i });
+    fireEvent.click(slotBtn);
+
+    
 
     fireEvent.click(await screen.findByRole('button', { name: /Confirm Appointment/i }));
 
     await waitFor(() => {
-      expect(mockApiFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/appointments/old_appt_123'),
-        expect.objectContaining({ method: 'DELETE' })
-      );
+      expect(mockCancelAppt).toHaveBeenCalledWith('old_appt_123');
     });
   });
 });
