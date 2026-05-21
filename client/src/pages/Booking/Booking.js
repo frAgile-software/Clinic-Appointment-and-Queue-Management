@@ -569,9 +569,7 @@ export default function Booking() {
                     <span className="es-legend-item">
                       <span className="es-legend-dot es-legend-dot--off" /> Available
                     </span>
-                    <span className="es-legend-item">
-                      <span className="es-legend-dot es-legend-dot--busy" /> Unavailable
-                    </span>
+                   
                   </footer>
                 </>
               )}
