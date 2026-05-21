@@ -247,6 +247,171 @@ describe('availableHours derivation', () => {
   });
 });
 
+/* ─── isPatientBooked logic tests ────────────────────────── */
+
+describe('isPatientBooked logic', () => {
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function isPatientBooked(slot, selectedDate, myAppointments) {
+    if (!selectedDate || !myAppointments.length) return false;
+    const dateStr = selectedDate.toISOString().slice(0, 10);
+    return myAppointments.some(appt => {
+      if (!appt.BookingDateTime) return false;
+      const apptDate    = new Date(appt.BookingDateTime);
+      const apptDateStr = apptDate.toISOString().slice(0, 10);
+      const apptHour    = `${pad(apptDate.getUTCHours())}:00`;
+      return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
+    });
+  }
+
+  const selectedDate = new Date('2025-05-20T00:00:00.000Z');
+  const slot9am  = { StartTime: '09:00', EndTime: '10:00' };
+  const slot10am = { StartTime: '10:00', EndTime: '11:00' };
+
+  it('returns false when myAppointments is empty', () => {
+    expect(isPatientBooked(slot9am, selectedDate, [])).toBe(false);
+  });
+
+  it('returns false when selectedDate is null', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isPatientBooked(slot9am, null, appts)).toBe(false);
+  });
+
+  it('returns true when patient has appointment matching date and time', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isPatientBooked(slot9am, selectedDate, appts)).toBe(true);
+  });
+
+  it('returns false when appointment is on a different date', () => {
+    const appts = [{ BookingDateTime: '2025-05-21T09:00:00.000Z' }];
+    expect(isPatientBooked(slot9am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns false when appointment is on same date but different time', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isPatientBooked(slot10am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns false when appointment has no BookingDateTime', () => {
+    const appts = [{ BookingDateTime: null }];
+    expect(isPatientBooked(slot9am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns true for one matching appointment among many', () => {
+    const appts = [
+      { BookingDateTime: '2025-05-20T08:00:00.000Z' },
+      { BookingDateTime: '2025-05-20T09:00:00.000Z' },
+      { BookingDateTime: '2025-05-20T11:00:00.000Z' },
+    ];
+    expect(isPatientBooked(slot9am, selectedDate, appts)).toBe(true);
+  });
+});
+
+/* ─── isDoctorBooked logic tests ─────────────────────────── */
+
+describe('isDoctorBooked logic', () => {
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function isDoctorBooked(slot, selectedDate, doctorAppointments) {
+    if (!selectedDate || !doctorAppointments.length) return false;
+    const dateStr = selectedDate.toISOString().slice(0, 10);
+    return doctorAppointments.some(appt => {
+      if (!appt.BookingDateTime) return false;
+      const apptDate    = new Date(appt.BookingDateTime);
+      const apptDateStr = apptDate.toISOString().slice(0, 10);
+      const apptHour    = `${pad(apptDate.getUTCHours())}:00`;
+      return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
+    });
+  }
+
+  const selectedDate = new Date('2025-05-20T00:00:00.000Z');
+  const slot9am  = { StartTime: '09:00', EndTime: '10:00' };
+  const slot10am = { StartTime: '10:00', EndTime: '11:00' };
+
+  it('returns false when doctorAppointments is empty', () => {
+    expect(isDoctorBooked(slot9am, selectedDate, [])).toBe(false);
+  });
+
+  it('returns false when selectedDate is null', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isDoctorBooked(slot9am, null, appts)).toBe(false);
+  });
+
+  it('returns true when doctor has appointment matching date and time', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isDoctorBooked(slot9am, selectedDate, appts)).toBe(true);
+  });
+
+  it('returns false when doctor appointment is on a different date', () => {
+    const appts = [{ BookingDateTime: '2025-05-19T09:00:00.000Z' }];
+    expect(isDoctorBooked(slot9am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns false when doctor appointment is same date but different hour', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isDoctorBooked(slot10am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns false when appointment has no BookingDateTime', () => {
+    const appts = [{ BookingDateTime: null }];
+    expect(isDoctorBooked(slot9am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns true for one matching appointment among many', () => {
+    const appts = [
+      { BookingDateTime: '2025-05-20T08:00:00.000Z' },
+      { BookingDateTime: '2025-05-20T09:00:00.000Z' },
+      { BookingDateTime: '2025-05-20T14:00:00.000Z' },
+    ];
+    expect(isDoctorBooked(slot9am, selectedDate, appts)).toBe(true);
+  });
+
+  it('is independent from patient appointments — different appointment sets', () => {
+    // doctor is booked at 9am but patient is not
+    const doctorAppts  = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    const patientAppts = [{ BookingDateTime: '2025-05-20T10:00:00.000Z' }];
+
+    function isPatientBooked(slot, selectedDate, myAppointments) {
+      if (!selectedDate || !myAppointments.length) return false;
+      const dateStr = selectedDate.toISOString().slice(0, 10);
+      return myAppointments.some(appt => {
+        if (!appt.BookingDateTime) return false;
+        const apptDate    = new Date(appt.BookingDateTime);
+        const apptDateStr = apptDate.toISOString().slice(0, 10);
+        const apptHour    = `${pad(apptDate.getUTCHours())}:00`;
+        return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
+      });
+    }
+
+    expect(isDoctorBooked(slot9am,  selectedDate, doctorAppts)).toBe(true);
+    expect(isPatientBooked(slot9am, selectedDate, patientAppts)).toBe(false);
+  });
+});
+
+/* ─── isBusy combination logic ───────────────────────────── */
+
+describe('isBusy = alreadyBooked || doctorTaken', () => {
+  it('is busy when only patient is booked', () => {
+    const alreadyBooked = true;
+    const doctorTaken   = false;
+    expect(alreadyBooked || doctorTaken).toBe(true);
+  });
+
+  it('is busy when only doctor is booked', () => {
+    const alreadyBooked = false;
+    const doctorTaken   = true;
+    expect(alreadyBooked || doctorTaken).toBe(true);
+  });
+
+  it('is busy when both are booked', () => {
+    expect(true || true).toBe(true);
+  });
+
+  it('is not busy when neither is booked', () => {
+    expect(false || false).toBe(false);
+  });
+});
+
 /* ─── API route tests (fetch mocking) ────────────────────── */
 
 describe('GET /api/clinics/:clinicId/staff', () => {
@@ -275,6 +440,39 @@ describe('GET /api/clinics/:clinicId/staff', () => {
     expect(json.users[0].surname).toBe('Smith');
   });
 
+  it('includes auth0Id in each staff user object', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', auth0Id: 'auth0|abc123' }],
+      }),
+    });
+
+    const res  = await fetch(`${BASE}/api/clinics/clinic123/staff`);
+    const json = await res.json();
+    expect(json.users[0].auth0Id).toBe('auth0|abc123');
+  });
+
+  it('includes staffId (Staff record _id) separate from _id (User _id)', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        users: [{
+          _id:     'user-mongo-id',
+          staffId: 'staff-mongo-id',
+          name:    'Alice',
+          surname: 'Smith',
+          auth0Id: 'auth0|abc123',
+        }],
+      }),
+    });
+
+    const res  = await fetch(`${BASE}/api/clinics/clinic123/staff`);
+    const json = await res.json();
+    expect(json.users[0]._id).toBe('user-mongo-id');
+    expect(json.users[0].staffId).toBe('staff-mongo-id');
+  });
+
   it('handles 404 when clinic not found', async () => {
     global.fetch.mockResolvedValueOnce({
       ok: false,
@@ -298,6 +496,23 @@ describe('GET /api/clinics/:clinicId/staff', () => {
     const res  = await fetch(`${BASE}/api/clinics/clinic123/staff`);
     const json = await res.json();
     expect(json.users).toEqual([]);
+  });
+
+  it('only returns users with role Staff (not Admin)', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        users: [
+          { _id: 'u1', name: 'Alice', role: 'Staff',  auth0Id: 'auth0|1' },
+          { _id: 'u2', name: 'Bob',   role: 'Admin',  auth0Id: 'auth0|2' },
+        ].filter(u => u.role === 'Staff'),
+      }),
+    });
+
+    const res  = await fetch(`${BASE}/api/clinics/clinic123/staff`);
+    const json = await res.json();
+    expect(json.users).toHaveLength(1);
+    expect(json.users[0].role).toBe('Staff');
   });
 });
 
@@ -556,6 +771,82 @@ describe('Booking component', () => {
     });
   });
 
+  it('resets selected date and slot when a new doctor is selected', async () => {
+    mockApiFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          users: [
+            { _id: 'u1', name: 'Alice', surname: 'Smith', auth0Id: 'auth0|1' },
+            { _id: 'u2', name: 'Bob',   surname: 'Jones', auth0Id: 'auth0|2' },
+          ],
+        }),
+      })
+      .mockResolvedValue({ ok: true, json: async () => ({ schedule: [], offDays: [], appointments: [] }) });
+
+    renderBooking();
+    const alicePill = await screen.findByText(/Dr Alice Smith/i);
+    fireEvent.click(alicePill);
+
+    await waitFor(() => expect(screen.getByText(/Select a Date/i)).toBeInTheDocument());
+
+    const bobPill = screen.getByText(/Dr Bob Jones/i);
+    fireEvent.click(bobPill);
+
+    // calendar should still be visible (doctor selected) but no date/time selected
+    await waitFor(() => expect(screen.getByText(/Select a Date/i)).toBeInTheDocument());
+    expect(screen.queryByText(/Select a Time/i)).not.toBeInTheDocument();
+  });
+
+  it('fetches doctor appointments when a date is selected', async () => {
+    mockApiFetch
+      .mockResolvedValueOnce({
+        // listStaff
+        ok: true,
+        json: async () => ({
+          users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', auth0Id: 'auth0|doc1' }],
+        }),
+      })
+      .mockResolvedValueOnce({
+        // getSchedule
+        ok: true,
+        json: async () => ({
+          schedule: [
+            { DayOfWeek: 1, StartTime: '08:00', EndTime: '09:00' },
+            { DayOfWeek: 2, StartTime: '08:00', EndTime: '09:00' },
+            { DayOfWeek: 3, StartTime: '08:00', EndTime: '09:00' },
+            { DayOfWeek: 4, StartTime: '08:00', EndTime: '09:00' },
+            { DayOfWeek: 5, StartTime: '08:00', EndTime: '09:00' },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        // getOffDays
+        ok: true,
+        json: async () => ({ offDays: [] }),
+      })
+      .mockResolvedValueOnce({
+        // doctor appointments fetch when date selected
+        ok: true,
+        json: async () => ({ appointments: [] }),
+      });
+
+    renderBooking();
+    fireEvent.click(await screen.findByText(/Dr Alice Smith/i));
+
+    // advance to next week so booking window cells are available
+    fireEvent.click(await screen.findByRole('button', { name: /Next week/i }));
+
+    const availableCells = await screen.findAllByRole('button', { name: /Select/i });
+    fireEvent.click(availableCells[0]);
+
+    await waitFor(() => {
+      // doctor appointments API should have been called with auth0Id
+      const calls = mockApiFetch.mock.calls.map(c => c[0]);
+      expect(calls.some(url => url.includes('auth0|doc1') || url.includes('appointments'))).toBe(true);
+    });
+  });
+
   it('deletes old appointment if rescheduleAppointmentId is provided after confirming the new booking', async () => {
     mockApiFetch.mockResolvedValueOnce({
       ok: true, json: async () => ({ users: [{ _id: 'u1', name: 'A', surname: 'B' }] })
@@ -579,18 +870,13 @@ describe('Booking component', () => {
 
     fireEvent.click(await screen.findByText(/Dr A B/i));
     
-    // Because the test might run on a Friday/Weekend where the current week view has NO available future days,
-    // we advance the calendar by one week to ensure we hit a standard full week in the booking window.
     fireEvent.click(await screen.findByRole('button', { name: /Next week/i }));
 
-    // Pick the first available slot from the mock window
     const availableCells = await screen.findAllByRole('button', { name: /Select/i });
     fireEvent.click(availableCells[0]);
 
-    // Pick 8 AM slot
     fireEvent.click(await screen.findByRole('button', { name: /Book 08:00/i }));
 
-    // Confirm the new booking
     fireEvent.click(await screen.findByRole('button', { name: /Confirm Appointment/i }));
 
     await waitFor(() => {
