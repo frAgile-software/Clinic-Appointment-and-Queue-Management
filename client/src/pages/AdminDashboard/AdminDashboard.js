@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { LuUser } from "react-icons/lu";
 import Header from '../../components/Header';
 import { useApi } from "../../api/useApi";  
-import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import * as statExport from './exportHelper';
 import NotificationCenter from '../../components/NotificationCenter';
 import './AdminDashboard.css';
@@ -40,6 +40,12 @@ function startOfWeek(dt) {
 function weeksBetween(d1, d2) {
     return Math.ceil((startOfWeek(d2) - startOfWeek(d1)) / week);
 }
+
+// Source - https://stackoverflow.com/a/50398144
+// Posted by enesn, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-05-21, License - CC BY-SA 4.0
+
+const getDaysArray = function(s,e) {const a=[];for(const d=new Date(s);d<=new Date(e);d.setDate(d.getDate()+1)){ a.push(new Date(d));}return a;};
 
 // ----- end of 'outsourcing' -----
 
@@ -359,6 +365,9 @@ useEffect(() => {
                             break;
                         case STATS.DAYS_OFF:
                             console.log("Staff days off:");
+                            data = await api.schedules.getBulkOffDays(selectedClinic._id, {staffIDs: staffList.map(s => s.staffId)});
+                            setStats(data.clinicOffDays);
+                            setStatsCache( prev => ({...prev, [cacheKey]: data.clinicOffDays } ));
                             break;
                         default:
                             console.log("No stat selected.");
@@ -372,7 +381,7 @@ useEffect(() => {
             }
             fetchStats();
         }
-    }, [activeSection, selectedClinic, queueGranularity, apptSearchOptions, selectedStat, api, statsCache]);
+    }, [activeSection, selectedClinic, queueGranularity, apptSearchOptions, selectedStat, api, statsCache, staffList]);
 
     if (isLoading) {
         return <p>Loading dashboard...</p>;
@@ -681,6 +690,30 @@ const handleRemoveStaff = async (member) => {
                         </ResponsiveContainer>
                     </>
                 );
+            case STATS.DAYS_OFF:
+                const ods = stats.map(od => new Date(od.date));
+                const odcount = ods.map(d => d.toLocaleDateString()).reduce((a, c) => { a[c] = (a[c] || 0) + 1; return a; }, {});
+                const odrange = getDaysArray(
+                    Math.min.apply(null,[Date.now()-86400000, ...ods]), 
+                    Math.max.apply(null,[Date.now()+86400000, ...ods])
+                ).map(d => {return {date: d.toLocaleDateString(), count: odcount[d.toLocaleDateString()] || 0}});
+                console.log(odrange);
+                return (
+                    <>
+                        <h2 className="chart-title">Staff Off Days summary</h2>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={odrange}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="date" />
+                                <YAxis />
+                                <ReferenceLine x={(new Date).toLocaleDateString()} stroke="black" strokeDasharray="5 5"/>
+                                <Tooltip />
+                                <Line type="monotone" dataKey="count" stroke="#6b1fad" strokeWidth={2} dot={{ fill: '#6b1fad' }} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </>
+                );
+
             default:
                 return (<span className="graph-icon">📈</span>);
         }
