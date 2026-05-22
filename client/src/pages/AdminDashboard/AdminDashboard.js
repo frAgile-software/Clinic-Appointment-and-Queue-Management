@@ -616,7 +616,7 @@ const handleRemoveStaff = async (member) => {
     };
 
     const chart = () => {
-        if (!stats)
+        if (!stats || !stats.length || stats.length === 0)
             return (<span className="graph-icon">📈</span>);
 
         switch (selectedStat) {
@@ -1044,9 +1044,9 @@ const handleRemoveStaff = async (member) => {
                         <header className="block-header">{selectedClinic?.practiceName}<br />Clinic Stats</header>
                         <section className="block-body">
                             <nav className="stats-nav">
-                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.DAYS_OFF)}>Staff<br/>Off Days</button>
-                                <button className={`stat-btn ${selectedStat === STATS.APPOINTMENTS ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.APPOINTMENTS)}>Appointments</button>
-                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.QUEUE_WAIT)}>Queue<br/>Waits</button>
+                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : 'pdf-print-ignore'}`} onClick={() => {setSelectedStat(STATS.DAYS_OFF);setStats(null)}}>Staff<br/>Off Days</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPOINTMENTS ? 'active' : 'pdf-print-ignore'}`} onClick={() => {setSelectedStat(STATS.APPOINTMENTS);setStats(null)}}>Appointments</button>
+                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : 'pdf-print-ignore'}`} onClick={() => {setSelectedStat(STATS.QUEUE_WAIT);setStats(null)}}>Queue<br/>Waits</button>
                             </nav>
                             <section className="stats-graph">
                                 { loadingStats ? (
