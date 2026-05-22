@@ -25,7 +25,7 @@ function PatientDashboard() {
   const api = useApi();
   const navigate = useNavigate();
   
-  const [notified, setNotified] = useState(false);
+  const notifiedRef = useRef(false);
   const [patientName, setPatientName] = useState("");
   const [appointments, setAppointments] = useState([]);
   const [loadingAppointments, setLoadingAppointments] = useState(true);
@@ -116,9 +116,11 @@ function PatientDashboard() {
               data.queue.averageWaitTime = 0;
             }
             setPatientQueue(data.queue);
-            if (data.queue.position<3 && !notified){
+            if (data.queue.position<3 && !notifiedRef.current){
               await api.notifications.createNotif(user?.sub, "Your turn in the queue is approaching!");
-              setNotified(true);
+              notifiedRef.current= true;
+              localStorage.setItem(`queue_notified_${user.sub}`, 'true');
+              
             }
           } else {
             setPatientQueue(null);
@@ -132,7 +134,7 @@ function PatientDashboard() {
     
      const interval = setInterval(fetchPatientQueue, 10000); //polling
      return () => clearInterval(interval);
-  }, [user, api, notified]);
+  }, [user, api]);
 
   useEffect(() => {
     const fetchHistory = async () => {
