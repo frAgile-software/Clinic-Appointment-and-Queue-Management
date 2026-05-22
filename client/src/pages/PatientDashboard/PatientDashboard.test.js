@@ -20,7 +20,14 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   let mockApi;
 
   const safeFutureDate = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+  beforeEach(() => {
+    jest.spyOn(global, 'setInterval').mockImplementation(() => 999);
+    jest.spyOn(global, 'clearInterval').mockImplementation(() => {});
+  });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
