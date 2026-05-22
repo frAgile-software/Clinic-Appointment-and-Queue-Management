@@ -6,6 +6,12 @@
 ## Setup and run
 The following are all run from the root
 
+Copy the example env files, and FILL IN the environment secrets (given in the access instructions):
+```bash 
+cp server/.env.example server/.env
+cp client/.env.local.example client/.env.local
+```
+
 Install all dependencies:
 ```bash
 npm run setup
@@ -21,15 +27,9 @@ npm run dev
     - `nodemon --env-file=.env index.js` in /server, and 
     - `react-scripts start` in /client.
 
-- You can also use `npm run dev` in /server, and `npm run start` in /client to run each independently.
+- You can also use `npm run dev` in /server, and `npm run start` in /client to run each independently (wouldn't recommend).
 
-You can also check code coverage with
+You can also code coverage with
 ```
 npm run coverage
-```
-
-Remember to copy the example files:
-```bash 
-cp server/.env.example server/.env
-cp client/.env.local.example client/.env.local
 ```
