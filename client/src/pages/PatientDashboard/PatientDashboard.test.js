@@ -63,6 +63,9 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
         addPatient: jest.fn().mockResolvedValue({ message: "Successfully joined queue" }),
         remove: jest.fn().mockResolvedValue({ message: "Removed" }),
       },
+      notifications: {
+      createNotif: jest.fn().mockResolvedValue({ success: true }), // Crucial for when position < 3
+      },
       consults: {
         getForAuth0Id: jest.fn().mockResolvedValue([]),
       },
