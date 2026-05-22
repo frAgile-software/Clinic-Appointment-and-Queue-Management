@@ -1071,19 +1071,20 @@
 .staff-search-input:focus {
   border-color: var(--color-brand);
   box-shadow: 0 0 0 3px rgba(107, 31, 173, 0.1);
+}  
+
 .edit-times-form {
   margin-top: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  align-self: flex-end;
-  align-items: flex-end;
 }
 
 .times-fields {
   display: flex;
   gap: 24px;
   border: none;
+  align-items: flex-end;
 }
 
 .times-fields label {
@@ -1130,7 +1131,6 @@
   font-size: 14px;
   cursor: pointer;
   transition: all 0.18s ease;
-  letter-spacing: 0.02em;
 }
 
 .pill-btn-grey:hover {
@@ -1138,4 +1138,92 @@
   transform: translateY(-2px);
   box-shadow: var(--shadow-card);
 }
+
+.staff-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-mid) 100%);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(107, 31, 173, 0.25);
+  letter-spacing: 0.5px;
+}
+
+.staff-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.staff-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.toast-container {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  animation: toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  pointer-events: all;
+  max-width: 360px;
+}
+
+.toast--success {
+  background: #fff;
+  color: var(--color-open, #059669);
+  border: 1.5px solid #bbf7d0;
+  border-left: 4px solid var(--color-open, #059669);
+}
+
+.toast--error {
+  background: #fff;
+  color: var(--color-closed, #dc2626);
+  border: 1.5px solid #fecaca;
+  border-left: 4px solid var(--color-closed, #dc2626);
+}
+
+.toast-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(40px) scale(0.9); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to   { opacity: 0; transform: translateX(40px) scale(0.9); }
+}
+
+.toast--leaving {
+  animation: toastOut 0.25s ease forwards;
 }
