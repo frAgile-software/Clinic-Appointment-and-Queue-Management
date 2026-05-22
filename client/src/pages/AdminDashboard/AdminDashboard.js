@@ -82,6 +82,7 @@ function AdminDashboard() {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
     };
 
+    // General States
     const [clinics, setClinics] = useState([]);
     const [selectedClinic, setSelectedClinic] = useState(null);
     const [staffList, setStaffList] = useState([]);
@@ -92,6 +93,7 @@ function AdminDashboard() {
     const [newSpecialityByStaff, setNewSpecialityByStaff]= useState({});
     const [staffSearchTerm, setStaffSearchTerm] = useState("");
 
+    // Stats states
     const [adminName, setAdminName] = useState("");
     const contentRef = useRef(null);
     const [stats, setStats] = useState(null);
@@ -102,15 +104,26 @@ function AdminDashboard() {
     const [apptGranularity, setApptGranularity] = useState('week');
     const [apptSearchOptions, setApptSearchOptions] = useState({});
 
+    // Clinic time states
     const [editingTimes, setEditingTimes] = useState(false);
     const [timesForm, setTimesForm] = useState({ open: '', close: '' });
     const [savingTimes, setSavingTimes] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
-    
     const [toasts, setToasts] = useState([]);
+    
+    // Staff search and management states
+    const [staffEmail, setStaffEmail] = useState('');
+    const [staffSearchResult, setStaffSearchResult] = useState(null); 
+    const [loadingStaffSearch, setLoadingStaffSearch] = useState(false);
+    const [hasSearchedStaff, setHasSearchedStaff] = useState(false);
+    const [addingStaff, setAddingStaff] = useState(false);
+    const staffDebounceTimer = useRef(null);
+    const [specialities, setSpecialities] = useState({});
+    const [selectedSpeciality, setSelectedSpeciality] = useState('');
 
     useEffect(() => {
+        // fetches user's data
         const fetchUserData = async () => {
             if (user?.sub) {
             try {
@@ -124,15 +137,6 @@ function AdminDashboard() {
         fetchUserData();
     }, [user, api]);
 
-    const [staffEmail, setStaffEmail] = useState('');
-    const [staffSearchResult, setStaffSearchResult] = useState(null); 
-    const [loadingStaffSearch, setLoadingStaffSearch] = useState(false);
-    const [hasSearchedStaff, setHasSearchedStaff] = useState(false);
-    const [addingStaff, setAddingStaff] = useState(false);
-    const staffDebounceTimer = useRef(null);
-    const [specialities, setSpecialities] = useState({});
-    const [selectedSpeciality, setSelectedSpeciality] = useState('');
-
   
     const showToast = (message, type = 'success') => {
         const id = Date.now();
@@ -144,6 +148,7 @@ function AdminDashboard() {
     };
 
     useEffect(() => {
+        // fetches clinics the user is assigned to
         const fetchAssignedClinics = async () => {
             try {
                 if (!user?.sub) return;
@@ -164,20 +169,7 @@ function AdminDashboard() {
     }, [user, isAuthenticated, isLoading, api]);
 
     useEffect(() => {
-            const fetchUserData = async () => {
-                if (user?.sub) {
-                try {
-                    const data = await api.users.get(user.sub);
-                    setAdminName(data.name);
-                } catch (error) {
-                    console.error("Failed to fetch user profile:", error);
-                }
-                }
-            };
-            fetchUserData();
-        }, [user, api]);
-
-    useEffect(() => {
+        // fetch staff assigned to the selected clinic
         const fetchStaff = async () => {
             try {
                 if (!selectedClinic || !user?.sub) return;
@@ -195,37 +187,39 @@ function AdminDashboard() {
         fetchStaff();
     },[selectedClinic, user, api]);
 
-useEffect(() => {
-    const loadStaffSpecialities = async () => {
-        try {
-            const specialityRequests = staffList
-                .filter((member) => {
-                    const userId = member.userId || member._id;
-                    return userId && member.staffId;
-                })
-                .map(async (member) => {
-                    const userId = member.userId || member._id;
-                    const data = await api.specialities.getForStaff(userId);
+    useEffect(() => {
+        // fetch specialities assigned to each staff
+        const loadStaffSpecialities = async () => {
+            try {
+                const specialityRequests = staffList
+                    .filter((member) => {
+                        const userId = member.userId || member._id;
+                        return userId && member.staffId;
+                    })
+                    .map(async (member) => {
+                        const userId = member.userId || member._id;
+                        const data = await api.specialities.getForStaff(userId);
 
-                    return [
-                        member.staffId,
-                        data.SpecialityObjects || []
-                    ];
-                });
-            const resolvedResult = await Promise.all(specialityRequests);
-            setStaffSpecialities(Object.fromEntries(resolvedResult));
-        } catch (error) {
-            console.error("Error loading staff specialities:", error);
+                        return [
+                            member.staffId,
+                            data.SpecialityObjects || []
+                        ];
+                    });
+                const resolvedResult = await Promise.all(specialityRequests);
+                setStaffSpecialities(Object.fromEntries(resolvedResult));
+            } catch (error) {
+                console.error("Error loading staff specialities:", error);
+            }
+        };
+        if (staffList.length > 0) {
+            loadStaffSpecialities();
+        } else {
+            setStaffSpecialities({});
         }
-    };
-    if (staffList.length > 0) {
-        loadStaffSpecialities();
-    } else {
-        setStaffSpecialities({});
-    }
-}, [staffList, api]);
+    }, [staffList, api]);
 
     useEffect(() => {
+        // loads list of all specialities in the DB
         const loadSpecialities = async () => {
             try {
                 const specialities=await api.specialities.getAll();
@@ -237,10 +231,7 @@ useEffect(() => {
         loadSpecialities();
     },[api]);
         
-
-
-     // email search 
-
+    // search staff by email
     useEffect(() => {
         const email = staffEmail.trim();
  
@@ -251,39 +242,41 @@ useEffect(() => {
             return;
         }
  
+        // waits 400 ms after user stops typing
         clearTimeout(staffDebounceTimer.current);
         staffDebounceTimer.current = setTimeout(async () => {
             setLoadingStaffSearch(true);
             setHasSearchedStaff(true);
  
-  try {
-    const result = await api.users.getByEmail(email, { role: 'Staff' });
-    console.log('result:', result);
-    if (result) {
-        try {
-            const clinics = await api.clinics.getAssignedClinics(result.auth0Id);
-            console.log('clinics:', clinics);
-            setStaffSearchResult({ user: result, isLinked: true });
-        } catch (err) {
-            console.log('err status:', err.status);
-            setStaffSearchResult({ user: result, isLinked: err.status === 404 ? false : true });
-        }
-    } else {
-        setStaffSearchResult(null);
-    }
-} catch (error) {
-    console.error('Staff email check error:', error);
-    setStaffSearchResult(null);
-} finally {
-    setLoadingStaffSearch(false);
-}
-
-          }, 400);
+            try {
+                const result = await api.users.getByEmail(email, { role: 'Staff' });
+                console.log('result:', result);
+                if (result) {
+                    try {
+                        const clinics = await api.clinics.getAssignedClinics(result.auth0Id);
+                        console.log('clinics:', clinics);
+                        setStaffSearchResult({ user: result, isLinked: true });
+                    } catch (err) {
+                        console.log('err status:', err.status);
+                        setStaffSearchResult({ user: result, isLinked: err.status === 404 ? false : true });
+                    }
+                } else {
+                    setStaffSearchResult(null);
+                }
+            } catch (error) {
+                console.error('Staff email check error:', error);
+                setStaffSearchResult(null);
+            } finally {
+                setLoadingStaffSearch(false);
+            }
+        }, 400);
  
         return () => clearTimeout(staffDebounceTimer.current);
+
     }, [staffEmail, api]);
    
     useEffect(() => {
+        // loads all specialities, mapped by the id
         if (activeSection === 'add-staff') {
             api.specialities.getAll()
                 .then(data => {
@@ -295,8 +288,8 @@ useEffect(() => {
         }
     }, [activeSection, api]);
 
-
-    // default schedule from clinic open/close times 
+    // default schedule from clinic open/close times
+    // used when assigning new staff to a clinic
     const buildDefaultScheduleEntries = (clinic) => {
         const openHour  = parseInt((clinic.practiceTimes?.open  || '08:00').split(':')[0], 10);
         const closeHour = parseInt((clinic.practiceTimes?.close || '17:00').split(':')[0], 10);
@@ -331,9 +324,9 @@ useEffect(() => {
             setAddingStaff(true);
  
             //linking existing staff user to this clinic
-           const linkResult = await api.clinics.linkStaff(selectedClinic._id, {
-            auth0Id: staffSearchResult.user.auth0Id,
-        });
+            const linkResult = await api.clinics.linkStaff(selectedClinic._id, {
+                auth0Id: staffSearchResult.user.auth0Id,
+            });
 
             await api.specialities.addToStaff({
                 staffId: linkResult.staffId,
@@ -428,71 +421,72 @@ useEffect(() => {
         return <p>Loading dashboard...</p>;
     }
 
-
-
     const handleEditTimesClick = () => {
-    setTimesForm({
-        open: selectedClinic.practiceTimes?.open || '',
-        close: selectedClinic.practiceTimes?.close || '',
-    });
-    setEditingTimes(true);
-    };
-
-    const handleSaveTimes = async () => {
-    setSavingTimes(true);
-    setSaveSuccess(false);
-    setTimeout(() => setSaveSuccess(false), 3000);
-    try {
-        await api.clinics.updateClinic(selectedClinic._id, {
-            'practiceTimes.open': timesForm.open,
-            'practiceTimes.close': timesForm.close,
+        setTimesForm({
+            open: selectedClinic.practiceTimes?.open || '',
+            close: selectedClinic.practiceTimes?.close || '',
         });
-        setSelectedClinic(prev => ({
-            ...prev,
-            practiceTimes: { open: timesForm.open, close: timesForm.close }
-        }));
-        setClinics(prev => prev.map(c =>
-            c._id === selectedClinic._id
-                ? { ...c, practiceTimes: { open: timesForm.open, close: timesForm.close } }
-                : c
-        ));
-        setSaveSuccess(true);
-        setEditingTimes(false);
-    } catch (error) {
-        console.error('Failed to update clinic times:', error);
-    } finally {
-        setSavingTimes(false);
-    }
+        setEditingTimes(true);
     };
 
+    // save updated clinic times
+    const handleSaveTimes = async () => {
+        setSavingTimes(true);
+        setSaveSuccess(false);
+        setTimeout(() => setSaveSuccess(false), 3000);
+        try {
+            await api.clinics.updateClinic(selectedClinic._id, {
+                'practiceTimes.open': timesForm.open,
+                'practiceTimes.close': timesForm.close,
+            });
+            setSelectedClinic(prev => ({
+                ...prev,
+                practiceTimes: { open: timesForm.open, close: timesForm.close }
+            }));
+            setClinics(prev => prev.map(c =>
+                c._id === selectedClinic._id
+                    ? { ...c, practiceTimes: { open: timesForm.open, close: timesForm.close } }
+                    : c
+            ));
+            setSaveSuccess(true);
+            setEditingTimes(false);
+        } catch (error) {
+            console.error('Failed to update clinic times:', error);
+        } finally {
+            setSavingTimes(false);
+        }
+    };
 
+    // switch between assigned clinics
     const handleClinicChange = (clinic) => {
         setSelectedClinic(clinic);
         setActiveSection(null);
         setEditingTimes(false);
     };
 
+    // add speciality to a staff member
     const handleAddSpeciality = async (staffId) => {
         try {
             let specialityId = selectedSpecialityByStaff[staffId];
             const newSpecialityName = newSpecialityByStaff[staffId]?.trim();
             if (!specialityId && newSpecialityName) {
-            const existingSpeciality = allSpecialities.find((speciality) =>
-                    speciality.SpecialityName?.trim().toLowerCase() ===
-                    newSpecialityName.toLowerCase());
-            if (existingSpeciality) {
-                specialityId = existingSpeciality._id;
-            } else {
-                const created = await api.specialities.create({
-                    SpecialityName: newSpecialityName
-                });
+                const existingSpeciality = allSpecialities.find((speciality) =>
+                        speciality.SpecialityName?.trim().toLowerCase() ===
+                        newSpecialityName.toLowerCase());
+                if (existingSpeciality) {
+                    specialityId = existingSpeciality._id;
+                } else {
+                    const created = await api.specialities.create({
+                        SpecialityName: newSpecialityName
+                    });
 
-                specialityId = created.speciality?._id || created._id;
+                    specialityId = created.speciality?._id || created._id;
 
-                const updatedSpecialities = await api.specialities.getAll();
-                setAllSpecialities(updatedSpecialities || []);
+                    const updatedSpecialities = await api.specialities.getAll();
+                    setAllSpecialities(updatedSpecialities || []);
+                }
             }
-        }
+
             if(!specialityId) {
                 showToast('Please select or enter a speciality to add.', 'error');
                 return;
@@ -526,6 +520,7 @@ useEffect(() => {
         }
     };
 
+    // remove speciality from a staff member
     const handleRemoveSpeciality = async (staffId, specialityId) => {
         try {
             await api.specialities.removeFromStaff({
@@ -547,14 +542,15 @@ useEffect(() => {
         }
     };
 
-const handleRemoveStaff = async (member) => {
-    try {
-        const confirmed = window.confirm(
-            `Remove${member.title || ""} ${member.name || ""} ${member.surname || ""} from ${selectedClinic.practiceName}?`);
+    // "fire" a staff member
+    const handleRemoveStaff = async (member) => {
+        try {
+            const confirmed = window.confirm(
+                `Remove${member.title || ""} ${member.name || ""} ${member.surname || ""} from ${selectedClinic.practiceName}?`);
 
-        if (!confirmed) return;
-        const userId = member.userId || member._id;
-        const staffId = member.staffId;
+            if (!confirmed) return;
+            const userId = member.userId || member._id;
+            const staffId = member.staffId;
 
         if (!userId || !staffId) {
             showToast('Missing staff information. Cannot remove staff member.', 'error');
@@ -593,7 +589,7 @@ const handleRemoveStaff = async (member) => {
         }, 100);
     };
 
-
+    // indicator during staff searching
     const staffEmailIndicator = (() => {
         if (loadingStaffSearch) return 'loading';
         if (!hasSearchedStaff || !staffEmail.trim()) return null;
@@ -601,6 +597,7 @@ const handleRemoveStaff = async (member) => {
         return 'error';
     })();
     
+    // custom tooltip for queue stats
     const QueueTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             const hour = Math.floor(label)
@@ -622,6 +619,7 @@ const handleRemoveStaff = async (member) => {
         hourNum: parseInt(item.label) + 0.5,
     }));
 
+    // APPOINTMENT STAT GRANULARITIES
     const granularityDiff = (d1, d2) => {
         if (apptGranularity === 'month') return monthDiff(d1,d2);
         return weeksBetween(d1,d2)
@@ -633,6 +631,7 @@ const handleRemoveStaff = async (member) => {
         return new Date(d.getFullYear(), d.getMonth(), d.getDate());
     };
 
+    // fetching appointment stats
     const getProcessedApptStats = () => {
         if (!stats) return [];
         let processed = {};
@@ -656,10 +655,12 @@ const handleRemoveStaff = async (member) => {
         return Object.entries(processed).map((o) => o[1]);
     };
 
+    // Chart UI (for stats)
     const chart = () => {
         if (!stats || !stats.length || stats.length === 0)
             return (<span className="graph-icon">📈</span>);
 
+        // selected stats show different charts
         switch (selectedStat) {
             case STATS.QUEUE_WAIT:
                 return (
@@ -1084,8 +1085,6 @@ const handleRemoveStaff = async (member) => {
                     </section>
                 </article>
             )}
-
-                
 
                 {activeSection === 'view-stats' && (
                     <article className="content-block pdf-print">
