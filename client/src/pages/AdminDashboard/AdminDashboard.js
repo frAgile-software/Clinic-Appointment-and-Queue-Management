@@ -195,32 +195,35 @@ function AdminDashboard() {
         fetchStaff();
     },[selectedClinic, user, api]);
 
-    useEffect(() => {
-        const loadStaffSpecialities = async () => {
-            try {
-                const result = [];
-                for (const member of staffList) {
+useEffect(() => {
+    const loadStaffSpecialities = async () => {
+        try {
+            const specialityRequests = staffList
+                .filter((member) => {
                     const userId = member.userId || member._id;
+                    return userId && member.staffId;
+                })
+                .map(async (member) => {
+                    const userId = member.userId || member._id;
+                    const data = await api.specialities.getForStaff(userId);
 
-                    if (!userId || !member.staffId) continue;
-
-                    const data = api.specialities.getForStaff(userId);
-
-                    result.push([member.staffId, data]);
-                }
-                const resolvedResult = await Promise.all(result);
-                setStaffSpecialities(Object.fromEntries(resolvedResult.map(r => [r[0], r[1].SpecialityObjects || []])));
-            } catch (error) {
-                console.error("Error loading staff specialities:", error);
-            }
-        };
-
-        if (staffList.length > 0) {
-            loadStaffSpecialities();
-        } else {
-            setStaffSpecialities({});
+                    return [
+                        member.staffId,
+                        data.SpecialityObjects || []
+                    ];
+                });
+            const resolvedResult = await Promise.all(specialityRequests);
+            setStaffSpecialities(Object.fromEntries(resolvedResult));
+        } catch (error) {
+            console.error("Error loading staff specialities:", error);
         }
-    },[staffList, api]);
+    };
+    if (staffList.length > 0) {
+        loadStaffSpecialities();
+    } else {
+        setStaffSpecialities({});
+    }
+}, [staffList, api]);
 
     useEffect(() => {
         const loadSpecialities = async () => {
@@ -903,9 +906,13 @@ const handleRemoveStaff = async (member) => {
                                         </section>
                                     </section>
 
-                                    <button className="pill-btn-red staff-fire-btn">
-                                        Fire
-                                    </button>
+                                    <button
+                                        type="button"
+                                        className="pill-btn-red staff-fire-btn"
+                                        onClick={() => handleRemoveStaff(member)}
+                                    >
+                                    Fire
+                                </button>
                                 </section>
 
                                 <section className="staff-speciality-section">
