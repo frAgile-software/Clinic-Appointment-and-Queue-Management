@@ -160,7 +160,7 @@ Some routes are public (no token), some are private (token required) — this is
 | `getAssignedClinics(auth0Id)` | Private | Get list of clinics assigned to a staff member | `GET /api/clinics/assigned/` |
 | `linkAdmin(auth0Id, clinicId, practiceNumber)` | Private | Link an admin to a clinic (currently createClinic in server) | `POST /api/clinics/` |
 | `updateClinic(clinicId, updates)` | Private | Update clinic fields | `PUT /api/clinics/:clinicId` |
-| `listStaff(clinicId)` | Private | List all staff for a clinic | `GET /api/clinics/:clinicId/staff` |
+| `listStaff(clinicId)` | Private | List all staff for a clinic and now authOId | `GET /api/clinics/:clinicId/staff` |
 | `linkStaff(clinicId, { auth0Id, id, email })` | Private | Link a staff member to a clinic | `POST /api/clinics/:clinicId/staff` |
 | `removeStaff(clinicId, staffId)` | Private | Remove a staff member from a clinic | `DELETE /api/clinics/:clinicId/staff/:staffId` |
 
@@ -177,6 +177,8 @@ const assigned = await api.clinics.getAssignedClinics('auth0|abc123');
 await api.clinics.linkStaff('clinic-123', { auth0Id: 'auth0|abc123', id: 'user-456' });
 await api.clinics.updateClinic('clinic-123', { name: 'New Name' });
 await api.clinics.removeStaff('clinic-123', 'staff-789');
+//list staff
+const { users } = await api.clinics.listStaff('clinic-123');
 ```
 
 ---
@@ -226,6 +228,9 @@ Base path: `/specialities`.
 | `addToStaff({staffId, specialityId})`| Private | `POST /api/specialities/staff/:staffId/:specialityId` |
 | `removeFromStaff({staffId, specialityId})`| Private |`DELETE /api/specialities/staff/:staffId/:specialityId` |
 | `getForStaff(staffId)`| Public | `GET /specialities/staff/:staffId` |
+| `getAll()` | Public | `GET /specialities` |
+| `create(name)` | Private | `POST /api/specialities` |
+| `getForClinic(clinicId)` | Private | `GET /api/specialities/clinic/:clinicId` |
 
 
 **Example usage in a component**
@@ -243,12 +248,11 @@ const staffSpecs = await api.specialities.getForStaff("staff123");
 
 //get a list of all specialitities
 const specialities = await api.specialities.getAll();
-```
 
 // create speciality
 await api.specialities.create("drugs");
 ```
-)
+
 ---
 
 ### `ScheduleService`
@@ -258,8 +262,13 @@ Base path: `/schedules`. All methods are login protected.
 | Method | Server route |
 |---|---|
 | `getSchedule(userId)` | `GET /api/schedules/:userId` |
-| `update(scheduleId, {Staff, DayOfWeek, StartTime, EndTime})` | `PUT /api/schedules/:scheduleId` |
 | `createDefault(auth0Id, schedules)`|`POST /api/schedules/bulk`|
+| `create({ staffId, DayOfWeek, StartTime, EndTime })` | `POST /api/schedules/` |
+| `delete(scheduleId, staffId)` | `DELETE /api/schedules/:scheduleId?staffId=auth0Id` |
+| `createOffDays(staffId, dates)` | `POST /api/schedules/off-days` |
+| `getOffDays(staffId)` | `GET /api/schedules/off-days/:staffId` |
+| `getBulkOffDays(clinicId, { staffIDs, _fromdate, _todate })` | `GET /api/schedules/off-days/bulk/:clinicId` |
+| `deleteOffDay(offDayId)` | `DELETE /api/schedules/off-days/:offDayId` |
 
 **Example usage in a component**
 ```js
@@ -281,6 +290,33 @@ await api.schedules.createDefault("auth0|123", [
   { DayOfWeek: 0, StartTime: "08:00", EndTime: "17:00" },
   { DayOfWeek: 1, StartTime: "08:00", EndTime: "17:00" },
 ]);
+
+// create schedule
+await api.schedules.create({
+  staffId: "auth0|123",
+  DayOfWeek: 1,
+  StartTime: "08:00",
+  EndTime: "16:00",
+});
+
+// deletes an schedule
+await api.schedules.delete("schedule123", "auth0|123");
+
+
+// get all off days for a staff member
+const { offDays } = await api.schedules.getOffDays("auth0|123");
+
+// get clinic off days for select staff members
+const { offDays } = await api.schedules.getBulkOffDays("clnc1", { ["stff1", "stff2", "stff3"] });
+
+// add one or more days off
+const { offDays: created } = await api.schedules.createOffDays("auth0|123", [
+  "2025-08-01",
+  "2025-08-02",
+]);
+
+// remove a specific off day by its database ID
+await api.schedules.deleteOffDay("offda_id");
 
 ```
 

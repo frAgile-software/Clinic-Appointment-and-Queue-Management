@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import "./PatientDashboard.css";
+import { LuUser } from "react-icons/lu";
 import { useAuth0 } from '@auth0/auth0-react';
+import Header from '../../components/Header';
 import NotificationCenter from '../../components/NotificationCenter';
 // import logo from './logo.svg';
 
@@ -23,6 +25,7 @@ function PatientDashboard() {
   const api = useApi();
   const navigate = useNavigate();
   
+  const notifiedRef = useRef(false);
   const [patientName, setPatientName] = useState("");
   const [appointments, setAppointments] = useState([]);
   const [loadingAppointments, setLoadingAppointments] = useState(true);
@@ -98,6 +101,8 @@ function PatientDashboard() {
   }, [user, api]);
 
   useEffect(() => {
+    if (!user?.sub) return;
+      notifiedRef.current = localStorage.getItem(`queue_notified_${user.sub}`) === 'true';
     const fetchPatientQueue = async () => {
       if (user?.sub) {
         try {
@@ -113,6 +118,12 @@ function PatientDashboard() {
               data.queue.averageWaitTime = 0;
             }
             setPatientQueue(data.queue);
+            if (data.queue.position<3 && !notifiedRef.current){
+              await api.notifications.createNotif(user?.sub, "Your turn in the queue is approaching!");
+              notifiedRef.current= true;
+              localStorage.setItem(`queue_notified_${user.sub}`, 'true');
+              
+            }
           } else {
             setPatientQueue(null);
           }
@@ -122,6 +133,9 @@ function PatientDashboard() {
       }
     };
     fetchPatientQueue();
+    
+     const interval = setInterval(fetchPatientQueue, 10000); //polling
+     return () => clearInterval(interval);
   }, [user, api]);
 
   useEffect(() => {
@@ -304,14 +318,15 @@ function PatientDashboard() {
   };
   
   const handleLeaveQueue = async () => {
-    try {
-      console.log("Queue:", patientQueue);
-      await api.queues.remove(patientQueue.queue._id);
-      setPatientQueue(null);
-    } catch (error) {
-      console.log("Error leaving queue:", error);
-    }
-  };
+  try {
+    await api.queues.remove(patientQueue.queue._id);
+    setPatientQueue(null);
+    notifiedRef.current = false;
+    localStorage.removeItem(`queue_notified_${user.sub}`);
+  } catch (error) {
+    console.log("Error leaving queue:", error);
+  }
+};
 
   const isClinicOpen = (clinic) => {
     if (!clinic.practiceTimes?.open || !clinic.practiceTimes?.close) return false;
@@ -346,28 +361,14 @@ function PatientDashboard() {
 
   return (
     <section className="dashboard-container">
-      <section className="dashboard-header">
-        <section className="header-logo">
-          <img src="/logo.svg" alt="Logo" className="logo-icon" />
-          <h2>Clinics and Qs</h2>
-        </section>
-        
-        <section className="header-nav hidden-for-mockup" aria-label="Main Navigation">
-          <button className="nav-btn active">HOME</button>
-          <button className="nav-btn">APPOINTMENTS</button>
-          <button className="nav-btn">QUEUE STATUS</button>
-        </section>
-
-        <section className="header-actions">
-          <button className="profile-btn" aria-label="Profile" onClick={() => navigate('/dashboard/patient/profile')}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
+      <Header>
+          <button onClick={() => navigate('/dashboard/patient/profile')}>
+            <LuUser />
           </button>
-          <button className="logout-btn" onClick={logout}>Logout</button>
-        </section>
-      </section>
+          <NotificationCenter userId ={user?.sub}></NotificationCenter>
+          <button  onClick={logout}>Logout</button>
+
+      </Header>
 
       <section className="dashboard-main">
         <section className="purple-banner-container">
@@ -377,7 +378,7 @@ function PatientDashboard() {
                 Welcome Back, {patientName || "..."}!
               </h1>
               <p className="subtitle">Manage your health easily and skip the waiting room</p>
-              
+
               <section className="action-banner">
                 <section className="action-text">
                   <h3>Need to see a doctor?</h3>
@@ -387,9 +388,7 @@ function PatientDashboard() {
               </section>
             </section>
 
-            <section className="notifications-card" aria-labelledby="notifications-heading">
-            <NotificationCenter userId={user?.sub} />
-            </section>
+            <section className="notifications-card" aria-label="Medical Services"></section>
           </section>
         </section>
 

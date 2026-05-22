@@ -2,8 +2,9 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router";
 import { LuUser } from "react-icons/lu";
+import Header from '../../components/Header';
 import { useApi } from "../../api/useApi";  
-import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import * as statExport from './exportHelper';
 import NotificationCenter from '../../components/NotificationCenter';
 import './AdminDashboard.css';
@@ -40,7 +41,37 @@ function weeksBetween(d1, d2) {
     return Math.ceil((startOfWeek(d2) - startOfWeek(d1)) / week);
 }
 
+// Source - https://stackoverflow.com/a/50398144
+// Posted by enesn, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-05-21, License - CC BY-SA 4.0
+
+const getDaysArray = function(s,e) {const a=[];for(const d=new Date(s);d<=new Date(e);d.setDate(d.getDate()+1)){ a.push(new Date(d));}return a;};
+
 // ----- end of 'outsourcing' -----
+
+// Fetches and displays the specialities offered at a clinic 
+function ClinicSpecialities({ clinicId, api }) {
+    const [specialities, setSpecialities] = useState([]);
+
+    useEffect(() => {
+        if (!clinicId) return;
+        api.specialities.getForClinic(clinicId)
+            .then(data => setSpecialities(Object.values(data)))
+            .catch(err => console.error('Failed to load clinic specialities:', err));
+    }, [clinicId, api]);
+
+    if (!specialities.length) return null;
+
+    return (
+        <p>Services: {specialities.join(', ')}</p>
+    );
+}
+
+// uppercase initials from a staff member object 
+const staffInitials = (member) => {
+    const name = `${member.name || ''} ${member.surname || ''}`.trim();
+    return name.split(' ').filter(Boolean).map(p => p[0]).join('').toUpperCase().slice(0, 2) || '?';
+};
 
 function AdminDashboard() {
     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
@@ -76,6 +107,9 @@ function AdminDashboard() {
     const [savingTimes, setSavingTimes] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
+    
+    const [toasts, setToasts] = useState([]);
+
     useEffect(() => {
         const fetchUserData = async () => {
             if (user?.sub) {
@@ -89,6 +123,7 @@ function AdminDashboard() {
         };
         fetchUserData();
     }, [user, api]);
+
     const [staffEmail, setStaffEmail] = useState('');
     const [staffSearchResult, setStaffSearchResult] = useState(null); 
     const [loadingStaffSearch, setLoadingStaffSearch] = useState(false);
@@ -97,6 +132,16 @@ function AdminDashboard() {
     const staffDebounceTimer = useRef(null);
     const [specialities, setSpecialities] = useState({});
     const [selectedSpeciality, setSelectedSpeciality] = useState('');
+
+  
+    const showToast = (message, type = 'success') => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, message, type }]);
+        setTimeout(() => {
+            setToasts(prev => prev.map(t => t.id === id ? { ...t, leaving: true } : t));
+            setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 280);
+        }, 3200);
+    };
 
     useEffect(() => {
         const fetchAssignedClinics = async () => {
@@ -150,32 +195,35 @@ function AdminDashboard() {
         fetchStaff();
     },[selectedClinic, user, api]);
 
-    useEffect(() => {
-        const loadStaffSpecialities = async () => {
-            try {
-                const result = [];
-                for (const member of staffList) {
+useEffect(() => {
+    const loadStaffSpecialities = async () => {
+        try {
+            const specialityRequests = staffList
+                .filter((member) => {
                     const userId = member.userId || member._id;
+                    return userId && member.staffId;
+                })
+                .map(async (member) => {
+                    const userId = member.userId || member._id;
+                    const data = await api.specialities.getForStaff(userId);
 
-                    if (!userId || !member.staffId) continue;
-
-                    const data = api.specialities.getForStaff(userId);
-
-                    result.push([member.staffId, data]);
-                }
-                const resolvedResult = await Promise.all(result);
-                setStaffSpecialities(Object.fromEntries(resolvedResult.map(r => [r[0], r[1].SpecialityObjects || []])));
-            } catch (error) {
-                console.error("Error loading staff specialities:", error);
-            }
-        };
-
-        if (staffList.length > 0) {
-            loadStaffSpecialities();
-        } else {
-            setStaffSpecialities({});
+                    return [
+                        member.staffId,
+                        data.SpecialityObjects || []
+                    ];
+                });
+            const resolvedResult = await Promise.all(specialityRequests);
+            setStaffSpecialities(Object.fromEntries(resolvedResult));
+        } catch (error) {
+            console.error("Error loading staff specialities:", error);
         }
-    },[staffList, api]);
+    };
+    if (staffList.length > 0) {
+        loadStaffSpecialities();
+    } else {
+        setStaffSpecialities({});
+    }
+}, [staffList, api]);
 
     useEffect(() => {
         const loadSpecialities = async () => {
@@ -189,7 +237,6 @@ function AdminDashboard() {
         loadSpecialities();
     },[api]);
         
-
 
 
      // email search 
@@ -273,6 +320,12 @@ function AdminDashboard() {
     // Add staff 
     const handleAddStaff = async () => {
         if (!staffSearchResult?.user || staffSearchResult.isLinked) return;
+
+        // Guard: speciality must be selected before posting anything
+        if (!selectedSpeciality) {
+            showToast('Please select a speciality before adding staff.', 'error');
+            return;
+        }
  
         try {
             setAddingStaff(true);
@@ -282,19 +335,15 @@ function AdminDashboard() {
             auth0Id: staffSearchResult.user.auth0Id,
         });
 
-            if (selectedSpeciality) {
-                 await api.specialities.addToStaff({
+            await api.specialities.addToStaff({
                 staffId: linkResult.staffId,
-                specialityId: selectedSpeciality,})
-                ;}
-
+                specialityId: selectedSpeciality,
+            });
 
             //create default schedule
             const defaultEntries = buildDefaultScheduleEntries(selectedClinic);
             await api.schedules.createDefault(linkResult.staffId, defaultEntries);
 
- 
-            
             const data = await api.clinics.listStaff(selectedClinic._id);
             if (data?.users) setStaffList(data.users);
  
@@ -302,13 +351,15 @@ function AdminDashboard() {
             setStaffSearchResult(null);
             setHasSearchedStaff(false);
             setSelectedSpeciality('');
+
+            showToast('Staff member added successfully!');
  
         } catch (error) {
             if (error.status === 409) {
-                alert('This staff member is already linked to a clinic.');
+                showToast('This staff member is already linked to a clinic.', 'error');
             } else {
                 console.error('Could not add staff member:', error);
-                alert('Failed to add staff. Please try again.');
+                showToast('Failed to add staff. Please try again.', 'error');
             }
         } finally {
             setAddingStaff(false);
@@ -355,6 +406,9 @@ function AdminDashboard() {
                             break;
                         case STATS.DAYS_OFF:
                             console.log("Staff days off:");
+                            data = await api.schedules.getBulkOffDays(selectedClinic._id, {staffIDs: staffList.map(s => s.staffId)});
+                            setStats(data.clinicOffDays);
+                            setStatsCache( prev => ({...prev, [cacheKey]: data.clinicOffDays } ));
                             break;
                         default:
                             console.log("No stat selected.");
@@ -368,7 +422,7 @@ function AdminDashboard() {
             }
             fetchStats();
         }
-    }, [activeSection, selectedClinic, queueGranularity, apptSearchOptions, selectedStat, api, statsCache]);
+    }, [activeSection, selectedClinic, queueGranularity, apptSearchOptions, selectedStat, api, statsCache, staffList]);
 
     if (isLoading) {
         return <p>Loading dashboard...</p>;
@@ -440,7 +494,7 @@ function AdminDashboard() {
             }
         }
             if(!specialityId) {
-                alert("Please select or enter a speciality to add.");
+                showToast('Please select or enter a speciality to add.', 'error');
                 return;
             }
             
@@ -465,10 +519,10 @@ function AdminDashboard() {
                 ...prev,
                 [staffId]: ""
             }));
-            alert("Speciality added successfully.");
+            showToast('Speciality added successfully.');
         } catch (error) {
             console.error("Error adding speciality to staff:", error);
-            alert("Failed to add speciality. Please try again.");
+            showToast('Failed to add speciality. Please try again.', 'error');
         }
     };
 
@@ -486,12 +540,46 @@ function AdminDashboard() {
                 )
             }));
 
-            alert("Speciality removed successfully.");
+            showToast('Speciality removed.');
         } catch (error) {
             console.error("Error removing speciality from staff:", error);
-            alert("Failed to remove speciality. Please try again.");
+            showToast('Failed to remove speciality. Please try again.', 'error');
         }
     };
+
+const handleRemoveStaff = async (member) => {
+    try {
+        const confirmed = window.confirm(
+            `Remove${member.title || ""} ${member.name || ""} ${member.surname || ""} from ${selectedClinic.practiceName}?`);
+
+        if (!confirmed) return;
+        const userId = member.userId || member._id;
+        const staffId = member.staffId;
+
+        if (!userId || !staffId) {
+            showToast('Missing staff information. Cannot remove staff member.', 'error');
+            return;
+        }
+
+        await api.schedules.deleteForStaff(userId);
+        await api.clinics.removeStaff(selectedClinic._id, staffId);
+
+        setStaffList((prev) =>
+            prev.filter((staff) => staff.staffId !== staffId)
+        );
+
+        setStaffSpecialities((prev) => {
+            const updated = { ...prev };
+            delete updated[staffId];
+            return updated;
+        });
+
+        showToast('Staff member removed.');
+    } catch (error) {
+        console.error("Error removing staff:", error);
+        showToast(error.message || 'Failed to remove staff member. Please try again.', 'error');
+    }
+};
 
     const filteredStaffList = staffList.filter((member) => {
         const fullName = `${member.title || ""} ${member.name || ""} ${member.surname || ""}`.toLowerCase();
@@ -569,7 +657,7 @@ function AdminDashboard() {
     };
 
     const chart = () => {
-        if (!stats)
+        if (!stats || !stats.length || stats.length === 0)
             return (<span className="graph-icon">📈</span>);
 
         switch (selectedStat) {
@@ -643,6 +731,30 @@ function AdminDashboard() {
                         </ResponsiveContainer>
                     </>
                 );
+            case STATS.DAYS_OFF:
+                const ods = stats.map(od => new Date(od.date));
+                const odcount = ods.map(d => d.toLocaleDateString()).reduce((a, c) => { a[c] = (a[c] || 0) + 1; return a; }, {});
+                const odrange = getDaysArray(
+                    Math.min.apply(null,[Date.now()-86400000, ...ods]), 
+                    Math.max.apply(null,[Date.now()+86400000, ...ods])
+                ).map(d => {return {date: d.toLocaleDateString(), count: odcount[d.toLocaleDateString()] || 0}});
+                console.log(odrange);
+                return (
+                    <>
+                        <h2 className="chart-title">Staff Off Days summary</h2>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={odrange}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="date" />
+                                <YAxis />
+                                <ReferenceLine x={(new Date()).toLocaleDateString()} stroke="black" strokeDasharray="5 5"/>
+                                <Tooltip />
+                                <Line type="monotone" dataKey="count" stroke="#6b1fad" strokeWidth={2} dot={{ fill: '#6b1fad' }} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </>
+                );
+
             default:
                 return (<span className="graph-icon">📈</span>);
         }
@@ -663,19 +775,13 @@ function AdminDashboard() {
 
     return (
         <main className="admin-dashboard-wrapper">
-            <header className="admin-header-canva">
-                <section className="brand-section">
-                    <img src="/logo.svg" alt="Clinics and Qs Logo" className="brand-logo" />
-                    <h2 className="brand-title">Clinics and Qs</h2>
-                </section>
-                <nav className="header-nav-canva">
-                    <button className="icon-btn-user" aria-label="Profile" onClick={() => navigate('/dashboard/admin/profile')}>
-                        <LuUser />
-                    </button>
-                    <NotificationCenter userId={user?.sub} />
-                    <button className="logout-btn-canva" onClick={logout}>Logout</button>
-                </nav>
-            </header>
+        <Header className="admin-header-canva">
+                <button onClick={() => navigate('/dashboard/admin/profile')}>
+                    <LuUser />
+                </button>
+                <NotificationCenter userId={user?.sub} />
+                <button  onClick={logout}>Logout</button>
+            </Header>
             <section className="welcome-area">
                 <h1 className="welcome-title-canva">Welcome Back, {adminName || 'Admin'}!</h1>
             </section>  
@@ -723,7 +829,7 @@ function AdminDashboard() {
                 ? `${selectedClinic.practiceTimes.open} - ${selectedClinic.practiceTimes.close}`
                 : 'Not set'}
             </p>
-            <p>Services: {selectedClinic.services?.join(', ') || ''}</p>
+            <ClinicSpecialities clinicId={selectedClinic._id} api={api} />
             {saveSuccess && (
                 <p style={{ color: '#16a34a', fontSize: '13px', fontWeight: '600', marginTop: '8px' }}>
                     Clinic times saved successfully
@@ -785,17 +891,28 @@ function AdminDashboard() {
                             {staffList.length === 0 ? (<p>No staff found.</p>) : filteredStaffList.length === 0 ? (<p>No staff match your search.</p>
                         ) : filteredStaffList.map((member) => (
                                 <article key={member._id} className="staff-card">
+                               
                                 <section className="staff-card-header">
-                                    <section>
-                                        <h4 className="staff-name">
-                                            {member.title} {member.name} {member.surname}
-                                        </h4>
-                                        <p className="staff-role">{member.role || 'Staff Member'}</p>
+                                    <section className="staff-header-left">
+                                       
+                                        <span className="staff-avatar" aria-hidden="true">
+                                            {staffInitials(member)}
+                                        </span>
+                                        <section>
+                                            <h4 className="staff-name">
+                                                {member.title} {member.name} {member.surname}
+                                            </h4>
+                                            <p className="staff-role">{member.role || 'Staff Member'}</p>
+                                        </section>
                                     </section>
 
-                                    <button className="pill-btn-red staff-fire-btn">
-                                        Fire
-                                    </button>
+                                    <button
+                                        type="button"
+                                        className="pill-btn-red staff-fire-btn"
+                                        onClick={() => handleRemoveStaff(member)}
+                                    >
+                                    Fire
+                                </button>
                                 </section>
 
                                 <section className="staff-speciality-section">
@@ -975,9 +1092,9 @@ function AdminDashboard() {
                         <header className="block-header">{selectedClinic?.practiceName}<br />Clinic Stats</header>
                         <section className="block-body">
                             <nav className="stats-nav">
-                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.DAYS_OFF)}>Staff<br/>Off Days</button>
-                                <button className={`stat-btn ${selectedStat === STATS.APPOINTMENTS ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.APPOINTMENTS)}>Appointments</button>
-                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : 'pdf-print-ignore'}`} onClick={() => setSelectedStat(STATS.QUEUE_WAIT)}>Queue<br/>Waits</button>
+                                <button className={`stat-btn ${selectedStat === STATS.DAYS_OFF ? 'active' : 'pdf-print-ignore'}`} onClick={() => {setSelectedStat(STATS.DAYS_OFF);setStats(null)}}>Staff<br/>Off Days</button>
+                                <button className={`stat-btn ${selectedStat === STATS.APPOINTMENTS ? 'active' : 'pdf-print-ignore'}`} onClick={() => {setSelectedStat(STATS.APPOINTMENTS);setStats(null)}}>Appointments</button>
+                                <button className={`stat-btn ${selectedStat === STATS.QUEUE_WAIT ? 'active' : 'pdf-print-ignore'}`} onClick={() => {setSelectedStat(STATS.QUEUE_WAIT);setStats(null)}}>Queue<br/>Waits</button>
                             </nav>
                             <section className="stats-graph">
                                 { loadingStats ? (
@@ -993,6 +1110,15 @@ function AdminDashboard() {
                     </article>
                 )}
             </section>
+
+          
+            <aside className="toast-container" aria-live="polite">
+                {toasts.map(t => (
+               <p key={t.id} className={`toast toast--${t.type}${t.leaving ? ' toast--leaving' : ''}`}>
+                        {t.message}
+             </p>
+            ))}
+            </aside>
         </main>
     );
 }

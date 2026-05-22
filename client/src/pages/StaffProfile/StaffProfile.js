@@ -5,7 +5,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
 import { useRef } from 'react';
 import NotificationCenter from '../../components/NotificationCenter';
-
+import Header from '../../components/Header';
 function StaffProfile() {
 
   const nameRef = useRef(); //for changing of details
@@ -110,9 +110,10 @@ Thank you.`);
         return;
       }
 
-      console.log("Updating with data:", updatedData);    
+      console.log("Updating with data:", updatedData);  
+      await api.notifications.createNotif(staffId, "Changes have been made to your account");  
       await api.users.update(staffId, updatedData);
-
+      
       setProfileData(prev=> ({ ...prev, ...updatedData }));
       toggleChangeDetailsModal();
       alert("Details updated successfully!");
@@ -197,14 +198,11 @@ Thank you.`);
 
 return (
   <section className="landing"> 
-    <nav className="landing-nav" aria-label="Main navigation">
-      <span className="landing-logo">Clinics and Qs</span>
-      <section className="landing-nav-btns">
-        <button className="btn" onClick={logout}>Logout</button>
-        <button className="btn btn-primary" onClick={() => navigate('/dashboard/staff')}>Back</button>
+    <Header>
+        <button  onClick={logout}>Logout</button>
+        <button  onClick={() => navigate('/dashboard/staff')}>Back</button>
         <NotificationCenter userId={profileData?._id} />
-      </section>
-    </nav>
+    </Header>
 
     <main className="profile-container">
       <header className="profile-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

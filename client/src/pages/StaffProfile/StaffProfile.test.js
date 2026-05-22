@@ -36,6 +36,7 @@ jest.mock('../../api/useApi', () => ({
       getAssignedClinics: mockGetAssignedClinics,
       getAdmins: mockGetAdmins,
     },
+    notifications: mockNotifications
   }),
 }));
 
@@ -49,6 +50,13 @@ jest.mock('../../components/NotificationCenter', () => {
     return <section data-testid="notification-center" />;
   };
 });
+
+const mockNotifications = {
+  createNotif: jest.fn().mockResolvedValue({ success: true }),
+  getNotifs: jest.fn().mockResolvedValue([]),
+  markSeen: jest.fn().mockResolvedValue({}),
+  deleteSeen: jest.fn().mockResolvedValue({})
+};
 
 const profileData = {
   _id: 'staff-1',
@@ -229,6 +237,7 @@ describe('<StaffProfile />', () => {
   it('submits only changed fields and updates profile state', async () => {
     setupDefaultMocks();
     mockUpdate.mockResolvedValue({});
+    
     const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
     renderComponent();
 

@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from '../../api/useApi';
 import './Booking.css';
-// import logo from '../PatientDashboard/logo.svg';
+import Header from '../../components/Header';
 
 /* ── Helpers ── */
 
-/** Returns 14 dates starting from tomorrow */
 function getBookingWindow() {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -19,7 +18,6 @@ function getBookingWindow() {
   });
 }
 
-/** Returns the Monday of the week containing `date` */
 function getMondayOf(date) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
@@ -29,17 +27,9 @@ function getMondayOf(date) {
   return d;
 }
 
-/**
- * Builds 7 day cells Mon–Sun for the given weekStart.
- * DB convention: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
- */
-function buildWeekCells(weekStart, windowDates, schedule) {
+function buildWeekCells(weekStart, windowDates, schedule, offDays) {
   const windowSet = new Set(windowDates.map(d => d.toDateString()));
-
-  function jsdayToDBday(jsDay) {
-    return jsDay;
-  }
-
+  const offDaySet = new Set((offDays || []).map(od => od.date?.slice(0, 10)));
   const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return Array.from({ length: 7 }, (_, i) => {
@@ -48,9 +38,11 @@ function buildWeekCells(weekStart, windowDates, schedule) {
     d.setHours(0, 0, 0, 0);
 
     const inWindow      = windowSet.has(d.toDateString());
-    const dbDay         = jsdayToDBday(d.getDay());
+    const dbDay         = d.getDay();
     const docWorksToday = schedule.some(s => Number(s.DayOfWeek) === dbDay);
     const isToday       = d.toDateString() === new Date().toDateString();
+    const dateStr       = d.toISOString().slice(0, 10);
+    const isOffDay      = offDaySet.has(dateStr);
 
     return {
       date:         d,
@@ -58,29 +50,49 @@ function buildWeekCells(weekStart, windowDates, schedule) {
       dayNum:       d.getDate(),
       inWindow,
       docWorksToday,
-      isAvail:      inWindow && docWorksToday,
+      isOffDay,
+      isAvail:      inWindow && docWorksToday && !isOffDay,
       isToday,
     };
   });
 }
 
-function formatDate(date) {
-  return date.toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long' });
+function fmt12(time24) {
+  const [h, m] = time24.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12  = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
-function formatHour(h) {
-  return `${String(h).padStart(2, '0')}:00`;
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function formatDate(date) {
+  return date.toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
 function initials(name = '') {
   return name.split(' ').filter(Boolean).map(p => p[0]).join('').toUpperCase().slice(0, 2);
 }
 
+function docFullName(doc) {
+  if (!doc) return '';
+  return `${doc.name || ''} ${doc.surname || ''}`.trim();
+
+
+}
+
+
+
+function localDateStr(date) {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 /* ── Component ── */
 export default function Booking() {
-  const navigate     = useNavigate();
-  const location     = useLocation();
-  const { apiFetch } = useApiAuth();
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const api       = useApi();
   const { user, isLoading } = useAuth0();
 
   const {
@@ -94,33 +106,32 @@ export default function Booking() {
   } = location.state || {};
 
   /* ── State ── */
-  const [visitDescription, setVisitDescription] = useState('');
-
-  const [doctors,        setDoctors]        = useState([]);
-  const [loadingDoctors, setLoadingDoctors] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-
-  const [schedule,        setSchedule]        = useState([]);
-  const [loadingSchedule, setLoadingSchedule] = useState(false);
-
-  const [weekStart, setWeekStart] = useState(() => {
+  const [visitDescription,    setVisitDescription]    = useState('');
+  const [doctors,             setDoctors]             = useState([]);
+  const [loadingDoctors,      setLoadingDoctors]      = useState(false);
+  const [selectedDoctor,      setSelectedDoctor]      = useState(null);
+  const [schedule,            setSchedule]            = useState([]);
+  const [loadingSchedule,     setLoadingSchedule]     = useState(false);
+  const [offDays,             setOffDays]             = useState([]);
+  const [loadingOffDays,      setLoadingOffDays]      = useState(false);
+  const [weekStart,           setWeekStart]           = useState(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return getMondayOf(today);
   });
-  const [selectedDate, setSelectedDate] = useState(null);
-
-  const [bookedSlots,   setBookedSlots]   = useState([]);
-  const [loadingBooked, setLoadingBooked] = useState(false);
-  const [selectedSlot,  setSelectedSlot]  = useState(null);
-
-  const [confirming, setConfirming] = useState(false);
-  const [success,    setSuccess]    = useState(false);
-  const [error,      setError]      = useState('');
+  const [selectedDate,        setSelectedDate]        = useState(null);
+  const [myAppointments,      setMyAppointments]      = useState([]);
+  const [loadingMyAppts,      setLoadingMyAppts]      = useState(false);
+  const [doctorAppointments,  setDoctorAppointments]  = useState([]);
+  const [loadingDoctorAppts,  setLoadingDoctorAppts]  = useState(false);
+  const [selectedSlot,        setSelectedSlot]        = useState(null);
+  const [confirming,          setConfirming]          = useState(false);
+  const [success,             setSuccess]             = useState(false);
+  const [error,               setError]               = useState('');
 
   /* ── Derived ── */
   const windowDates = getBookingWindow();
-  const weekCells   = buildWeekCells(weekStart, windowDates, schedule);
+  const weekCells   = buildWeekCells(weekStart, windowDates, schedule, offDays);
 
   const weekLabel = (() => {
     const end = new Date(weekStart);
@@ -136,139 +147,186 @@ export default function Booking() {
     const d = new Date(w); d.setDate(d.getDate() + 7); return d;
   });
 
-  const docFullName = (doc) => {
-    if (!doc) return '';
-    return `${doc.name || ''} ${doc.surname || ''}`.trim();
-  };
+  /* ── Check if a slot is already booked by the patient ── */
+const isPatientBooked = useCallback((slot) => {
+  if (!selectedDate || !myAppointments.length) return false;
+  const dateStr = localDateStr(selectedDate);
+  return myAppointments.some(appt => {
+    if (rescheduleAppointmentId && appt._id === rescheduleAppointmentId) return false;
+    if (!appt.BookingDateTime) return false;
+    const apptDate    = new Date(appt.BookingDateTime);
+    const apptDateStr = localDateStr(apptDate);
+    const apptHour    = `${pad(apptDate.getHours())}:00`;
+    return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
+  });
+}, [selectedDate, myAppointments, rescheduleAppointmentId]);
 
-  /* ── Available hours derived from schedule entry for selected day ── */
-  const availableHours = (() => {
+  /* ── Check if a slot is already booked by the doctor ── */
+const isDoctorBooked = useCallback((slot) => {
+  if (!selectedDate || !doctorAppointments.length) return false;
+  const dateStr = localDateStr(selectedDate);
+  return doctorAppointments.some(appt => {
+    if (!appt.BookingDateTime) return false;
+    const apptDate    = new Date(appt.BookingDateTime);
+    const apptDateStr = localDateStr(apptDate);
+    const apptHour    = `${pad(apptDate.getHours())}:00`;
+    return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
+  });
+}, [selectedDate, doctorAppointments]);
+  /* ── Slots for the selected day ── */
+  const slotsForDay = (() => {
     if (!selectedDate || !schedule.length) return [];
-    const dbDay    = selectedDate.getDay();
-    const dayEntry = schedule.find(s => Number(s.DayOfWeek) === dbDay);
-    if (!dayEntry) return [];
-    const parseHour = t => parseInt(String(t).split(':')[0], 10);
-    const start = parseHour(dayEntry.StartTime);
-    const end   = parseHour(dayEntry.EndTime);
-    const hours = [];
-    for (let h = start; h < end; h++) hours.push(h);
-    return hours;
+    const dbDay = selectedDate.getDay();
+    return schedule
+      .filter(s => Number(s.DayOfWeek) === dbDay)
+      .sort((a, b) => a.StartTime.localeCompare(b.StartTime));
   })();
-
-  const isBooked = (h) => {
-    if (!selectedDate) return false;
-    const dateStr = selectedDate.toISOString().split('T')[0];
-    return bookedSlots.includes(`${dateStr}T${formatHour(h)}`);
-  };
 
   /* ── Load doctors ── */
   useEffect(() => {
-    if (!clinicId) return;
+  if (!clinicId) return;
+  (async () => {
+    setLoadingDoctors(true);
+    try {
+      const data = await api.clinics.listStaff(clinicId);
+      const allStaff = data.users || [];
+
+      if (!specialty) {
+        setDoctors(allStaff);
+        return;
+      }
+
+      const filtered = await Promise.all(
+        allStaff.map(async (doc) => {
+          try {
+            const res = await api.specialities.getForStaff(doc.userId);
+            const has = (res.Specialities || []).some(
+              name => name.toLowerCase() === specialty.toLowerCase()
+            );
+            return has ? doc : null;
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      setDoctors(filtered.filter(Boolean));
+    } catch {
+      setDoctors([]);
+    } finally {
+      setLoadingDoctors(false);
+    }
+  })();
+}, [clinicId, api, specialty]);
+  /* ── Load patient's own appointments once ── */
+  useEffect(() => {
+    if (!user?.sub) return;
     (async () => {
-      setLoadingDoctors(true);
+      setLoadingMyAppts(true);
       try {
-        const res  = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/clinics/${clinicId}/staff`);
-        const json = await res.json();
-        setDoctors(json.users || []);
+        const data = await api.appointments.getForAuth0Id(user.sub, { statuses: ['Scheduled', 'Waiting', 'In Consult'] });
+        setMyAppointments(Array.isArray(data) ? data : data.appointments || []);
       } catch {
-        setDoctors([]);
+        setMyAppointments([]);
       } finally {
-        setLoadingDoctors(false);
+        setLoadingMyAppts(false);
       }
     })();
-  }, [clinicId, apiFetch]);
+  }, [user?.sub, api]);
 
-  /* ── Load doctor schedule ── */
-  const loadSchedule = useCallback(async (doctor) => {
+  /* ── Load doctor's appointments when date or doctor changes ── */
+  useEffect(() => {
+    if (!selectedDate || !selectedDoctor) return;
+    (async () => {
+      setLoadingDoctorAppts(true);
+      try {
+        const data = await api.appointments.getForAuth0Id(selectedDoctor.auth0Id, {
+          statuses: ['Scheduled', 'Waiting', 'In Consult'],
+        });
+        setDoctorAppointments(Array.isArray(data) ? data : data.appointments || []);
+      } catch {
+        setDoctorAppointments([]);
+      } finally {
+        setLoadingDoctorAppts(false);
+      }
+    })();
+  }, [selectedDate, selectedDoctor, api]);
+
+  /* ── Load schedule + off days when doctor selected ── */
+  const loadDoctorData = useCallback(async (doctor) => {
+    const staffId = doctor.auth0Id;
+
     setSchedule([]);
-    setLoadingSchedule(true);
+    setOffDays([]);
+    setDoctorAppointments([]);
     setSelectedDate(null);
     setSelectedSlot(null);
-    setBookedSlots([]);
+    setLoadingSchedule(true);
+    setLoadingOffDays(true);
+
     try {
-      const res  = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/schedules/${doctor._id}`);
-      const json = await res.json();
-      setSchedule(json.schedule || []);
+      const schedData = await api.schedules.getSchedule(staffId);
+      setSchedule(Array.isArray(schedData.schedule) ? schedData.schedule : []);
     } catch {
       setSchedule([]);
     } finally {
       setLoadingSchedule(false);
     }
-  }, [apiFetch]);
+
+    try {
+      const offData = await api.schedules.getOffDays(staffId);
+      setOffDays(Array.isArray(offData.offDays) ? offData.offDays : []);
+    } catch {
+      setOffDays([]);
+    } finally {
+      setLoadingOffDays(false);
+    }
+  }, [api]);
 
   const handleSelectDoctor = (doctor) => {
     setSelectedDoctor(doctor);
-    loadSchedule(doctor);
+    loadDoctorData(doctor);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     setWeekStart(getMondayOf(today));
   };
 
-  /* ── Load booked slots when date chosen ── */
-  useEffect(() => {
-    if (!selectedDate || !selectedDoctor) return;
-    (async () => {
-      setLoadingBooked(true);
-      try {
-        const dateStr = selectedDate.toISOString().split('T')[0];
-        const res     = await apiFetch(
-          `${process.env.REACT_APP_SERVER_URL}/appointments/booked?doctorId=${selectedDoctor._id}&date=${dateStr}`
-        );
-        const json = await res.json();
-        setBookedSlots(json.bookedSlots || []);
-      } catch {
-        setBookedSlots([]);
-      } finally {
-        setLoadingBooked(false);
-      }
-    })();
-  }, [selectedDate, selectedDoctor, apiFetch]);
-
   /* ── Confirm booking ── */
-  const handleConfirm = async () => {
-    setConfirming(true);
-    setError('');
-    try {
-      const bookingDate = new Date(selectedDate);
-      bookingDate.setHours(selectedSlot, 0, 0, 0);
+ const handleConfirm = async () => {
+  if (!selectedSlot) return;
+  setConfirming(true);
+  setError('');
+  try {
+    const bookingDate = new Date(selectedDate);
+    const [slotHour]  = selectedSlot.StartTime.split(':').map(Number);
+    bookingDate.setHours(slotHour, 0, 0, 0);
 
-      const body = {
-        Clinic:          clinicId,
-        Staff:           selectedDoctor._id,
-        patientAuth0Id:  user?.sub,
-        BookingDateTime: bookingDate.toISOString(),
-        description:     visitDescription,
-        Speciality:      specialty,
-        rescheduleAppointmentId: rescheduleAppointmentId,
-      };
+    await api.appointments.create({
+      clinicId,
+      staffUserId:     selectedDoctor._id,
+      patientAuth0Id:  user?.sub,
+      bookingDateTime: bookingDate.toISOString(),
+      description:     visitDescription,
+      specialityName:  specialty,
+    });
 
-      const res = await apiFetch(
-        `${process.env.REACT_APP_SERVER_URL}/api/appointments`,
-        {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify(body),
-        }
-      );
-
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.message || 'Booking failed.');
-      }
-
-      if (rescheduleAppointmentId) {
-        await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/appointments/${rescheduleAppointmentId}`, {
-          method: 'DELETE'
-        });
-      }
-
-      setSuccess(true);
-    } catch (err) {
-      setError(err.message || 'Something went wrong. Please try again.');
-    } finally {
-      setConfirming(false);
+    if (rescheduleAppointmentId) {
+      await api.appointments.cancel(rescheduleAppointmentId);
     }
-  };
+
+    // Refresh patient appointments so newly booked slot greys out immediately
+    if (user?.sub) {
+      const data = await api.appointments.getForAuth0Id(user.sub, { statuses: ['Scheduled', 'Waiting', 'In Consult'] });
+      setMyAppointments(Array.isArray(data) ? data : data.appointments || []);
+    }
+
+    setSuccess(true);
+  } catch (err) {
+    setError(err.message || 'Something went wrong. Please try again.');
+  } finally {
+    setConfirming(false);
+  }
+};
 
   /* ── Guards ── */
   if (isLoading) return (
@@ -287,19 +345,15 @@ export default function Booking() {
   /* ── Success screen ── */
   if (success) return (
     <main className="booking-page">
-      <nav className="booking-nav" aria-label="Main navigation">
-        <span style={{ flex: 1 }} />
-        <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, justifyContent: 'center' }}>
-          <img src="/logo.svg" alt="Clinics and Qs logo" style={{ width: 32, height: 32 }} />
-        </span>
-        <span style={{ flex: 1 }} />
-      </nav>
+      <Header />
       <section className="booking-body">
         <article className="booking-section">
           <section className="booking-success" aria-label="Booking confirmation">
             <p className="success-icon" aria-hidden="true">✓</p>
             <h2 className="success-title">Appointment Booked!</h2>
-            <p className="success-sub">{formatDate(selectedDate)} at {formatHour(selectedSlot)}</p>
+            <p className="success-sub">
+              {formatDate(selectedDate)} at {fmt12(selectedSlot.StartTime)}
+            </p>
             <p className="success-sub">Dr {docFullName(selectedDoctor)} · {clinicName}</p>
             <button className="success-btn" onClick={() => navigate('/dashboard/patient')}>
               Go to My Appointments
@@ -310,26 +364,20 @@ export default function Booking() {
     </main>
   );
 
+  const isLoadingCalendar = loadingSchedule || loadingOffDays;
+
   /* ── Main render ── */
   return (
     <main className="booking-page">
 
-      {/* Nav */}
-      <nav className="booking-nav" aria-label="Main navigation">
-        <span style={{ flex: 1 }}>
-          <button className="booking-nav-back" onClick={() => navigate(-1)}>← Back</button>
-        </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, justifyContent: 'center' }}>
-          <img src="/logo.svg" alt="Clinics and Qs logo" style={{ width: 32, height: 32 }} />
-          <span className="booking-nav-logo">Clinics and Qs</span>
-        </span>
-        <span style={{ flex: 1 }} />
-      </nav>
+      <Header>
+        <button className="booking-nav-back" onClick={() => navigate(-1)}>← Back</button>
+      </Header>
 
       {/* Hero */}
       <header className="booking-hero" aria-label="Booking context">
         <h1 className="booking-hero-title">
-          {rescheduleAppointmentId ? 'Reschedule Appointment' : 'Booking An Appointment'}
+          {rescheduleAppointmentId ? 'Reschedule Appointment' : 'Book an Appointment'}
         </h1>
         <section className="booking-context-row" style={{ justifyContent: 'center' }}>
           <article className="booking-context-card">
@@ -435,7 +483,7 @@ export default function Booking() {
               </hgroup>
             </header>
 
-            {loadingSchedule ? (
+            {isLoadingCalendar ? (
               <section className="calendar-wrap" aria-busy="true">
                 <span className="skeleton" style={{ display: 'block', height: 120, borderRadius: 10 }} aria-hidden="true" />
               </section>
@@ -451,10 +499,11 @@ export default function Booking() {
                   {weekCells.map((cell) => {
                     const isSelected = selectedDate?.toDateString() === cell.date.toDateString();
                     let cls = 'week-cell';
-                    if (isSelected)        cls += ' cal-cell--selected';
-                    else if (cell.isAvail) cls += ' cal-cell--available';
-                    else                   cls += ' cal-cell--unavailable';
-                    if (cell.isToday)      cls += ' cal-cell--today';
+                    if (isSelected)         cls += ' cal-cell--selected';
+                    else if (cell.isOffDay) cls += ' cal-cell--offday';
+                    else if (cell.isAvail)  cls += ' cal-cell--available';
+                    else                    cls += ' cal-cell--unavailable';
+                    if (cell.isToday)       cls += ' cal-cell--today';
 
                     return (
                       <li
@@ -469,11 +518,19 @@ export default function Booking() {
                         role={cell.isAvail ? 'button' : undefined}
                         tabIndex={cell.isAvail ? 0 : undefined}
                         onKeyDown={e => cell.isAvail && e.key === 'Enter' && (setSelectedDate(cell.date), setSelectedSlot(null))}
-                        aria-label={cell.isAvail ? `Select ${formatDate(cell.date)}` : undefined}
+                        aria-label={
+                          cell.isOffDay
+                            ? `${formatDate(cell.date)} — day off`
+                            : cell.isAvail
+                            ? `Select ${formatDate(cell.date)}`
+                            : undefined
+                        }
                         aria-pressed={isSelected || undefined}
+                        title={cell.isOffDay ? 'Day off' : undefined}
                       >
                         <span className="week-cell-name">{cell.dayName}</span>
                         <span className="week-cell-num">{cell.dayNum}</span>
+                        {cell.isOffDay && <span className="week-cell-offday-label">Off</span>}
                       </li>
                     );
                   })}
@@ -482,6 +539,7 @@ export default function Booking() {
                 <section className="cal-legend">
                   <span className="legend-dot legend-dot--avail" /> Available
                   <span className="legend-dot legend-dot--unavail" style={{ marginLeft: 16 }} /> Unavailable
+                  <span className="legend-dot legend-dot--offday" style={{ marginLeft: 16 }} /> Day Off
                 </section>
               </section>
             )}
@@ -495,43 +553,63 @@ export default function Booking() {
               <span className="section-step-badge" aria-hidden="true">4</span>
               <hgroup>
                 <p className="section-title" id="step4-heading">Select a Time</p>
-                <p className="section-subtitle">Hourly slots for {formatDate(selectedDate)}</p>
+                <p className="section-subtitle">Available slots for {formatDate(selectedDate)}</p>
               </hgroup>
             </header>
 
             <section className="slots-wrap">
-              {loadingBooked ? (
+              {loadingMyAppts || loadingDoctorAppts ? (
                 <span className="skeleton" style={{ display: 'block', height: 90, borderRadius: 10 }} aria-hidden="true" />
-              ) : availableHours.length === 0 ? (
+              ) : slotsForDay.length === 0 ? (
                 <p className="slots-empty">No availability on this day. Please pick another date.</p>
               ) : (
-                <ul className="slots-grid" aria-label="Available time slots">
-                  {availableHours.map(h => {
-                    const booked   = isBooked(h);
-                    const selected = selectedSlot === h;
-                    return (
-                      <li key={h}>
-                        <button
-                          className={`slot-btn${selected ? ' slot-btn--selected' : ''}`}
-                          disabled={booked}
-                          onClick={() => !booked && setSelectedSlot(h)}
-                          aria-pressed={selected}
-                          aria-label={booked ? `${formatHour(h)} unavailable` : `Book ${formatHour(h)}`}
-                        >
-                          <span className="slot-time">{formatHour(h)}</span>
-                          <span className="slot-end">– {formatHour(h + 1)}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
+                <>
+                  <ul className="es-blocks-grid" aria-label="Available time slots">
+                    {slotsForDay.map(slot => {
+                      const isBusy     = isPatientBooked(slot) || isDoctorBooked(slot);
+                      const isSelected = selectedSlot?._id === slot._id ||
+                                        selectedSlot?.StartTime === slot.StartTime;
+
+                      return (
+                        <li key={slot._id || slot.StartTime}>
+                          <button
+                            className={`es-block-btn ${
+                              isBusy ? 'es-block-btn--unavailable'
+                              : isSelected ? 'es-block-btn--on'
+                              : 'es-block-btn--off'
+                            }`}
+                            aria-pressed={isSelected}
+                            disabled={isBusy}
+                            onClick={() => !isBusy && setSelectedSlot(slot)}
+                          >
+                            <span className="es-block-time">{fmt12(slot.StartTime.slice(0, 5))}</span>
+                            <span className="es-block-sep">→</span>
+                            <span className="es-block-time">{fmt12(slot.EndTime.slice(0, 5))}</span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                    </ul>
+                  
+                  <footer className="es-legend">
+                    <span className="es-legend-item">
+                      <span className="es-legend-dot es-legend-dot--on" /> Selected
+                    </span>
+                    <span className="es-legend-item">
+                      <span className="es-legend-dot es-legend-dot--off" /> Available
+                    </span>
+                     
+        
+                   
+                  </footer>
+                </>
               )}
             </section>
           </article>
         )}
 
         {/* ── Step 5: Confirm ── */}
-        {selectedSlot !== null && (
+        {selectedSlot && (
           <article className="booking-section" aria-labelledby="step5-heading">
             <header className="section-header">
               <span className="section-step-badge" aria-hidden="true">5</span>
@@ -569,7 +647,9 @@ export default function Booking() {
                 </li>
                 <li className="confirm-row">
                   <span className="confirm-row-label">Time</span>
-                  <span className="confirm-row-value">{formatHour(selectedSlot)} – {formatHour(selectedSlot + 1)}</span>
+                  <span className="confirm-row-value">
+                    {fmt12(selectedSlot.StartTime.slice(0, 5))} – {fmt12(selectedSlot.EndTime.slice(0, 5))}
+                  </span>
                 </li>
               </ul>
 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApiAuth } from '../../hooks/apiAuth';
+import './Registration.css';
+
 
 function Registration() {
     const navigate = useNavigate();
@@ -91,48 +93,68 @@ function Registration() {
         }
     };
 
-    if (isLoading) return <div>Loading...</div>
+    if (isLoading) return <p className="landing--loading">Loading...</p>
 
     // Prevent rendering the form until Auth0 has verified their identity
     if (!isAuthenticated || !user) {
-        return <div>Authenticating with Auth0...</div>;
+        return <p className="landing--loading">Authenticating with Auth0...</p>;
     }
 
     return (
-        <main>
-            <h1>Complete Your Profile</h1>
-            <p>Logged in as: {user.email}</p>
-            <form data-testid="register-form" onSubmit={handleSubmit}>
-                <fieldset>
-                    <legend>Personal Information</legend>
-                    <input type="text" name="title" placeholder="Title (e.g. Mr, Dr)" onChange={handleChange} />
-                    <input type="text" name="name" placeholder="First Name" required onChange={handleChange} />
-                    <input type="text" name="surname" placeholder="Surname" required onChange={handleChange} />
-                </fieldset>
+        <section className="landing">
+            <main className="registration-container">
+                <article className="registration-card">
 
-                <fieldset>
-                    <legend>I am a</legend>
-                    {['Patient', 'Staff', 'Admin'].map((roleOption) => (
-                        <label key={roleOption} htmlFor={roleOption.toLowerCase()}>
-                            <input
-                                type="radio"
-                                id={roleOption.toLowerCase()}
-                                name="role"
-                                value={roleOption}
-                                checked={formData.role === roleOption}
-                                onChange={handleChange}
-                                data-testid="role-select"
-                            />
-                            {roleOption}
-                        </label>
-                    ))}
-                </fieldset>
+                    <header className="registration-card-header">
+                        <h1 className="registration-title">Complete Your Profile</h1>
+                        <p className="registration-subtitle">Logged in as: {user.email}</p>
+                    </header>
 
-                <button type="submit" data-testid="register-button">
-                    Complete Registration
-                </button>
-            </form>
-        </main>
+                    <section className="registration-card-body">
+                        <form data-testid="register-form" onSubmit={handleSubmit}>
+
+                            <fieldset>
+                                <legend>Personal Information</legend>
+                                <input className="search-bar" type="text" name="title" placeholder="Title (e.g. Mr, Dr)" onChange={handleChange} />
+                                <input className="search-bar" type="text" name="name" placeholder="First Name" required onChange={handleChange} />
+                                <input className="search-bar" type="text" name="surname" placeholder="Surname" required onChange={handleChange} />
+                            </fieldset>
+
+                            <fieldset>
+                                <legend>I am a</legend>
+                                <menu className="registration-role-group">
+                                    {['Patient', 'Staff', 'Admin'].map((roleOption) => (
+                                        <li key={roleOption}>
+                                            <label
+                                                className={`registration-role-label${formData.role === roleOption ? ' registration-role-label--selected' : ''}`}
+                                                htmlFor={roleOption.toLowerCase()}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    id={roleOption.toLowerCase()}
+                                                    name="role"
+                                                    value={roleOption}
+                                                    checked={formData.role === roleOption}
+                                                    onChange={handleChange}
+                                                    data-testid="role-select"
+                                                />
+                                                {roleOption}
+                                            </label>
+                                        </li>
+                                    ))}
+                                </menu>
+                            </fieldset>
+
+                            <button type="submit" className="action-item-btn" data-testid="register-button">
+                                Complete Registration
+                            </button>
+
+                        </form>
+                    </section>
+
+                </article>
+            </main>
+        </section>
     );
 }
 
