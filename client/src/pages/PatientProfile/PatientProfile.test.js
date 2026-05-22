@@ -3,13 +3,21 @@ import PatientProfile from './PatientProfile';
 import { MemoryRouter } from 'react-router';
 import { act } from 'react';
 
-const mockApiFetch = jest.fn();
+const mockGet = jest.fn();
+const mockUpdate = jest.fn();
+
+const mockApi = {
+    users: {
+        get: mockGet,
+        update: mockUpdate,
+    },
+};
 
 jest.mock('@auth0/auth0-react', () => ({
     useAuth0: () => ({
-        user: { 
+        user: {
             sub: 'auth0|test-patient-123',
-            picture: 'https://example.com/avatar.jpg'
+            picture: 'https://example.com/avatar.jpg',
         },
         logout: jest.fn(),
     }),
@@ -20,26 +28,24 @@ jest.mock('react-router', () => ({
     useNavigate: () => jest.fn(),
 }));
 
-jest.mock('../../hooks/apiAuth', () => ({
-    useApiAuth: () => ({
-        apiFetch: mockApiFetch,
-    }),
+jest.mock('../../api/useApi', () => ({
+    useApi: () => mockApi,
 }));
 
+const profileData = {
+    name: 'Jane',
+    surname: 'Doe',
+    title: 'Ms',
+    email: 'jane.doe@example.com',
+};
+
 beforeEach(() => {
-    mockApiFetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-            name: 'Jane',
-            surname: 'Doe',
-            title: 'Ms',
-            email: 'jane.doe@example.com',
-        }),
-    });
+    mockGet.mockResolvedValue(profileData);
+    mockUpdate.mockResolvedValue({});
 });
 
 afterEach(() => {
-    mockApiFetch.mockReset();
+    jest.resetAllMocks();
 });
 
 const renderComponent = async () => {
@@ -60,6 +66,7 @@ describe('Render tests', () => {
 
     test('fetches and displays profile data', async () => {
         await renderComponent();
+        expect(mockGet).toHaveBeenCalledWith('auth0|test-patient-123');
         expect(await screen.findByText('Jane')).toBeInTheDocument();
         expect(screen.getByText('Doe')).toBeInTheDocument();
         expect(screen.getByText('jane.doe@example.com')).toBeInTheDocument();
@@ -68,7 +75,7 @@ describe('Render tests', () => {
     test('shows alert and modal stays open when no changes made', async () => {
         window.alert = jest.fn();
         await renderComponent();
-        
+
         await act(async () => {
             fireEvent.click(await screen.findByRole('button', { name: /update account details/i }));
         });
@@ -85,7 +92,7 @@ describe('Render tests', () => {
 describe('Update logic', () => {
     test('successful update and save', async () => {
         await renderComponent();
-        
+
         await act(async () => {
             fireEvent.click(await screen.findByRole('button', { name: /update account details/i }));
         });
@@ -98,6 +105,8 @@ describe('Update logic', () => {
             fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
         });
 
+        expect(mockUpdate).toHaveBeenCalledWith('auth0|test-patient-123', { name: 'Janet' });
+
         await waitFor(() => {
             expect(screen.queryByText(/edit account details/i)).not.toBeInTheDocument();
         });
@@ -109,11 +118,11 @@ describe('Update logic', () => {
 describe('Email field disable logic', () => {
     test('email is enabled for auth0 users (auth0| prefix)', async () => {
         await renderComponent();
-        
+
         await act(async () => {
             fireEvent.click(await screen.findByRole('button', { name: /update account details/i }));
         });
-        
+
         expect(screen.getByDisplayValue('jane.doe@example.com')).not.toBeDisabled();
     });
 
@@ -125,11 +134,11 @@ describe('Email field disable logic', () => {
         });
 
         await renderComponent();
-        
+
         await act(async () => {
             fireEvent.click(await screen.findByRole('button', { name: /update account details/i }));
         });
-        
+
         expect(screen.getByDisplayValue('jane.doe@example.com')).toBeDisabled();
     });
 });
