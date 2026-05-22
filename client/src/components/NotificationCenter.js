@@ -35,7 +35,6 @@ const fetchNotifications = useCallback(async () => {
 }, [api, userId]);
 
   const toggleNotifications = async () => {
-    await api.notifications.createNotif(userId,"notif");
     setIsOpen((prev) => !prev);
   };
 
