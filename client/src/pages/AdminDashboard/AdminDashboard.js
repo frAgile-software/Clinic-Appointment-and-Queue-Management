@@ -49,6 +49,30 @@ const getDaysArray = function(s,e) {const a=[];for(const d=new Date(s);d<=new Da
 
 // ----- end of 'outsourcing' -----
 
+// Fetches and displays the specialities offered at a clinic 
+function ClinicSpecialities({ clinicId, api }) {
+    const [specialities, setSpecialities] = useState([]);
+
+    useEffect(() => {
+        if (!clinicId) return;
+        api.specialities.getForClinic(clinicId)
+            .then(data => setSpecialities(Object.values(data)))
+            .catch(err => console.error('Failed to load clinic specialities:', err));
+    }, [clinicId, api]);
+
+    if (!specialities.length) return null;
+
+    return (
+        <p>Services: {specialities.join(', ')}</p>
+    );
+}
+
+// uppercase initials from a staff member object 
+const staffInitials = (member) => {
+    const name = `${member.name || ''} ${member.surname || ''}`.trim();
+    return name.split(' ').filter(Boolean).map(p => p[0]).join('').toUpperCase().slice(0, 2) || '?';
+};
+
 function AdminDashboard() {
     const { user, logout: auth0Logout, isAuthenticated, isLoading } = useAuth0();
     const api = useApi(); 
@@ -83,6 +107,9 @@ function AdminDashboard() {
     const [savingTimes, setSavingTimes] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
+    
+    const [toasts, setToasts] = useState([]);
+
     useEffect(() => {
         const fetchUserData = async () => {
             if (user?.sub) {
@@ -96,6 +123,7 @@ function AdminDashboard() {
         };
         fetchUserData();
     }, [user, api]);
+
     const [staffEmail, setStaffEmail] = useState('');
     const [staffSearchResult, setStaffSearchResult] = useState(null); 
     const [loadingStaffSearch, setLoadingStaffSearch] = useState(false);
@@ -104,6 +132,16 @@ function AdminDashboard() {
     const staffDebounceTimer = useRef(null);
     const [specialities, setSpecialities] = useState({});
     const [selectedSpeciality, setSelectedSpeciality] = useState('');
+
+  
+    const showToast = (message, type = 'success') => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, message, type }]);
+        setTimeout(() => {
+            setToasts(prev => prev.map(t => t.id === id ? { ...t, leaving: true } : t));
+            setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 280);
+        }, 3200);
+    };
 
     useEffect(() => {
         const fetchAssignedClinics = async () => {
@@ -201,7 +239,6 @@ useEffect(() => {
         
 
 
-
      // email search 
 
     useEffect(() => {
@@ -283,6 +320,12 @@ useEffect(() => {
     // Add staff 
     const handleAddStaff = async () => {
         if (!staffSearchResult?.user || staffSearchResult.isLinked) return;
+
+        // Guard: speciality must be selected before posting anything
+        if (!selectedSpeciality) {
+            showToast('Please select a speciality before adding staff.', 'error');
+            return;
+        }
  
         try {
             setAddingStaff(true);
@@ -292,19 +335,15 @@ useEffect(() => {
             auth0Id: staffSearchResult.user.auth0Id,
         });
 
-            if (selectedSpeciality) {
-                 await api.specialities.addToStaff({
+            await api.specialities.addToStaff({
                 staffId: linkResult.staffId,
-                specialityId: selectedSpeciality,})
-                ;}
-
+                specialityId: selectedSpeciality,
+            });
 
             //create default schedule
             const defaultEntries = buildDefaultScheduleEntries(selectedClinic);
             await api.schedules.createDefault(linkResult.staffId, defaultEntries);
 
- 
-            
             const data = await api.clinics.listStaff(selectedClinic._id);
             if (data?.users) setStaffList(data.users);
  
@@ -312,13 +351,15 @@ useEffect(() => {
             setStaffSearchResult(null);
             setHasSearchedStaff(false);
             setSelectedSpeciality('');
+
+            showToast('Staff member added successfully!');
  
         } catch (error) {
             if (error.status === 409) {
-                alert('This staff member is already linked to a clinic.');
+                showToast('This staff member is already linked to a clinic.', 'error');
             } else {
                 console.error('Could not add staff member:', error);
-                alert('Failed to add staff. Please try again.');
+                showToast('Failed to add staff. Please try again.', 'error');
             }
         } finally {
             setAddingStaff(false);
@@ -453,7 +494,7 @@ useEffect(() => {
             }
         }
             if(!specialityId) {
-                alert("Please select or enter a speciality to add.");
+                showToast('Please select or enter a speciality to add.', 'error');
                 return;
             }
             
@@ -478,10 +519,10 @@ useEffect(() => {
                 ...prev,
                 [staffId]: ""
             }));
-            alert("Speciality added successfully.");
+            showToast('Speciality added successfully.');
         } catch (error) {
             console.error("Error adding speciality to staff:", error);
-            alert("Failed to add speciality. Please try again.");
+            showToast('Failed to add speciality. Please try again.', 'error');
         }
     };
 
@@ -499,10 +540,10 @@ useEffect(() => {
                 )
             }));
 
-            alert("Speciality removed successfully.");
+            showToast('Speciality removed.');
         } catch (error) {
             console.error("Error removing speciality from staff:", error);
-            alert("Failed to remove speciality. Please try again.");
+            showToast('Failed to remove speciality. Please try again.', 'error');
         }
     };
 
@@ -516,7 +557,7 @@ const handleRemoveStaff = async (member) => {
         const staffId = member.staffId;
 
         if (!userId || !staffId) {
-            alert("Missing staff information. Cannot remove staff member.");
+            showToast('Missing staff information. Cannot remove staff member.', 'error');
             return;
         }
 
@@ -533,10 +574,10 @@ const handleRemoveStaff = async (member) => {
             return updated;
         });
 
-        alert("Staff member removed successfully.");
+        showToast('Staff member removed.');
     } catch (error) {
         console.error("Error removing staff:", error);
-        alert(error.message || "Failed to remove staff member. Please try again.");
+        showToast(error.message || 'Failed to remove staff member. Please try again.', 'error');
     }
 };
 
@@ -788,7 +829,7 @@ const handleRemoveStaff = async (member) => {
                 ? `${selectedClinic.practiceTimes.open} - ${selectedClinic.practiceTimes.close}`
                 : 'Not set'}
             </p>
-            <p>Services: {selectedClinic.services?.join(', ') || ''}</p>
+            <ClinicSpecialities clinicId={selectedClinic._id} api={api} />
             {saveSuccess && (
                 <p style={{ color: '#16a34a', fontSize: '13px', fontWeight: '600', marginTop: '8px' }}>
                     Clinic times saved successfully
@@ -850,12 +891,19 @@ const handleRemoveStaff = async (member) => {
                             {staffList.length === 0 ? (<p>No staff found.</p>) : filteredStaffList.length === 0 ? (<p>No staff match your search.</p>
                         ) : filteredStaffList.map((member) => (
                                 <article key={member._id} className="staff-card">
+                               
                                 <section className="staff-card-header">
-                                    <section>
-                                        <h4 className="staff-name">
-                                            {member.title} {member.name} {member.surname}
-                                        </h4>
-                                        <p className="staff-role">{member.role || 'Staff Member'}</p>
+                                    <section className="staff-header-left">
+                                       
+                                        <span className="staff-avatar" aria-hidden="true">
+                                            {staffInitials(member)}
+                                        </span>
+                                        <section>
+                                            <h4 className="staff-name">
+                                                {member.title} {member.name} {member.surname}
+                                            </h4>
+                                            <p className="staff-role">{member.role || 'Staff Member'}</p>
+                                        </section>
                                     </section>
 
                                     <button
@@ -1062,6 +1110,15 @@ const handleRemoveStaff = async (member) => {
                     </article>
                 )}
             </section>
+
+          
+            <aside className="toast-container" aria-live="polite">
+                {toasts.map(t => (
+               <p key={t.id} className={`toast toast--${t.type}${t.leaving ? ' toast--leaving' : ''}`}>
+                        {t.message}
+             </p>
+            ))}
+            </aside>
         </main>
     );
 }
