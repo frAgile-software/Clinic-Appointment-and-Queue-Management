@@ -256,7 +256,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     expect(screen.getByText(/All provinces/i)).toBeInTheDocument();
 
     act(() => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
     });
 
     await waitFor(() => {
