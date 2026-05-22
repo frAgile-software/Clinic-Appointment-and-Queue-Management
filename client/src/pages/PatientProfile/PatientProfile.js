@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './PatientProfile.css'; 
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router';
-import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from '../../api/useApi';
 import Header from '../../components/Header';
 import NotificationCenter from '../../components/NotificationCenter';
 
@@ -14,7 +14,7 @@ function PatientProfile() {
 
     const { user, logout: auth0Logout } = useAuth0();
     const navigate = useNavigate();
-    const {apiFetch} = useApiAuth();
+    const api = useApi();
  
     const [isChangeDetailsModalOpen, setIsChangeDetailsModalOpen] = useState(false);
     const [profileData, setProfileData] = useState(null);
@@ -29,6 +29,7 @@ function PatientProfile() {
         setIsChangeDetailsModalOpen(!isChangeDetailsModalOpen);
     };
 
+    // update user's details
     const handleUpdate = async () => {
         if (!patientId){
             console.error("No userId found, cannot update.");
@@ -53,23 +54,18 @@ function PatientProfile() {
 
         try {
             console.log("Updating with data:", updatedData);    
-            const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${patientId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData),
-            });
+            await api.users.update(patientId, updatedData);
 
-            if (response.ok) {
-                setProfileData(prev => ({ ...prev, ...updatedData }));
-                toggleChangeDetailsModal();
-                alert("Details updated successfully!");
-            };
+            setProfileData(prev => ({ ...prev, ...updatedData }));
+            toggleChangeDetailsModal();
+            alert("Details updated successfully!");
 
         } catch (error) {
             console.error("Update failed:", error);
         };
     };
 
+    // fetch all user's profile data
     useEffect(() => {
         if (!patientId) {
             console.log("No user, cannot find profile details.");
@@ -79,8 +75,8 @@ function PatientProfile() {
         const fetchProfileData = async () => {
             try {
                 setLoading(true);
-                const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${patientId}`);
-                const data = await response.json();
+                const data = await api.users.get(patientId);
+
                 console.log("User data", data);
                 setProfileData(data);
             } catch (error) {
@@ -91,7 +87,7 @@ function PatientProfile() {
         };
 
         fetchProfileData();
-    }, [patientId, apiFetch]);
+    }, [patientId, api]);
 
     return (
         <section className="landing">
