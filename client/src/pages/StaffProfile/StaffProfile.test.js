@@ -237,9 +237,7 @@ describe('<StaffProfile />', () => {
   it('submits only changed fields and updates profile state', async () => {
     setupDefaultMocks();
     mockUpdate.mockResolvedValue({});
-    if (api && api.notifications) {
-       jest.spyOn(api.notifications, 'createNotif').mockResolvedValue({});
-    }
+    
     const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
     renderComponent();
 
