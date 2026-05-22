@@ -25,6 +25,7 @@ function PatientDashboard() {
   const api = useApi();
   const navigate = useNavigate();
   
+  const [notified, setNotified] = useState(false);
   const [patientName, setPatientName] = useState("");
   const [appointments, setAppointments] = useState([]);
   const [loadingAppointments, setLoadingAppointments] = useState(true);
@@ -115,6 +116,10 @@ function PatientDashboard() {
               data.queue.averageWaitTime = 0;
             }
             setPatientQueue(data.queue);
+            if (data.queue.position<3 && !notified){
+              await api.notifications.createNotif(user?.sub, "Your turn in the queue is approaching!");
+              setNotified(true);
+            }
           } else {
             setPatientQueue(null);
           }
@@ -124,7 +129,10 @@ function PatientDashboard() {
       }
     };
     fetchPatientQueue();
-  }, [user, api]);
+    
+     const interval = setInterval(fetchPatientQueue, 10000); //polling
+     return () => clearInterval(interval);
+  }, [user, api, notified]);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -352,7 +360,7 @@ function PatientDashboard() {
           <button onClick={() => navigate('/dashboard/patient/profile')}>
             <LuUser />
           </button>
-          <NotificationCenter></NotificationCenter>
+          <NotificationCenter userId ={user?.sub}></NotificationCenter>
           <button  onClick={logout}>Logout</button>
 
       </Header>
