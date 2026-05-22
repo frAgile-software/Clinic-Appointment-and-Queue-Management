@@ -55,6 +55,10 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
         getForPatient: jest.fn().mockResolvedValue({ inQueue: false }),
         addPatient: jest.fn().mockResolvedValue({ message: "Successfully joined queue" }),
         remove: jest.fn().mockResolvedValue({ message: "Removed" }),
+        getAverageWaitTime: jest.fn().mockResolvedValue({ averageWaitTime: 5 }),
+      },
+      notifications: {
+      createNotif: jest.fn().mockResolvedValue({ success: true }),
       },
       consults: {
         getForAuth0Id: jest.fn().mockResolvedValue([]),
@@ -90,6 +94,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
   });
 
   afterEach(() => {
+    jest.runOnlyPendingTimers();
     jest.useRealTimers();
     jest.restoreAllMocks();
   });
@@ -240,7 +245,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     expect(screen.getByText(/All provinces/i)).toBeInTheDocument();
 
     act(() => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
     });
 
     await waitFor(() => {
@@ -256,7 +261,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
     act(() => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
     });
 
     await waitFor(() => {
@@ -291,7 +296,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     });
 
     act(() => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
     });
 
     await waitFor(() => {
@@ -304,7 +309,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
     act(() => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
     });
 
     await waitFor(() => {
@@ -323,7 +328,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     let clinicCard;
 
     act(() => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
     });
 
     await waitFor(() => {
@@ -341,7 +346,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
     act(() => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
     });
 
     await waitFor(() => {
@@ -366,7 +371,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
     act(() => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
     });
 
     await waitFor(() => {
@@ -376,7 +381,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
     fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
 
-    act(() => { jest.runAllTimers(); });
+    act(() => { jest.runOnlyPendingTimers(); });
 
     await waitFor(() => {
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
@@ -397,7 +402,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
     
     fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
-    act(() => { jest.runAllTimers(); });
+    act(() => { jest.runOnlyPendingTimers(); });
 
     await waitFor(() => {
       expect(screen.getByRole('combobox', { name: /Filter by reason for visit/i })).toBeInTheDocument();
@@ -406,7 +411,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
     fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
 
-    act(() => { jest.runAllTimers(); });
+    act(() => { jest.runOnlyPendingTimers(); });
 
     await waitFor(() => {
       expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
@@ -471,7 +476,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
       act(() => {
-        jest.runAllTimers();
+        jest.runOnlyPendingTimers();
       });
 
       await waitFor(() => {
@@ -496,7 +501,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
       act(() => {
-        jest.runAllTimers();
+        jest.runOnlyPendingTimers();
       });
 
       await waitFor(() => {
@@ -521,7 +526,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
       act(() => {
-        jest.runAllTimers();
+        jest.runOnlyPendingTimers();
       });
 
       await waitFor(() => {
@@ -553,7 +558,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
       act(() => {
-        jest.runAllTimers();
+        jest.runOnlyPendingTimers();
       });
 
       await waitFor(() => {
@@ -563,7 +568,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
 
       fireEvent.change(screen.getByRole('combobox', { name: /Filter by reason for visit/i }), { target: { value: 'Dentistry' } });
 
-      act(() => { jest.runAllTimers(); });
+      act(() => { jest.runOnlyPendingTimers(); });
 
       await waitFor(() => {
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
@@ -603,7 +608,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       await renderDashboard();
       fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
-      act(() => { jest.runAllTimers(); });
+      act(() => { jest.runOnlyPendingTimers(); });
 
       await waitFor(() => {
         expect(screen.getByText(/Sandton Health Clinic/i)).toBeInTheDocument();
@@ -645,7 +650,7 @@ describe("Patient Dashboard - Component and Feature Tests", () => {
       fireEvent.click(screen.getByRole("button", { name: /SEARCH CLINIC/i }));
 
       act(() => {
-        jest.runAllTimers();
+        jest.runOnlyPendingTimers();
       });
 
       await waitFor(() => {
