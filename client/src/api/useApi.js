@@ -10,7 +10,7 @@ import { SpecialityService } from './services/SpecialityService';
 import { AppointmentService } from './services/AppointmentService';
 import { ScheduleService } from './services/ScheduleService';
 import { ConsultService } from './services/ConsultService'; 
-import {NotifService} from './services/NotifService';
+import { NotifService } from './services/NotifService';
 
 export const useApi = () => {
   const { getAccessTokenSilently } = useAuth0();
