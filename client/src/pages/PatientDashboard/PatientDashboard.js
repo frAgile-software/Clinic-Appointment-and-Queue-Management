@@ -101,6 +101,8 @@ function PatientDashboard() {
   }, [user, api]);
 
   useEffect(() => {
+    if (!user?.sub) return;
+      notifiedRef.current = localStorage.getItem(`queue_notified_${user.sub}`) === 'true';
     const fetchPatientQueue = async () => {
       if (user?.sub) {
         try {
@@ -316,14 +318,15 @@ function PatientDashboard() {
   };
   
   const handleLeaveQueue = async () => {
-    try {
-      console.log("Queue:", patientQueue);
-      await api.queues.remove(patientQueue.queue._id);
-      setPatientQueue(null);
-    } catch (error) {
-      console.log("Error leaving queue:", error);
-    }
-  };
+  try {
+    await api.queues.remove(patientQueue.queue._id);
+    setPatientQueue(null);
+    notifiedRef.current = false;
+    localStorage.removeItem(`queue_notified_${user.sub}`);
+  } catch (error) {
+    console.log("Error leaving queue:", error);
+  }
+};
 
   const isClinicOpen = (clinic) => {
     if (!clinic.practiceTimes?.open || !clinic.practiceTimes?.close) return false;
