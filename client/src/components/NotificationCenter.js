@@ -6,6 +6,10 @@ const sortNotifications = (items) => {
   return [...items].sort((a, b) => new Date(b.Time) - new Date(a.Time));
 };
 
+/*
+ *  NOTIFICATION COMPONENT - used in page components
+ */
+
 export default function NotificationCenter({ userId }) {
 
   const api = useApi();
@@ -14,30 +18,31 @@ export default function NotificationCenter({ userId }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-const fetchNotifications = useCallback(async () => {
-  if (!userId) {
-    setNotifications([]);
-    return;
-  }
+  const fetchNotifications = useCallback(async () => {
+    if (!userId) {
+      setNotifications([]);
+      return;
+    }
 
-  try {
-    setLoading(true);
-    setError("");
-    const data = await api.notifications.getNotifs(userId);
-    setNotifications(Array.isArray(data) ? sortNotifications(data) : []);
-  } catch (fetchError) {
-    console.error("Could not fetch notifications:", fetchError);
-    setNotifications([]);
-    setError("Could not load notifications.");
-  } finally {
-    setLoading(false);
-  }
-}, [api, userId]);
+    try {
+      setLoading(true);
+      setError("");
+      const data = await api.notifications.getNotifs(userId);
+      setNotifications(Array.isArray(data) ? sortNotifications(data) : []);
+    } catch (fetchError) {
+      console.error("Could not fetch notifications:", fetchError);
+      setNotifications([]);
+      setError("Could not load notifications.");
+    } finally {
+      setLoading(false);
+    }
+  }, [api, userId]);
 
   const toggleNotifications = async () => {
     setIsOpen((prev) => !prev);
   };
 
+  // clears all notifs that have been flagged as seen
   const handleClearSeen = async () => {
     if (!userId) return;
 
@@ -51,6 +56,7 @@ const fetchNotifications = useCallback(async () => {
     }
   };
 
+  // marks all current notifs for a user as seen
   const handleMarkSeen = async () => {
     if (!userId) return;
 
@@ -72,10 +78,11 @@ const fetchNotifications = useCallback(async () => {
     fetchNotifications();
   }, [userId, fetchNotifications]);
 
+  // notif polling - 10 seconds
   useEffect(() => {
     if (!userId) return;
-
   
+    // ignore polling in test environment
     const isTestingEnvironment = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
     if (isTestingEnvironment) {
       console.log("Skipping background interval polling inside test runner.");
@@ -94,6 +101,7 @@ const fetchNotifications = useCallback(async () => {
     };
   }, [userId, fetchNotifications]);
 
+  // UI component shared in different Pages
   return (
     <aside className="notif-wrapper">
       <button className="btn" onClick={toggleNotifications} type="button">
