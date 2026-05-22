@@ -32,6 +32,7 @@ function StaffProfile() {
     alert('No clinic administrator is assigned yet. Please contact support or wait until an administrator is added to your clinic.');
   };
 
+  // MAILTO to request dismissal
   const emailDismissal = () => {
     
     if (!adminEmail) {
@@ -52,6 +53,7 @@ Thank you.`);
     window.open(`mailto:${adminEmail}?subject=${subject}&body=${body}`);
   };
 
+    // MAILTO to request clinic change
   const emailClinicChange = () => {
     if (!adminEmail) {
       showNoAdminMessage();
@@ -83,6 +85,7 @@ Thank you.`);
     setIsClinicDetailsModalOpen(!isClinicDetailsModalOpen);
   };
 
+  // update user details
   const handleUpdate = async () => {
     if (!staffId){
       console.error("No user found, cannot update.");
@@ -121,8 +124,6 @@ Thank you.`);
       console.error("Update failed:", error);
     }
   };
-
-  
 
   //fetch profile data
   useEffect(() => {
@@ -179,7 +180,7 @@ Thank you.`);
 
   }, [staffId, api]);
 
-
+// fetch admins for this clinic
  useEffect(() => {
     if (!clinics?._id) return;
 
