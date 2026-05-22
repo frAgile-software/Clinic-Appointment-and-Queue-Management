@@ -17,6 +17,10 @@ export class ScheduleService extends ResourceService {
         }, null);
     }
 
+deleteForStaff(userId) {
+    return this.priv.delete(`${this.basePath}/staff/${userId}`, null, null);
+}
+  
 delete(scheduleId, staffId) {
   return this.priv.delete(`${this.basePath}/${scheduleId}?staffId=${encodeURIComponent(staffId)}`, null);
 }
@@ -24,5 +28,24 @@ delete(scheduleId, staffId) {
 create({ staffId, DayOfWeek, StartTime, EndTime }) {
     return this.priv.post(this.basePath, { staffId, DayOfWeek, StartTime, EndTime }, null);
 }
+
+getOffDays(staffId) {
+    return this.priv.get(`${this.basePath}/off-days/${encodeURIComponent(staffId)}`, null);
+}
+
+getBulkOffDays(clinicId, { staffIDs, _fromdate, _todate}) {
+    const params = {_fromdate, _todate};
+    if (staffIDs) params.staffIDs = Array.isArray(staffIDs) ? staffIDs.join(',') : staffIDs;
+    return this.priv.get(`${this.basePath}/off-days/bulk/${encodeURIComponent(clinicId)}`, params);
+}
+
+createOffDays(staffId, dates) {
+    return this.priv.post(`${this.basePath}/off-days`, { staffId, dates }, null);
+}
+
+deleteOffDay(offDayId) {
+    return this.priv.delete(`${this.basePath}/off-days/${offDayId}`, null);
+}
+
 
 }

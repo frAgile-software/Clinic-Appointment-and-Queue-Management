@@ -46,6 +46,7 @@ const mockUpdateAppointment = jest.fn();
 const mockGetSpecialitiesForClinic = jest.fn();
 const mockGetUserByEmail = jest.fn();
 const mockAddPatientToQueue = jest.fn();
+const mockGetUser = jest.fn();
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -56,15 +57,16 @@ beforeEach(() => {
         queues: { get: mockGetQueue, update: mockUpdateQueue, addPatient: mockAddPatientToQueue },
         appointments: { getForAuth0Id: mockGetAppointments, update: mockUpdateAppointment },
         specialities: { getForClinic: mockGetSpecialitiesForClinic },
-        users: { getByEmail: mockGetUserByEmail },
+        users: { getByEmail: mockGetUserByEmail, get: mockGetUser },
     });
 
-    mockGetAssignedClinics.mockResolvedValue([{ _id: "987654" }]);
+    mockGetAssignedClinics.mockResolvedValue([{ _id: "987654", practiceName: "Test Clinic" }]);
     mockGetQueue.mockResolvedValue(mockQueue);
     mockGetAppointments.mockResolvedValue(mockAppointments);
     mockGetSpecialitiesForClinic.mockResolvedValue(mockClinicSpecialities);
     mockGetUserByEmail.mockResolvedValue(mockFoundPatient);
     mockAddPatientToQueue.mockResolvedValue({ message: "Successfully joined queue" });
+    mockGetUser.mockResolvedValue({ name: "Hugh Morris", email: "hugh.morris@example.com" });
 });
 
 afterEach(() => {
@@ -129,7 +131,7 @@ test('renders action buttons', async () => {
 test('renders welcome message', async () => {
     await renderDashboard();
 
-    const welcomeMessage = screen.getByText(/Welcome Back, Hugh Morris/i);
+    const welcomeMessage = await screen.findByText(/Welcome Back, Hugh Morris!/i);
     expect(welcomeMessage).toBeInTheDocument();
 });
 

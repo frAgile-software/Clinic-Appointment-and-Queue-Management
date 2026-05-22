@@ -24,6 +24,7 @@
   --shadow-sm:    0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.05);
 }
 
+
 * { box-sizing: border-box; }
 
 /* ── Page shell ── */
@@ -614,3 +615,139 @@
   .week-grid { gap: 4px; }
   .calendar-wrap, .slots-wrap, .confirm-wrap, .description-wrap { padding: 14px; }
 }
+
+/* Off-day calendar cell */
+.week-cell.cal-cell--offday {
+  background: #fee2e2;
+  color: #b91c1c;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.week-cell.cal-cell--offday .week-cell-name,
+.week-cell.cal-cell--offday .week-cell-num { color: #b91c1c; }
+.week-cell-offday-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #b91c1c;
+}
+
+/* Off-day legend dot */
+.legend-dot--offday { background: #f87171; }
+
+/* "Already booked by you" greyed slot legend dot */
+.es-legend-dot--busy { background: #d1d5db; }
+
+.es-block-btn--unavailable {
+ display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #e5e7eb;        
+  color: #9ca3af;             
+  border: 1px solid #d1d5db;  
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(0.5);    
+  opacity: 0.6;  
+   text-decoration: line-through;
+}
+
+/* ── Time block grid ── */
+.es-blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.es-block-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 12px 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: all 0.13s;
+}
+
+.es-block-btn--off {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+.es-block-btn--off:hover {
+  border-color: var(--brand);
+  background: var(--brand-xlight);
+  color: var(--brand);
+}
+
+.es-block-btn--on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(107,47,160,.3);
+}
+
+.es-block-btn--unavailable {
+  background: #f3f4f6;
+  color: #d1d5db;
+  border-color: #f0f0f0;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.es-block-sep {
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+.es-block-time {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ── Legend ── */
+.es-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.es-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.es-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.es-legend-dot--on  { background: var(--brand); }
+.es-legend-dot--off { background: #d1d5db; border: 1.5px solid var(--border); }
+
+.es-block-busy-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #9ca3af;
+  margin-top: 2px;
+  width: 100%;
+  text-align: center;
+}
+

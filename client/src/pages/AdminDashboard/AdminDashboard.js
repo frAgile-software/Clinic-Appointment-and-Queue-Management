@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { LuUser } from "react-icons/lu";
 import Header from '../../components/Header';
 import { useApi } from "../../api/useApi";  
-import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import * as statExport from './exportHelper';
 import NotificationCenter from '../../components/NotificationCenter';
 import './AdminDashboard.css';
@@ -40,6 +40,12 @@ function startOfWeek(dt) {
 function weeksBetween(d1, d2) {
     return Math.ceil((startOfWeek(d2) - startOfWeek(d1)) / week);
 }
+
+// Source - https://stackoverflow.com/a/50398144
+// Posted by enesn, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-05-21, License - CC BY-SA 4.0
+
+const getDaysArray = function(s,e) {const a=[];for(const d=new Date(s);d<=new Date(e);d.setDate(d.getDate()+1)){ a.push(new Date(d));}return a;};
 
 // ----- end of 'outsourcing' -----
 
@@ -151,32 +157,35 @@ function AdminDashboard() {
         fetchStaff();
     },[selectedClinic, user, api]);
 
-    useEffect(() => {
-        const loadStaffSpecialities = async () => {
-            try {
-                const result = [];
-                for (const member of staffList) {
+useEffect(() => {
+    const loadStaffSpecialities = async () => {
+        try {
+            const specialityRequests = staffList
+                .filter((member) => {
                     const userId = member.userId || member._id;
+                    return userId && member.staffId;
+                })
+                .map(async (member) => {
+                    const userId = member.userId || member._id;
+                    const data = await api.specialities.getForStaff(userId);
 
-                    if (!userId || !member.staffId) continue;
-
-                    const data = api.specialities.getForStaff(userId);
-
-                    result.push([member.staffId, data]);
-                }
-                const resolvedResult = await Promise.all(result);
-                setStaffSpecialities(Object.fromEntries(resolvedResult.map(r => [r[0], r[1].SpecialityObjects || []])));
-            } catch (error) {
-                console.error("Error loading staff specialities:", error);
-            }
-        };
-
-        if (staffList.length > 0) {
-            loadStaffSpecialities();
-        } else {
-            setStaffSpecialities({});
+                    return [
+                        member.staffId,
+                        data.SpecialityObjects || []
+                    ];
+                });
+            const resolvedResult = await Promise.all(specialityRequests);
+            setStaffSpecialities(Object.fromEntries(resolvedResult));
+        } catch (error) {
+            console.error("Error loading staff specialities:", error);
         }
-    },[staffList, api]);
+    };
+    if (staffList.length > 0) {
+        loadStaffSpecialities();
+    } else {
+        setStaffSpecialities({});
+    }
+}, [staffList, api]);
 
     useEffect(() => {
         const loadSpecialities = async () => {
@@ -356,6 +365,9 @@ function AdminDashboard() {
                             break;
                         case STATS.DAYS_OFF:
                             console.log("Staff days off:");
+                            data = await api.schedules.getBulkOffDays(selectedClinic._id, {staffIDs: staffList.map(s => s.staffId)});
+                            setStats(data.clinicOffDays);
+                            setStatsCache( prev => ({...prev, [cacheKey]: data.clinicOffDays } ));
                             break;
                         default:
                             console.log("No stat selected.");
@@ -369,7 +381,7 @@ function AdminDashboard() {
             }
             fetchStats();
         }
-    }, [activeSection, selectedClinic, queueGranularity, apptSearchOptions, selectedStat, api, statsCache]);
+    }, [activeSection, selectedClinic, queueGranularity, apptSearchOptions, selectedStat, api, statsCache, staffList]);
 
     if (isLoading) {
         return <p>Loading dashboard...</p>;
@@ -493,6 +505,40 @@ function AdminDashboard() {
             alert("Failed to remove speciality. Please try again.");
         }
     };
+
+const handleRemoveStaff = async (member) => {
+    try {
+        const confirmed = window.confirm(
+            `Remove${member.title || ""} ${member.name || ""} ${member.surname || ""} from ${selectedClinic.practiceName}?`);
+
+        if (!confirmed) return;
+        const userId = member.userId || member._id;
+        const staffId = member.staffId;
+
+        if (!userId || !staffId) {
+            alert("Missing staff information. Cannot remove staff member.");
+            return;
+        }
+
+        await api.schedules.deleteForStaff(userId);
+        await api.clinics.removeStaff(selectedClinic._id, staffId);
+
+        setStaffList((prev) =>
+            prev.filter((staff) => staff.staffId !== staffId)
+        );
+
+        setStaffSpecialities((prev) => {
+            const updated = { ...prev };
+            delete updated[staffId];
+            return updated;
+        });
+
+        alert("Staff member removed successfully.");
+    } catch (error) {
+        console.error("Error removing staff:", error);
+        alert(error.message || "Failed to remove staff member. Please try again.");
+    }
+};
 
     const filteredStaffList = staffList.filter((member) => {
         const fullName = `${member.title || ""} ${member.name || ""} ${member.surname || ""}`.toLowerCase();
@@ -644,6 +690,30 @@ function AdminDashboard() {
                         </ResponsiveContainer>
                     </>
                 );
+            case STATS.DAYS_OFF:
+                const ods = stats.map(od => new Date(od.date));
+                const odcount = ods.map(d => d.toLocaleDateString()).reduce((a, c) => { a[c] = (a[c] || 0) + 1; return a; }, {});
+                const odrange = getDaysArray(
+                    Math.min.apply(null,[Date.now()-86400000, ...ods]), 
+                    Math.max.apply(null,[Date.now()+86400000, ...ods])
+                ).map(d => {return {date: d.toLocaleDateString(), count: odcount[d.toLocaleDateString()] || 0}});
+                console.log(odrange);
+                return (
+                    <>
+                        <h2 className="chart-title">Staff Off Days summary</h2>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={odrange}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="date" />
+                                <YAxis />
+                                <ReferenceLine x={(new Date()).toLocaleDateString()} stroke="black" strokeDasharray="5 5"/>
+                                <Tooltip />
+                                <Line type="monotone" dataKey="count" stroke="#6b1fad" strokeWidth={2} dot={{ fill: '#6b1fad' }} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </>
+                );
+
             default:
                 return (<span className="graph-icon">📈</span>);
         }
@@ -788,9 +858,13 @@ function AdminDashboard() {
                                         <p className="staff-role">{member.role || 'Staff Member'}</p>
                                     </section>
 
-                                    <button className="pill-btn-red staff-fire-btn">
-                                        Fire
-                                    </button>
+                                    <button
+                                        type="button"
+                                        className="pill-btn-red staff-fire-btn"
+                                        onClick={() => handleRemoveStaff(member)}
+                                    >
+                                    Fire
+                                </button>
                                 </section>
 
                                 <section className="staff-speciality-section">

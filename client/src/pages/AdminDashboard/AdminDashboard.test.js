@@ -1141,4 +1141,34 @@ describe("Admin Dashboard - Component and Feature Tests", () => {
         expect(await screen.findByText(/Appointment history summary/i)).toBeInTheDocument();
     });
 
+    test("Given the user selects 'Staff Off Days', Then getBulkOffDays is called with the clinic ID and staff IDs", async () => {
+        const staffWithIds = mockStaff.map(s => ({ ...s, staffId: s._id }));
+        mockApi.clinics.listStaff.mockResolvedValue({ users: staffWithIds });
+        mockApi.schedules.getBulkOffDays = jest.fn().mockResolvedValue({ clinicOffDays: [] });
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /View Stats/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Staff.*Off Days/i }));
+
+        await waitFor(() => {
+            expect(mockApi.schedules.getBulkOffDays).toHaveBeenCalledWith('clinic_001', {
+                staffIDs: ['staff_001', 'staff_002'],
+            });
+        });
+    });
+
+    test("Given off days data is returned, Then the 'Staff Off Days summary' chart title is shown", async () => {
+        mockApi.schedules.getBulkOffDays = jest.fn().mockResolvedValue({
+            clinicOffDays: [
+                { date: new Date(Date.now() - 86400000 * 2).toISOString() },
+                { date: new Date(Date.now() + 86400000 * 2).toISOString() },
+            ],
+        });
+
+        await renderDashboard();
+        fireEvent.click(screen.getByRole("button", { name: /View Stats/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Staff.*Off Days/i }));
+
+        expect(await screen.findByText(/Staff Off Days summary/i)).toBeInTheDocument();
+    });
 });

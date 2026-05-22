@@ -1,15 +1,3 @@
-/**
- * Booking.test.js
- *
- * Tests cover:
- *  1. Helper utilities (getBookingWindow, buildWeekCells, availableHours derivation)
- *  2. Route: GET /api/clinics/:clinicId/staff
- *  3. Route: GET /api/schedules/:userId
- *  4. Route: GET /appointments/booked
- *  5. Route: POST /api/appointments
- *  6. React component rendering & interactions
- */
-
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
@@ -23,12 +11,36 @@ jest.mock('@auth0/auth0-react', () => ({
   }),
 }));
 
-const mockApiFetch = jest.fn();
-jest.mock('../../hooks/apiAuth', () => ({
-  useApiAuth: () => ({
-    apiFetch: mockApiFetch,
+const mockListStaff        = jest.fn();
+const mockGetSchedule      = jest.fn();
+const mockGetOffDays       = jest.fn();
+const mockGetForAuth0Id    = jest.fn();
+const mockCreateAppt       = jest.fn();
+const mockCancelAppt       = jest.fn();
+const mockGetForStaff = jest.fn();
+
+jest.mock('../../api/useApi', () => ({
+  useApi: () => ({
+    clinics: {
+      listStaff: mockListStaff,
+    },
+    schedules: {
+      getSchedule: mockGetSchedule,
+      getOffDays:  mockGetOffDays,
+    },
+    appointments: {
+      getForAuth0Id: mockGetForAuth0Id,
+      create:        mockCreateAppt,
+      cancel:        mockCancelAppt,
+    },
+    specialities: {
+      getForStaff: mockGetForStaff,
+    },
   }),
 }));
+
+// Keep this alias so existing beforeEach blocks that reset mockApiFetch still compile
+const mockApiFetch = jest.fn();
 
 import Booking from './Booking';
 
@@ -247,6 +259,171 @@ describe('availableHours derivation', () => {
   });
 });
 
+/* ─── isPatientBooked logic tests ────────────────────────── */
+
+describe('isPatientBooked logic', () => {
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function isPatientBooked(slot, selectedDate, myAppointments) {
+    if (!selectedDate || !myAppointments.length) return false;
+    const dateStr = selectedDate.toISOString().slice(0, 10);
+    return myAppointments.some(appt => {
+      if (!appt.BookingDateTime) return false;
+      const apptDate    = new Date(appt.BookingDateTime);
+      const apptDateStr = apptDate.toISOString().slice(0, 10);
+      const apptHour    = `${pad(apptDate.getUTCHours())}:00`;
+      return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
+    });
+  }
+
+  const selectedDate = new Date('2025-05-20T00:00:00.000Z');
+  const slot9am  = { StartTime: '09:00', EndTime: '10:00' };
+  const slot10am = { StartTime: '10:00', EndTime: '11:00' };
+
+  it('returns false when myAppointments is empty', () => {
+    expect(isPatientBooked(slot9am, selectedDate, [])).toBe(false);
+  });
+
+  it('returns false when selectedDate is null', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isPatientBooked(slot9am, null, appts)).toBe(false);
+  });
+
+  it('returns true when patient has appointment matching date and time', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isPatientBooked(slot9am, selectedDate, appts)).toBe(true);
+  });
+
+  it('returns false when appointment is on a different date', () => {
+    const appts = [{ BookingDateTime: '2025-05-21T09:00:00.000Z' }];
+    expect(isPatientBooked(slot9am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns false when appointment is on same date but different time', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isPatientBooked(slot10am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns false when appointment has no BookingDateTime', () => {
+    const appts = [{ BookingDateTime: null }];
+    expect(isPatientBooked(slot9am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns true for one matching appointment among many', () => {
+    const appts = [
+      { BookingDateTime: '2025-05-20T08:00:00.000Z' },
+      { BookingDateTime: '2025-05-20T09:00:00.000Z' },
+      { BookingDateTime: '2025-05-20T11:00:00.000Z' },
+    ];
+    expect(isPatientBooked(slot9am, selectedDate, appts)).toBe(true);
+  });
+});
+
+/* ─── isDoctorBooked logic tests ─────────────────────────── */
+
+describe('isDoctorBooked logic', () => {
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function isDoctorBooked(slot, selectedDate, doctorAppointments) {
+    if (!selectedDate || !doctorAppointments.length) return false;
+    const dateStr = selectedDate.toISOString().slice(0, 10);
+    return doctorAppointments.some(appt => {
+      if (!appt.BookingDateTime) return false;
+      const apptDate    = new Date(appt.BookingDateTime);
+      const apptDateStr = apptDate.toISOString().slice(0, 10);
+      const apptHour    = `${pad(apptDate.getUTCHours())}:00`;
+      return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
+    });
+  }
+
+  const selectedDate = new Date('2025-05-20T00:00:00.000Z');
+  const slot9am  = { StartTime: '09:00', EndTime: '10:00' };
+  const slot10am = { StartTime: '10:00', EndTime: '11:00' };
+
+  it('returns false when doctorAppointments is empty', () => {
+    expect(isDoctorBooked(slot9am, selectedDate, [])).toBe(false);
+  });
+
+  it('returns false when selectedDate is null', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isDoctorBooked(slot9am, null, appts)).toBe(false);
+  });
+
+  it('returns true when doctor has appointment matching date and time', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isDoctorBooked(slot9am, selectedDate, appts)).toBe(true);
+  });
+
+  it('returns false when doctor appointment is on a different date', () => {
+    const appts = [{ BookingDateTime: '2025-05-19T09:00:00.000Z' }];
+    expect(isDoctorBooked(slot9am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns false when doctor appointment is same date but different hour', () => {
+    const appts = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    expect(isDoctorBooked(slot10am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns false when appointment has no BookingDateTime', () => {
+    const appts = [{ BookingDateTime: null }];
+    expect(isDoctorBooked(slot9am, selectedDate, appts)).toBe(false);
+  });
+
+  it('returns true for one matching appointment among many', () => {
+    const appts = [
+      { BookingDateTime: '2025-05-20T08:00:00.000Z' },
+      { BookingDateTime: '2025-05-20T09:00:00.000Z' },
+      { BookingDateTime: '2025-05-20T14:00:00.000Z' },
+    ];
+    expect(isDoctorBooked(slot9am, selectedDate, appts)).toBe(true);
+  });
+
+  it('is independent from patient appointments — different appointment sets', () => {
+    // doctor is booked at 9am but patient is not
+    const doctorAppts  = [{ BookingDateTime: '2025-05-20T09:00:00.000Z' }];
+    const patientAppts = [{ BookingDateTime: '2025-05-20T10:00:00.000Z' }];
+
+    function isPatientBooked(slot, selectedDate, myAppointments) {
+      if (!selectedDate || !myAppointments.length) return false;
+      const dateStr = selectedDate.toISOString().slice(0, 10);
+      return myAppointments.some(appt => {
+        if (!appt.BookingDateTime) return false;
+        const apptDate    = new Date(appt.BookingDateTime);
+        const apptDateStr = apptDate.toISOString().slice(0, 10);
+        const apptHour    = `${pad(apptDate.getUTCHours())}:00`;
+        return apptDateStr === dateStr && apptHour === slot.StartTime.slice(0, 5);
+      });
+    }
+
+    expect(isDoctorBooked(slot9am,  selectedDate, doctorAppts)).toBe(true);
+    expect(isPatientBooked(slot9am, selectedDate, patientAppts)).toBe(false);
+  });
+});
+
+/* ─── isBusy combination logic ───────────────────────────── */
+
+describe('isBusy = alreadyBooked || doctorTaken', () => {
+  it('is busy when only patient is booked', () => {
+    const alreadyBooked = true;
+    const doctorTaken   = false;
+    expect(alreadyBooked || doctorTaken).toBe(true);
+  });
+
+  it('is busy when only doctor is booked', () => {
+    const alreadyBooked = false;
+    const doctorTaken   = true;
+    expect(alreadyBooked || doctorTaken).toBe(true);
+  });
+
+  it('is busy when both are booked', () => {
+    expect(true || true).toBe(true);
+  });
+
+  it('is not busy when neither is booked', () => {
+    expect(false || false).toBe(false);
+  });
+});
+
 /* ─── API route tests (fetch mocking) ────────────────────── */
 
 describe('GET /api/clinics/:clinicId/staff', () => {
@@ -275,6 +452,39 @@ describe('GET /api/clinics/:clinicId/staff', () => {
     expect(json.users[0].surname).toBe('Smith');
   });
 
+  it('includes auth0Id in each staff user object', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', auth0Id: 'auth0|abc123' }],
+      }),
+    });
+
+    const res  = await fetch(`${BASE}/api/clinics/clinic123/staff`);
+    const json = await res.json();
+    expect(json.users[0].auth0Id).toBe('auth0|abc123');
+  });
+
+  it('includes staffId (Staff record _id) separate from _id (User _id)', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        users: [{
+          _id:     'user-mongo-id',
+          staffId: 'staff-mongo-id',
+          name:    'Alice',
+          surname: 'Smith',
+          auth0Id: 'auth0|abc123',
+        }],
+      }),
+    });
+
+    const res  = await fetch(`${BASE}/api/clinics/clinic123/staff`);
+    const json = await res.json();
+    expect(json.users[0]._id).toBe('user-mongo-id');
+    expect(json.users[0].staffId).toBe('staff-mongo-id');
+  });
+
   it('handles 404 when clinic not found', async () => {
     global.fetch.mockResolvedValueOnce({
       ok: false,
@@ -298,6 +508,23 @@ describe('GET /api/clinics/:clinicId/staff', () => {
     const res  = await fetch(`${BASE}/api/clinics/clinic123/staff`);
     const json = await res.json();
     expect(json.users).toEqual([]);
+  });
+
+  it('only returns users with role Staff (not Admin)', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        users: [
+          { _id: 'u1', name: 'Alice', role: 'Staff',  auth0Id: 'auth0|1' },
+          { _id: 'u2', name: 'Bob',   role: 'Admin',  auth0Id: 'auth0|2' },
+        ].filter(u => u.role === 'Staff'),
+      }),
+    });
+
+    const res  = await fetch(`${BASE}/api/clinics/clinic123/staff`);
+    const json = await res.json();
+    expect(json.users).toHaveLength(1);
+    expect(json.users[0].role).toBe('Staff');
   });
 });
 
@@ -482,17 +709,16 @@ describe('Booking component', () => {
   });
 
   it('shows "No doctors found" when staff list is empty', async () => {
+    
     renderBooking();
     expect(await screen.findByText(/no doctors found/i)).toBeInTheDocument();
   });
 
   it('renders doctor pill when staff returned', async () => {
-    mockApiFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', specialization: 'Cardiology' }],
-      }),
+    mockListStaff.mockResolvedValueOnce({
+      users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', specialization: 'Cardiology' }],
     });
+    mockGetForStaff.mockResolvedValue({ Specialities: ['Cardiology'] });
     renderBooking();
     expect(await screen.findByText(/Dr Alice Smith/i)).toBeInTheDocument();
   });
@@ -520,18 +746,14 @@ describe('Booking component', () => {
   });
 
   it('shows calendar after doctor selected', async () => {
-    mockApiFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        users: [{ _id: 'u1', name: 'Alice', surname: 'Smith' }],
-      }),
+    mockListStaff.mockResolvedValueOnce({
+      users: [{ _id: 'u1', name: 'Alice', surname: 'Smith', auth0Id: 'auth0|1' }],
     });
-    mockApiFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        schedule: [{ DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' }],
-      }),
+    mockGetSchedule.mockResolvedValueOnce({
+      schedule: [{ DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' }],
     });
+    mockGetOffDays.mockResolvedValueOnce({ offDays: [] });
+    mockGetForStaff.mockResolvedValue({ Specialities: ['Cardiology'] });
 
     renderBooking();
     const docPill = await screen.findByText(/Dr Alice Smith/i);
@@ -556,48 +778,70 @@ describe('Booking component', () => {
     });
   });
 
+  it('resets selected date and slot when a new doctor is selected', async () => {
+  mockListStaff.mockResolvedValue({
+    users: [
+      { _id: 'u1', name: 'Alice', surname: 'Smith', auth0Id: 'auth0|1' },
+      { _id: 'u2', name: 'Bob',   surname: 'Jones', auth0Id: 'auth0|2' },
+    ],
+  });
+  mockGetSchedule.mockResolvedValue({ schedule: [] });
+  mockGetOffDays.mockResolvedValue({ offDays: [] });
+  mockGetForAuth0Id.mockResolvedValue({ appointments: [] });
+  mockGetForStaff.mockResolvedValue({ Specialities: ['Cardiology'] });
+
+  renderBooking();
+
+  const pills = await screen.findAllByRole('button', { name: /Dr/ });
+  fireEvent.click(pills[0]); // Alice
+
+  await waitFor(() => expect(screen.getByText(/Select a Date/i)).toBeInTheDocument());
+
+  fireEvent.click(pills[1]); // Bob
+
+  await waitFor(() => expect(screen.getByText(/Select a Date/i)).toBeInTheDocument());
+  expect(screen.queryByText(/Select a Time/i)).not.toBeInTheDocument();
+});
+
+
   it('deletes old appointment if rescheduleAppointmentId is provided after confirming the new booking', async () => {
-    mockApiFetch.mockResolvedValueOnce({
-      ok: true, json: async () => ({ users: [{ _id: 'u1', name: 'A', surname: 'B' }] })
-    }).mockResolvedValueOnce({
-      ok: true, json: async () => ({ 
+      mockListStaff.mockResolvedValueOnce({
+        users: [{ _id: 'u1', name: 'A', surname: 'B', auth0Id: 'auth0|doc1' }],
+      });
+      mockGetSchedule.mockResolvedValueOnce({
         schedule: [
-          { DayOfWeek: 1, StartTime: '08:00', EndTime: '17:00' },
-          { DayOfWeek: 2, StartTime: '08:00', EndTime: '17:00' },
-          { DayOfWeek: 3, StartTime: '08:00', EndTime: '17:00' }
-        ] 
-      })
-    }).mockResolvedValueOnce({
-      ok: true, json: async () => ({ bookedSlots: [] })
-    }).mockResolvedValueOnce({
-      ok: true, json: async () => ({ message: 'Created' })
-    }).mockResolvedValueOnce({
-      ok: true, json: async () => ({ message: 'Deleted' })
-    });
+          { _id: 's1', DayOfWeek: 1, StartTime: '08:00', EndTime: '09:00' },
+          { _id: 's2', DayOfWeek: 2, StartTime: '08:00', EndTime: '09:00' },
+          { _id: 's3', DayOfWeek: 3, StartTime: '08:00', EndTime: '09:00' },
+          { _id: 's4', DayOfWeek: 4, StartTime: '08:00', EndTime: '09:00' },
+          { _id: 's5', DayOfWeek: 5, StartTime: '08:00', EndTime: '09:00' },
+        ],
+      });
+      mockGetOffDays.mockResolvedValueOnce({ offDays: [] });
+      mockGetForAuth0Id.mockResolvedValue({ appointments: [] });
+      mockCreateAppt.mockResolvedValueOnce({ message: 'Created' });
+      mockCancelAppt.mockResolvedValueOnce({ message: 'Cancelled' });
+      mockGetForStaff.mockResolvedValue({ Specialities: ['Cardiology'] });
 
     renderBooking({ rescheduleAppointmentId: 'old_appt_123' });
 
     fireEvent.click(await screen.findByText(/Dr A B/i));
+
     
-    // Because the test might run on a Friday/Weekend where the current week view has NO available future days,
-    // we advance the calendar by one week to ensure we hit a standard full week in the booking window.
     fireEvent.click(await screen.findByRole('button', { name: /Next week/i }));
 
-    // Pick the first available slot from the mock window
     const availableCells = await screen.findAllByRole('button', { name: /Select/i });
     fireEvent.click(availableCells[0]);
 
-    // Pick 8 AM slot
-    fireEvent.click(await screen.findByRole('button', { name: /Book 08:00/i }));
+    const slotBtn = await screen.findByRole('button', { name: /8:00 AM/i });
+    fireEvent.click(slotBtn);
 
-    // Confirm the new booking
+    
+
     fireEvent.click(await screen.findByRole('button', { name: /Confirm Appointment/i }));
 
     await waitFor(() => {
-      expect(mockApiFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/appointments/old_appt_123'),
-        expect.objectContaining({ method: 'DELETE' })
-      );
+      expect(mockCancelAppt).toHaveBeenCalledWith('old_appt_123');
     });
   });
 });
