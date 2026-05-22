@@ -36,6 +36,7 @@ jest.mock('../../api/useApi', () => ({
       getAssignedClinics: mockGetAssignedClinics,
       getAdmins: mockGetAdmins,
     },
+    notifications: mockNotifications
   }),
 }));
 
@@ -49,6 +50,13 @@ jest.mock('../../components/NotificationCenter', () => {
     return <section data-testid="notification-center" />;
   };
 });
+
+const mockNotifications = {
+  createNotif: jest.fn().mockResolvedValue({ success: true }),
+  getNotifs: jest.fn().mockResolvedValue([]),
+  markSeen: jest.fn().mockResolvedValue({}),
+  deleteSeen: jest.fn().mockResolvedValue({})
+};
 
 const profileData = {
   _id: 'staff-1',
@@ -229,6 +237,9 @@ describe('<StaffProfile />', () => {
   it('submits only changed fields and updates profile state', async () => {
     setupDefaultMocks();
     mockUpdate.mockResolvedValue({});
+    if (api && api.notifications) {
+       jest.spyOn(api.notifications, 'createNotif').mockResolvedValue({});
+    }
     const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
     renderComponent();
 
@@ -237,6 +248,10 @@ describe('<StaffProfile />', () => {
     fireEvent.change(screen.getByDisplayValue('Alex'), { target: { value: 'Alexander' } });
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
 
+    await waitFor(() => {
+      expect(mockUpdate).toHaveBeenCalledWith('auth0|123', { name: 'Alexander' });
+    });
+    expect(alertSpy).toHaveBeenCalledWith('Details updated successfully!');
     expect(await screen.findByText(/Alexander/)).toBeInTheDocument();
   });
 

@@ -111,7 +111,7 @@ Thank you.`);
       }
 
       console.log("Updating with data:", updatedData);  
-      //await api.notifications.createNotif(staffId, "Changes have been made to your account");  
+      await api.notifications.createNotif(staffId, "Changes have been made to your account");  
       await api.users.update(staffId, updatedData);
       
       setProfileData(prev=> ({ ...prev, ...updatedData }));
