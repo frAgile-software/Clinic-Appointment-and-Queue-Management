@@ -4,6 +4,7 @@ import { useApi } from '../api/useApi';
 
 const UserRoleContext = createContext(null);
 
+// Context providing a user's role (wraps the rendered app for role verification)
 export function UserRoleProvider({children}) {
     const {user, isAuthenticated, isLoading} = useAuth0();
     const api = useApi();
