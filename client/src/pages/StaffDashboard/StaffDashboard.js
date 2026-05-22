@@ -459,7 +459,7 @@ function StaffDashboard() {
               <section className="modal-details-canva">
                 <p>Contact Email: {modalDetails.Patient.email}</p>
                 <p>Reason: {modalDetails.Speciality.SpecialityName}</p>
-                <p>More info: {modalDetails.ReasonDetails ? modalDetails.ReasonDetails : `has been waiting for ${Math.round(Math.abs(Date.now() - Date.parse(modalDetails.createdAt)) / (60 * 60 * 100)) / 10} hours`}</p>
+                <p>More info: {modalDetails.ReasonDetails ? modalDetails.ReasonDetails : (viewingHistory ? `was seen at ${(new Date(modalDetails.TimeSeen)).toLocaleString()}` : `has been waiting for ${Math.round(Math.abs(Date.now() - Date.parse(modalDetails.createdAt)) / (60 * 60 * 100)) / 10} hours`)}</p>
               </section>
 
               <section className="modal-remarks-section">
