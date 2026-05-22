@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../../api/useApi';
 import './Registration.css';
+import { useUserRole } from '../../context/UserRoleContext';
 
 
 function Registration() {
     const navigate = useNavigate();
     const { user, isAuthenticated, loginWithRedirect, isLoading } = useAuth0();
     const api = useApi();
+    const { refreshRole } = useUserRole();
     
     const [formData, setFormData] = useState({
         name: '',
@@ -68,7 +70,9 @@ function Registration() {
         };
 
         try {
-            const data = await api.users.register(payload.auth0Id, payload.name, payload.surname, payload.title, payload.email, payload.role);
+            const data = await api.users.register(payload);
+
+            await refreshRole();
 
             const redirectMap = {
                 Patient: '/dashboard/patient',
