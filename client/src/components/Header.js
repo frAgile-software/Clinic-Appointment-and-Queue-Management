@@ -1,6 +1,7 @@
 import React from 'react';
 import './Header.css';
 
+// Shared application header across pages
 export default function Header({ children }) {
   return (
     <header className="universal-header">

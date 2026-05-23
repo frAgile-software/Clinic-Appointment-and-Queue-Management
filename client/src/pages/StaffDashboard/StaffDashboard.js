@@ -41,7 +41,7 @@ function StaffDashboard() {
   const [loading, setLoading] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [patientQueue, setPatientQueue] = useState([]);
-  const [viewingHistory, setViewingHistory] = useState(false); // Ok, these state things are genuinely black magic
+  const [viewingHistory, setViewingHistory] = useState(false);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
   const [loadingQueues, setLoadingQueues] = useState(false);
   const [loadingEmailSearch, setLoadingEmailSearch] = useState(false);
@@ -132,6 +132,7 @@ function StaffDashboard() {
     fetchAppointments();
   }, [staffId, api, statusList]);
 
+  // get all specialities for a clinic
   useEffect(() => {
     if (!clinics || clinics.length === 0) return;
 
@@ -173,6 +174,7 @@ function StaffDashboard() {
     }
   };
 
+  // searching for a patient by email
   useEffect(() => {
     const email = patientEmail.trim();
 
@@ -263,6 +265,7 @@ function StaffDashboard() {
     );
   };
 
+  // updating status of consult (appointment or queue)
   const updateConsult = async (consultItem, newStatus = consultItem.Status) => {
     if (!consultItem || !consultItem._id) {
       console.error('Missing consultation item for status update');
@@ -296,12 +299,12 @@ function StaffDashboard() {
   };
 
   const nav_bar = (
-          <Header>
-            <button  aria-label="Profile" onClick={() => navigate('/dashboard/staff/profile')}>
-            <LuUser /></button>  
-            <button  onClick={logout}>Logout</button>
-            <NotificationCenter userId={user?.sub} />
-          </Header>
+    <Header>
+      <button  aria-label="Profile" onClick={() => navigate('/dashboard/staff/profile')}>
+      <LuUser /></button>  
+      <button  onClick={logout}>Logout</button>
+      <NotificationCenter userId={user?.sub} />
+    </Header>
   );
 
   if (loading)

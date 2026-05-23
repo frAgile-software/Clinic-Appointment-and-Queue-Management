@@ -2,7 +2,7 @@
 
 ## Overview
 
-All API calls in client are centralised in `/src/api/`. **Do not use `fetch` or `apiFetch` anymore**, they should always go through the service classes.
+All API calls in client are centralised in `/src/api/`.
 
 ```
 useApi (hook)
@@ -462,24 +462,3 @@ The component is a white button (may conflict with white headers) which allows a
 to view their notifications (ordered chronologically), mark notifications as seen, and 
 delete their seen notifications (all view buttons within the dropdown). 
 
-
-
-
-## Known Problems to fix
-
-These are tracked in the service files with `// TODO` comments. We need to fix routes or logic server side for all.
-
-| Issue | Location |
-|---|---|
-| `auth0Id` for verification should come from JWT token or `/:auth0Id`, not request body | `ClinicService.linkStaff`, `ClinicService.linkAdmin`, `UserService.register` |
-| `updateClinic` should use `PATCH` not `PUT` | `ClinicService.updateClinic` |
-| `getAssignedClinics` route should use `/:staffId` param not query | `ClinicService.getAssignedClinics` |
-| `linkAdmin` route should be renamed on server (currently `createClinic`) | `ClinicService.linkAdmin` |
-| `getAssignedClinic` in server is redundant, `listAssignedClinics` should be used | Duplicate Server routes |
-| `getStaffSpecialities` in server should be under `/specialities` service | Server route |
-| `clinicInfo` in server is redundant | Duplicate Server routes |
-| `hooks/useApi.js` will no longer be needed | client/src/hooks/ |
-| `updateAppointment` should also include description field | `AppointmentService.update` |
-| `createAppointment` fix naming convention | `AppointmentService.create` |
-
-Please add other problems you come across here.

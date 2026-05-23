@@ -152,6 +152,7 @@ function PatientDashboard() {
     fetchHistory();
   }, [user, api]);
 
+  // fetches filter options based on already selected filters
   useEffect(() => {
     const fetchFilterOptions = async () => {
       try {
@@ -164,6 +165,7 @@ function PatientDashboard() {
     if (showSearch) fetchFilterOptions();
   }, [filters, showSearch, api]);
 
+  // fetches a list of clinics based on selected filters
   useEffect(() => {
     if (!showSearch) return;
 
@@ -210,6 +212,7 @@ function PatientDashboard() {
     }, 100);
   };
 
+  // confirm joining a queue
   const handleConfirmQueue =async () => {
     if (!selectedService) return;
 
@@ -267,6 +270,7 @@ function PatientDashboard() {
     clinicsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  // cancel an appointment
   const handleConfirmCancel = async () => {
     if (!cancelAppId) return;
     try {
@@ -283,6 +287,7 @@ function PatientDashboard() {
     }
   };
 
+  // reschedule an appointment
   const handleReschedule = (app) => {
     navigate('/book', {
       state: {

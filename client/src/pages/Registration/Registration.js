@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useApiAuth } from '../../hooks/apiAuth';
+import { useApi } from '../../api/useApi';
 import './Registration.css';
+import { useUserRole } from '../../context/UserRoleContext';
 
 
 function Registration() {
     const navigate = useNavigate();
     const { user, isAuthenticated, loginWithRedirect, isLoading } = useAuth0();
-    const {apiFetch} = useApiAuth();
+    const api = useApi();
+    const { refreshRole } = useUserRole();
     
     const [formData, setFormData] = useState({
         name: '',
@@ -29,36 +31,34 @@ function Registration() {
     const verifyUserRole = async () => {
       if (!isLoading && isAuthenticated && user) {
         try {
-          
-          console.log(`Attempting to get user from url ${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
-          const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/${user.sub}`);
+          console.log(`Attempting to get user.`);
 
-          if (response.ok) {
-            console.log("User found. Redirecting...");
-            const data = await response.json();
-            const redirectMap = {
-              Patient: '/dashboard/patient',
-              Staff:   '/dashboard/staff',
-              Admin:   '/dashboard/admin',
-            };
-            navigate(redirectMap[data.role] || '/');
-          } else if (response.status === 404) {
-            //do nothing (nothing needs to happen)
-          } else {
-            console.error('Failed to verify user profile.');
-          }
+          const data = await api.users.get(user.sub);
+
+          console.log("User found. Redirecting...");
+          const redirectMap = {
+            Patient: '/dashboard/patient',
+            Staff:   '/dashboard/staff',
+            Admin:   '/dashboard/admin',
+          };
+
+          navigate(redirectMap[data.role] || '/');
+          
         } catch (error) {
-          console.error('Network error during verification:', error);
+          if (error.status !== 404) {
+            console.error('Network error during verification:', error);
+          }
         }
       }
     };
     verifyUserRole();
-  }, [isLoading, isAuthenticated, user, navigate, apiFetch]);
+  }, [isLoading, isAuthenticated, user, navigate, api]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    // submit registration
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -70,26 +70,19 @@ function Registration() {
         };
 
         try {
-            const response = await apiFetch(`${process.env.REACT_APP_SERVER_URL}/api/users/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const data = await api.users.register(payload);
 
-            const data = await response.json();
+            await refreshRole();
 
-            if (response.ok) {
-                const redirectMap = {
-                    Patient: '/dashboard/patient',
-                    Staff: '/dashboard/staff',
-                    Admin: '/dashboard/admin',
-                };
-                navigate(redirectMap[data.role] || '/');
-            } else {
-                console.error('Registration failed:', data.message);
-            }
+            const redirectMap = {
+                Patient: '/dashboard/patient',
+                Staff: '/dashboard/staff',
+                Admin: '/dashboard/admin',
+            };
+            navigate(redirectMap[data.role] || '/');
+
         } catch (error) {
-            console.error('Network error:', error);
+            console.error('Registration error:', error);
         }
     };
 
