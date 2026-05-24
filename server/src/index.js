@@ -23,7 +23,9 @@ server.use(cors({
 
 server.use(express.json());
 
-// protect all '/api' routes
+// ======= ROUTER LAYER ========
+
+// protect all '/api' routes -- used in each route below
 server.use("/api", requireAuth);
 
 server.use(usersRoute);
@@ -40,7 +42,7 @@ server.get("/hello", (req, res) => {
     res.json({message : "Hello world!"});
 });
 
-/* istanbul ignore next */ //ignores this block in code coverage
+/* istanbul ignore next */
 if (require.main === module) {
     const port = process.env.PORT || 5000;
     const listener = server.listen(port, () => {

@@ -3,7 +3,6 @@ import Registration from './Registration';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router';
 
-// Mock Auth0 to simulate a logged-in user
 jest.mock('@auth0/auth0-react', () => ({
     useAuth0: () => ({
         isAuthenticated: true,
@@ -13,8 +12,35 @@ jest.mock('@auth0/auth0-react', () => ({
     }),
 }));
 
+jest.mock('react-router', () => ({
+    ...jest.requireActual('react-router'),
+    useNavigate: () => jest.fn(),
+}));
+
+const mockGet = jest.fn();
+const mockRegister = jest.fn();
+
+const mockApi = {
+    users: {
+        get: mockGet,
+        register: mockRegister,
+    },
+};
+
+jest.mock('../../api/useApi', () => ({
+    useApi: () => mockApi,
+}));
+
+jest.mock('../../context/UserRoleContext', () => ({
+    useUserRole: () => ({
+        refreshRole: jest.fn(),
+    }),
+}));
+
 describe('<Registration />', () => {
     beforeEach(() => {
+        mockGet.mockRejectedValue({ status: 404 });
+
         render(
             <MemoryRouter>
                 <Registration />
@@ -22,9 +48,12 @@ describe('<Registration />', () => {
         );
     });
 
+    afterEach(() => {
+        jest.resetAllMocks();
+    });
+
     it('should render the registration form', () => {
-        const form = screen.getByTestId('register-form');
-        expect(form).toBeInTheDocument();
+        expect(screen.getByTestId('register-form')).toBeInTheDocument();
     });
 
     it('should show the registration heading', () => {
@@ -32,8 +61,7 @@ describe('<Registration />', () => {
     });
 
     it('should have three role selection radios', () => {
-        const roleRadioButtons = screen.getAllByTestId('role-select');
-        expect(roleRadioButtons).toHaveLength(3);
+        expect(screen.getAllByTestId('role-select')).toHaveLength(3);
     });
 
     it('should default to the Patient role selected', () => {

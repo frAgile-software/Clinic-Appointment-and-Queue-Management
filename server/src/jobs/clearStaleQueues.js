@@ -1,10 +1,12 @@
 const cron = require("node-cron");
 const Queue = require("../database/models/Queue");
 
+// Clears all stale queues once a day
+// stale being those still "Waiting" after each day (3 am)
 const clearStaleQueues = async () => {
     try {
         const result = await Queue.deleteMany({
-            Status: { $in: ["Waiting"] }, // could maybe also add "In Consult"
+            Status: { $in: ["Waiting"] },
         });
         console.log(`[clearStaleQueues] Deleted ${result.deletedCount} stale queues at ${new Date().toISOString()}`)
     } catch (error) {

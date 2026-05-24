@@ -9,7 +9,6 @@ export class AppointmentService extends ResourceService {
         return this.priv.patch(`${this.basePath}/${appointmentId}`, null, null);
     }
 
-    // TODO: fix naming in server to stay to one convention
     create({clinicId, staffUserId, patientAuth0Id, bookingDateTime, description, specialityName, rescheduleAppointmentId}) {
         return this.priv.post(`${this.basePath}/`, {
             Clinic: clinicId, 
@@ -28,7 +27,6 @@ export class AppointmentService extends ResourceService {
         });
     }
 
-    // TODO: include description for updating
     update(appointmentId, {patientUID, staffUID, clinicId, bookingDateTime, specialityId, status, remarks}) {
         return this.priv.put(`${this.basePath}/${appointmentId}`, {
             Patient: patientUID, 
